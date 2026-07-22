@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/moez-rd/memoria/pkg/util"
+	"github.com/ngodingvareng/memoria/pkg/util"
 )
 
 type AppError struct {

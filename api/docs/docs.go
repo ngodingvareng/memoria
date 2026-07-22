@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest"
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_http_dto.CreateBookRequest"
                         }
                     }
                 ],
@@ -43,7 +43,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse"
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_http_dto.BookResponse"
                         }
                     }
                 }
@@ -51,7 +51,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse": {
+        "github_com_ngodingvareng_memoria_internal_delivery_http_dto.BookResponse": {
             "type": "object",
             "properties": {
                 "author": {
@@ -68,7 +68,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest": {
+        "github_com_ngodingvareng_memoria_internal_delivery_http_dto.CreateBookRequest": {
             "type": "object",
             "required": [
                 "author",

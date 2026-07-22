@@ -27,7 +27,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest"
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_http_dto.CreateBookRequest"
                         }
                     }
                 ],
@@ -35,7 +35,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse"
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_http_dto.BookResponse"
                         }
                     }
                 }
@@ -43,7 +43,7 @@
         }
     },
     "definitions": {
-        "github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse": {
+        "github_com_ngodingvareng_memoria_internal_delivery_http_dto.BookResponse": {
             "type": "object",
             "properties": {
                 "author": {
@@ -60,7 +60,7 @@
                 }
             }
         },
-        "github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest": {
+        "github_com_ngodingvareng_memoria_internal_delivery_http_dto.CreateBookRequest": {
             "type": "object",
             "required": [
                 "author",

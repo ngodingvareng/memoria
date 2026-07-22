@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/moez-rd/memoria/internal/db"
-	"github.com/moez-rd/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/db"
+	"github.com/ngodingvareng/memoria/internal/entity"
 )
 
 func toEntityActivity(row db.Activity) *entity.Activity {

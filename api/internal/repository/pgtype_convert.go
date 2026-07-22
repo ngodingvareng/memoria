@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/moez-rd/memoria/pkg/ptr"
+	"github.com/ngodingvareng/memoria/pkg/ptr"
 )
 
 // This file holds pgtype <-> plain-Go-pointer conversions shared by

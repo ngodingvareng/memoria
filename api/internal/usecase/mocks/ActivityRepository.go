@@ -7,8 +7,8 @@ package mocks
 import (
 	"context"
 
-	"github.com/moez-rd/memoria/internal/entity"
-	"github.com/moez-rd/memoria/internal/usecase"
+	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/usecase"
 	mock "github.com/stretchr/testify/mock"
 )
 

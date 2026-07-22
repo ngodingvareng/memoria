@@ -1,6 +1,6 @@
 basePath: /api/v1
 definitions:
-  github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse:
+  github_com_ngodingvareng_memoria_internal_delivery_http_dto.BookResponse:
     properties:
       author:
         example: Budi Raharjo
@@ -12,7 +12,7 @@ definitions:
         example: Learn Golang
         type: string
     type: object
-  github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest:
+  github_com_ngodingvareng_memoria_internal_delivery_http_dto.CreateBookRequest:
     properties:
       author:
         example: Budi Raharjo
@@ -40,14 +40,14 @@ paths:
           name: request
           required: true
           schema:
-            $ref: "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest"
+            $ref: "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_http_dto.CreateBookRequest"
       produces:
         - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse"
+            $ref: "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_http_dto.BookResponse"
       summary: Tambah Buku Baru
       tags:
         - Books

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/moez-rd/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/entity"
 )
 
 // defaultConfirmationTimeoutMinutes mirrors the DB column's own DEFAULT

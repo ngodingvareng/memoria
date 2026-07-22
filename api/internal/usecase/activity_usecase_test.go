@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/moez-rd/memoria/internal/entity"
-	"github.com/moez-rd/memoria/internal/usecase"
-	"github.com/moez-rd/memoria/internal/usecase/mocks"
+	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/usecase"
+	"github.com/ngodingvareng/memoria/internal/usecase/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

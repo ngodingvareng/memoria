@@ -3,8 +3,8 @@ package rest
 import (
 	"github.com/gofiber/contrib/v3/swaggo"
 	"github.com/gofiber/fiber/v3"
-	_ "github.com/moez-rd/memoria/docs"
-	"github.com/moez-rd/memoria/internal/delivery/rest/handler"
+	_ "github.com/ngodingvareng/memoria/docs"
+	"github.com/ngodingvareng/memoria/internal/delivery/rest/handler"
 )
 
 // Handlers groups every handler the router needs. Add a field here each

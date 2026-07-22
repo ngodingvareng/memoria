@@ -5,12 +5,12 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/moez-rd/memoria/internal/config"
-	"github.com/moez-rd/memoria/internal/delivery/rest"
-	"github.com/moez-rd/memoria/internal/delivery/rest/handler"
-	"github.com/moez-rd/memoria/internal/delivery/rest/middleware"
-	"github.com/moez-rd/memoria/internal/repository"
-	"github.com/moez-rd/memoria/internal/usecase"
+	"github.com/ngodingvareng/memoria/internal/config"
+	"github.com/ngodingvareng/memoria/internal/delivery/rest"
+	"github.com/ngodingvareng/memoria/internal/delivery/rest/handler"
+	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
+	"github.com/ngodingvareng/memoria/internal/repository"
+	"github.com/ngodingvareng/memoria/internal/usecase"
 )
 
 type Container struct {

@@ -1,4 +1,4 @@
-module github.com/moez-rd/memoria
+module github.com/ngodingvareng/memoria
 
 go 1.26.5
 

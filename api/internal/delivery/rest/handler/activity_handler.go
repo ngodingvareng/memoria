@@ -4,10 +4,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
-	"github.com/moez-rd/memoria/internal/delivery/rest/dto"
-	"github.com/moez-rd/memoria/internal/usecase"
-	"github.com/moez-rd/memoria/pkg/errs"
-	"github.com/moez-rd/memoria/pkg/util"
+	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
+	"github.com/ngodingvareng/memoria/internal/usecase"
+	"github.com/ngodingvareng/memoria/pkg/errs"
+	"github.com/ngodingvareng/memoria/pkg/util"
 )
 
 type ActivityHandler struct {

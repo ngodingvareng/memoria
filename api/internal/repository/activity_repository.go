@@ -6,9 +6,9 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/moez-rd/memoria/internal/db"
-	"github.com/moez-rd/memoria/internal/entity"
-	"github.com/moez-rd/memoria/internal/usecase"
+	"github.com/ngodingvareng/memoria/internal/db"
+	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/usecase"
 )
 
 var _ usecase.ActivityRepository = (*activityRepository)(nil)

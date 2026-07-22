@@ -6,8 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/moez-rd/memoria/internal/app"
-	"github.com/moez-rd/memoria/internal/config"
+	"github.com/ngodingvareng/memoria/internal/app"
+	"github.com/ngodingvareng/memoria/internal/config"
 )
 
 // @title Book API

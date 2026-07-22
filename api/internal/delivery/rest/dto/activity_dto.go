@@ -3,7 +3,7 @@ package dto
 import (
 	"time"
 
-	"github.com/moez-rd/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/entity"
 )
 
 type CreateActivityRequest struct {
