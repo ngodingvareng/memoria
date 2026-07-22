@@ -45,6 +45,15 @@ const data = {
     },
   ],
 
+  group: [
+    {
+      name: 'NgodingVareng',
+      imageSrc: 'https://github.com/shadcn.png',
+      imageAlt: 'hello',
+      url: '/@shadcn',
+    },
+  ],
+
   followed: [
     {
       name: 'ShadCN',
@@ -104,6 +113,31 @@ export default function AppSidebar({
                     <Link to={item.url}>
                       <HugeiconsIcon icon={item.icon} strokeWidth={2} />
                       {item.title}
+                    </Link>
+                  }
+                />
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel>Group</SidebarGroupLabel>
+          <SidebarMenu>
+            {data.group.map((item) => (
+              <SidebarMenuItem key={item.name}>
+                <SidebarMenuButton
+                  render={
+                    <Link to={item.url}>
+                      <Avatar size="sm" className="rounded-sm after:rounded-sm">
+                        <AvatarImage
+                          src={item.imageSrc}
+                          alt={item.imageAlt}
+                          className="rounded-sm"
+                        />
+                        <AvatarFallback>CN</AvatarFallback>
+                      </Avatar>
+                      <span className="min-w-0 truncate">{item.name}</span>
                     </Link>
                   }
                 />

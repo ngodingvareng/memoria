@@ -25,11 +25,8 @@ export const NotesHeader: React.FC<NotesHeaderProps> = ({
   noteCount,
 }) => {
   return (
-    <div className="flex mt-8">
-      <div className="grow">
-        <h1 className="text-3xl font-bold">My Notes ({noteCount} items)</h1>
-      </div>
-      <div className="flex items-center gap-1">
+    <div className="flex flex-col gap-2 mt-4">
+      <div className="flex items-center justify-end gap-1">
         <Button variant="ghost" disabled>
           <HugeiconsIcon icon={CarouselHorizontalIcon} /> Slideshow (Coming
           soon)
@@ -51,6 +48,11 @@ export const NotesHeader: React.FC<NotesHeaderProps> = ({
         <Button variant="secondary" size="icon">
           <HugeiconsIcon icon={MoreHorizontalSquare01Icon} />
         </Button>
+      </div>
+      <div className="grow">
+        <h1 className="text-3xl font-semibold font-heading">
+          Adalah Pokoknya ({noteCount} items)
+        </h1>
       </div>
     </div>
   );

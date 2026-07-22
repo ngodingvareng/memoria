@@ -1,3 +1,5 @@
+import type { Story } from '@/types/story';
+
 export const dummyNotes = [
   {
     id: 1,
@@ -237,6 +239,76 @@ export const dummyNotes = [
         <p>
           Collaboration features, version history, export to PDF, and keyboard
           shortcuts for power users.
+        </p>
+      </>
+    ),
+  },
+];
+
+export const dummyStories: Story[] = [
+  {
+    user: {
+      id: 1,
+      name: 'ShadCN',
+      username: '@shadcn',
+      imageSrc: 'https://github.com/shadcn.png',
+      imageAlt: '@shadcn',
+    },
+    id: 10,
+    date: '20 Juli 2036',
+    time: '10:30',
+    tags: ['ideas', 'app', 'brainstorm'],
+    content: (
+      <>
+        <h1>Ideas for the new app</h1>
+        <p>
+          Brainstorming session for the note-taking application. Want to make
+          something that feels natural and fast.
+        </p>
+        <h2>Core features</h2>
+        <p>
+          Markdown support, real-time sync, offline mode, simple and clean UI.
+        </p>
+        <h3>Nice to have</h3>
+        <p>
+          Collaboration features, version history, export to PDF, and keyboard
+          shortcuts for power users.
+        </p>
+      </>
+    ),
+  },
+  {
+    user: {
+      id: 1,
+      name: 'ShadCN',
+      username: '@shadcn',
+      imageSrc: 'https://github.com/shadcn.png',
+      imageAlt: '@shadcn',
+    },
+    id: 9,
+    date: '22 Juli 2036',
+    time: '17:45',
+    color: 'sky',
+    tags: ['debugging', 'programming', 'websocket'],
+    content: (
+      <>
+        <h1>Debugging session notes</h1>
+        <h2>The problem</h2>
+        <p>
+          Memory leak in the WebSocket connection handler. The application was
+          consuming 2GB of RAM after running for 24 hours.
+        </p>
+        <h3>Root cause</h3>
+        <p>
+          Event listeners were not being properly cleaned up when connections
+          closed. Added cleanup logic in the disconnect handler.
+        </p>
+        <p>Memory usage now stable at around 200MB. Crisis averted!</p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dignissimos,
+          ducimus tempore suscipit amet labore rerum odit alias fugit at
+          recusandae consequuntur velit fuga eligendi, hic vel? Architecto
+          maxime temporibus dignissimos.
         </p>
       </>
     ),

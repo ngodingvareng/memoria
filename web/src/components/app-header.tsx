@@ -1,19 +1,31 @@
-import { Notification01Icon } from '@hugeicons/core-free-icons';
+import { Notification01Icon, Search01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
+import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group';
 import { SidebarTrigger } from './ui/sidebar';
 import UserMenu from './user-menu';
 
 export default function AppHeader() {
   return (
-    <header className="h-16 fixed w-full top-0 z-50 bg-background border-b px-4 flex items-center">
-      <div>
+    <header className="h-16 fixed w-full gap-4 justify-between top-0 z-50 bg-background border-b px-4 flex items-center">
+      <div className="flex items-center gap-2">
         <SidebarTrigger size="icon-lg" className="[&_svg]:size-5!" />
-        <Link to="/" className="text-3xl px-3 py-2 font-semibold font-heading">
+        <Link to="/" className="text-3xl font-semibold font-heading">
           Memoria
         </Link>
       </div>
-      <div className="grow flex items-center gap-4 pr-2 justify-end">
+
+      <div className="flex items-center gap-4 pr-2 justify-end grow">
+        <InputGroup className="max-w-xl w-full h-10 [&_svg]:size-5!">
+          <InputGroupInput
+            placeholder="Search for stories and activities..."
+            type="search"
+            className="text-base!"
+          />
+          <InputGroupAddon>
+            <HugeiconsIcon strokeWidth={2} icon={Search01Icon} />
+          </InputGroupAddon>
+        </InputGroup>
         <Link
           to="/notifications"
           className="size-10 flex justify-center items-center bg-primary/10 rounded-full"
