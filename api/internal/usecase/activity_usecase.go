@@ -16,6 +16,11 @@ import (
 // do conditionally.
 const defaultConfirmationTimeoutMinutes int32 = 1440
 
+// defaultColorHex is taken from https://tailwindcss.com/docs/colors (Gray 700)
+// We recommended using using dark gray and similar tones from that
+// source so it matches  seamlessly with the frontend.
+const defaultColorHex string = "#374151"
+
 type ActivityRepository interface {
 	Create(ctx context.Context, activity *entity.Activity) (*entity.Activity, error)
 	WithTransaction(ctx context.Context, fn func(ActivityRepository) error) error
@@ -26,7 +31,7 @@ type CreateActivityInput struct {
 	Name                       string
 	Description                *string
 	IsFixedSchedule            bool
-	ColorPalette               *string
+	ColorHex                   *string
 	ConfirmationTimeoutMinutes *int32
 }
 
@@ -49,12 +54,17 @@ func (u *activityUsecase) CreateActivity(ctx context.Context, input CreateActivi
 		timeout = *input.ConfirmationTimeoutMinutes
 	}
 
+	colorHex := defaultColorHex
+	if input.ColorHex != nil {
+		colorHex = *input.ColorHex
+	}
+
 	activity := &entity.Activity{
 		UserID:                     input.UserID,
 		Name:                       input.Name,
 		Description:                input.Description,
 		IsFixedSchedule:            input.IsFixedSchedule,
-		ColorPalette:               input.ColorPalette,
+		ColorHex:                   &colorHex,
 		ConfirmationTimeoutMinutes: &timeout,
 	}
 

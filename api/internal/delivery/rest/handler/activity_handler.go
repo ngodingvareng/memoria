@@ -54,7 +54,7 @@ func (h *ActivityHandler) CreateActivity(c fiber.Ctx) error {
 		Name:                       req.Name,
 		Description:                req.Description,
 		IsFixedSchedule:            req.IsFixedSchedule,
-		ColorPalette:               req.ColorPalette,
+		ColorHex:                   req.ColorHex,
 		ConfirmationTimeoutMinutes: req.ConfirmationTimeoutMinutes,
 	})
 	if err != nil {

@@ -12,7 +12,7 @@ type Activity struct {
 	Name                       string
 	Description                *string
 	IsFixedSchedule            bool
-	ColorPalette               *string
+	ColorHex                   *string
 	ConfirmationTimeoutMinutes *int32
 	CreatedAt                  time.Time
 	UpdatedAt                  time.Time

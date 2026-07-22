@@ -12,7 +12,7 @@ func toEntityActivity(row db.Activity) *entity.Activity {
 		Name:                       row.Name,
 		Description:                pgTextToPtr(row.Description),
 		IsFixedSchedule:            row.IsFixedSchedule,
-		ColorPalette:               pgTextToPtr(row.ColorPalette),
+		ColorHex:                   pgTextToPtr(row.ColorHex),
 		ConfirmationTimeoutMinutes: pgInt4ToPtr(row.ConfirmationTimeoutMinutes),
 		CreatedAt:                  row.CreatedAt.Time,
 		UpdatedAt:                  row.UpdatedAt.Time,
@@ -26,7 +26,7 @@ func toCreateActivityParams(a *entity.Activity) db.CreateActivityParams {
 		Name:                       a.Name,
 		Description:                ptrToPgText(a.Description),
 		IsFixedSchedule:            a.IsFixedSchedule,
-		ColorPalette:               ptrToPgText(a.ColorPalette),
+		ColorHex:                   ptrToPgText(a.ColorHex),
 		ConfirmationTimeoutMinutes: ptrToPgInt4(a.ConfirmationTimeoutMinutes),
 	}
 }

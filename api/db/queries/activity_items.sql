@@ -29,13 +29,13 @@ ON CONFLICT(activity_id, scheduled_at) WHERE deleted_at IS NULL DO NOTHING
         status,
         occurred_at,
         content,
-        color_palette
+        color_hex
     ) VALUES (
         sqlc.arg(activity_id),
         sqlc.arg(status),
         sqlc.arg(occurred_at),
         sqlc.narg(content),
-        sqlc.narg(color_palette)
+        sqlc.narg(color_hex)
     )
     RETURNING *;
 
@@ -59,7 +59,7 @@ ON CONFLICT(activity_id, scheduled_at) WHERE deleted_at IS NULL DO NOTHING
     SET status = sqlc.arg(status),
         confirmed_at = NOW(),
         content = sqlc.narg(content),
-        color_palette = sqlc.narg(color_palette),
+        color_hex = sqlc.narg(color_hex),
         updated_at = NOW()
     WHERE id = sqlc.arg(id) AND status = 'awaiting'
         RETURNING *;
@@ -69,7 +69,7 @@ ON CONFLICT(activity_id, scheduled_at) WHERE deleted_at IS NULL DO NOTHING
 -- touching status/confirmed_at.
     UPDATE activity_items
     SET content = sqlc.narg(content),
-        color_palette = sqlc.narg(color_palette),
+        color_hex = sqlc.narg(color_hex),
         updated_at = NOW()
     WHERE id = sqlc.arg(id)
         AND deleted_at IS NULL

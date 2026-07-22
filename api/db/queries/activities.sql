@@ -1,10 +1,10 @@
 -- name: CreateActivity :one
 INSERT INTO activities(
     user_id, name, description, is_fixed_schedule,
-    color_palette, confirmation_timeout_minutes
+    color_hex, confirmation_timeout_minutes
 ) VALUES (
     sqlc.arg(user_id), sqlc.arg(name), sqlc.narg(description), sqlc.arg(is_fixed_schedule),
-    sqlc.narg(color_palette), sqlc.arg(confirmation_timeout_minutes)
+    sqlc.narg(color_hex), sqlc.arg(confirmation_timeout_minutes)
 )
 RETURNING *;
 
@@ -27,7 +27,7 @@ ORDER BY created_at DESC;
 UPDATE activities
 SET name = sqlc.arg(name),
     description = sqlc.narg(description),
-    color_palette = sqlc.narg(color_palette),
+    color_hex = sqlc.narg(color_hex),
     confirmation_timeout_minutes = sqlc.arg(confirmation_timeout_minutes),
     updated_at = NOW()
 WHERE id = sqlc.arg(id)

@@ -15,12 +15,12 @@ import (
 const createActivity = `-- name: CreateActivity :one
 INSERT INTO activities(
     user_id, name, description, is_fixed_schedule,
-    color_palette, confirmation_timeout_minutes
+    color_hex, confirmation_timeout_minutes
 ) VALUES (
     $1, $2, $3, $4,
     $5, $6
 )
-RETURNING id, user_id, name, description, is_fixed_schedule, color_palette, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+RETURNING id, user_id, name, description, is_fixed_schedule, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
 `
 
 type CreateActivityParams struct {
@@ -28,7 +28,7 @@ type CreateActivityParams struct {
 	Name                       string
 	Description                pgtype.Text
 	IsFixedSchedule            bool
-	ColorPalette               pgtype.Text
+	ColorHex                   pgtype.Text
 	ConfirmationTimeoutMinutes pgtype.Int4
 }
 
@@ -38,7 +38,7 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 		arg.Name,
 		arg.Description,
 		arg.IsFixedSchedule,
-		arg.ColorPalette,
+		arg.ColorHex,
 		arg.ConfirmationTimeoutMinutes,
 	)
 	var i Activity
@@ -48,7 +48,7 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 		&i.Name,
 		&i.Description,
 		&i.IsFixedSchedule,
-		&i.ColorPalette,
+		&i.ColorHex,
 		&i.ConfirmationTimeoutMinutes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -58,7 +58,7 @@ func (q *Queries) CreateActivity(ctx context.Context, arg CreateActivityParams) 
 }
 
 const getActivityByID = `-- name: GetActivityByID :one
-SELECT id, user_id, name, description, is_fixed_schedule, color_palette, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+SELECT id, user_id, name, description, is_fixed_schedule, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
 FROM activities
 WHERE id = $1
     AND user_id = $2
@@ -80,7 +80,7 @@ func (q *Queries) GetActivityByID(ctx context.Context, arg GetActivityByIDParams
 		&i.Name,
 		&i.Description,
 		&i.IsFixedSchedule,
-		&i.ColorPalette,
+		&i.ColorHex,
 		&i.ConfirmationTimeoutMinutes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -106,7 +106,7 @@ func (q *Queries) HardDeleteActivity(ctx context.Context, arg HardDeleteActivity
 }
 
 const listActivitiesByUserID = `-- name: ListActivitiesByUserID :many
-SELECT id, user_id, name, description, is_fixed_schedule, color_palette, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+SELECT id, user_id, name, description, is_fixed_schedule, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
 FROM activities
 WHERE user_id = $1
     AND deleted_at IS NULL
@@ -128,7 +128,7 @@ func (q *Queries) ListActivitiesByUserID(ctx context.Context, userID uuid.UUID) 
 			&i.Name,
 			&i.Description,
 			&i.IsFixedSchedule,
-			&i.ColorPalette,
+			&i.ColorHex,
 			&i.ConfirmationTimeoutMinutes,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -205,19 +205,19 @@ const updateActivity = `-- name: UpdateActivity :one
 UPDATE activities
 SET name = $1,
     description = $2,
-    color_palette = $3,
+    color_hex = $3,
     confirmation_timeout_minutes = $4,
     updated_at = NOW()
 WHERE id = $5
     AND user_id = $6
     AND deleted_at IS NULL
-    RETURNING id, user_id, name, description, is_fixed_schedule, color_palette, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+    RETURNING id, user_id, name, description, is_fixed_schedule, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
 `
 
 type UpdateActivityParams struct {
 	Name                       string
 	Description                pgtype.Text
-	ColorPalette               pgtype.Text
+	ColorHex                   pgtype.Text
 	ConfirmationTimeoutMinutes pgtype.Int4
 	ID                         uuid.UUID
 	UserID                     uuid.UUID
@@ -227,7 +227,7 @@ func (q *Queries) UpdateActivity(ctx context.Context, arg UpdateActivityParams) 
 	row := q.db.QueryRow(ctx, updateActivity,
 		arg.Name,
 		arg.Description,
-		arg.ColorPalette,
+		arg.ColorHex,
 		arg.ConfirmationTimeoutMinutes,
 		arg.ID,
 		arg.UserID,
@@ -239,7 +239,7 @@ func (q *Queries) UpdateActivity(ctx context.Context, arg UpdateActivityParams) 
 		&i.Name,
 		&i.Description,
 		&i.IsFixedSchedule,
-		&i.ColorPalette,
+		&i.ColorHex,
 		&i.ConfirmationTimeoutMinutes,
 		&i.CreatedAt,
 		&i.UpdatedAt,

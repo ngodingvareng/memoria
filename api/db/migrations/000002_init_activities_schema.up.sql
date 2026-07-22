@@ -9,14 +9,14 @@ CREATE TABLE activities(
     name VARCHAR(255) NOT NULL,
     description TEXT,
     is_fixed_schedule BOOLEAN NOT NULL DEFAULT true,
-    color_palette VARCHAR(7),
+    color_hex VARCHAR(7),
     confirmation_timeout_minutes INT DEFAULT 1440,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ DEFAULT NULL,
 
     CONSTRAINT chk_activities_color_hex
-    CHECK (color_palette ~ '^#[0-9A-Fa-f]{6}$'),
+    CHECK (color_hex ~ '^#[0-9A-Fa-f]{6}$'),
     CONSTRAINT chk_activities_timeout_positive
     CHECK (confirmation_timeout_minutes > 0)
 );
@@ -122,13 +122,13 @@ CREATE TABLE activity_items(
     occurred_at TIMESTAMPTZ NOT NULL,
 
     content TEXT,
-    color_palette VARCHAR(7),
+    color_hex VARCHAR(7),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ DEFAULT NULL,
 
     CONSTRAINT chk_activity_items_color_hex
-    CHECK (color_palette ~ '^#[0-9A-Fa-f]{6}$'),
+    CHECK (color_hex ~ '^#[0-9A-Fa-f]{6}$'),
 
     -- Requires PostgreSQL 15+: the column list on SET NULL means only
     -- schedule_id gets nulled when the referenced schedule is deleted —

@@ -17,17 +17,17 @@ const confirmActivityItem = `-- name: ConfirmActivityItem :one
     SET status = $1,
         confirmed_at = NOW(),
         content = $2,
-        color_palette = $3,
+        color_hex = $3,
         updated_at = NOW()
     WHERE id = $4 AND status = 'awaiting'
-        RETURNING id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_palette, created_at, updated_at, deleted_at
+        RETURNING id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_hex, created_at, updated_at, deleted_at
 `
 
 type ConfirmActivityItemParams struct {
-	Status       ActivityItemStatus
-	Content      pgtype.Text
-	ColorPalette pgtype.Text
-	ID           uuid.UUID
+	Status   ActivityItemStatus
+	Content  pgtype.Text
+	ColorHex pgtype.Text
+	ID       uuid.UUID
 }
 
 // User checks an awaiting item off as done or not done, optionally with
@@ -37,7 +37,7 @@ func (q *Queries) ConfirmActivityItem(ctx context.Context, arg ConfirmActivityIt
 	row := q.db.QueryRow(ctx, confirmActivityItem,
 		arg.Status,
 		arg.Content,
-		arg.ColorPalette,
+		arg.ColorHex,
 		arg.ID,
 	)
 	var i ActivityItem
@@ -50,7 +50,7 @@ func (q *Queries) ConfirmActivityItem(ctx context.Context, arg ConfirmActivityIt
 		&i.ConfirmedAt,
 		&i.OccurredAt,
 		&i.Content,
-		&i.ColorPalette,
+		&i.ColorHex,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -64,7 +64,7 @@ const createManualActivityItem = `-- name: CreateManualActivityItem :one
         status,
         occurred_at,
         content,
-        color_palette
+        color_hex
     ) VALUES (
         $1,
         $2,
@@ -72,15 +72,15 @@ const createManualActivityItem = `-- name: CreateManualActivityItem :one
         $4,
         $5
     )
-    RETURNING id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_palette, created_at, updated_at, deleted_at
+    RETURNING id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_hex, created_at, updated_at, deleted_at
 `
 
 type CreateManualActivityItemParams struct {
-	ActivityID   uuid.UUID
-	Status       ActivityItemStatus
-	OccurredAt   pgtype.Timestamptz
-	Content      pgtype.Text
-	ColorPalette pgtype.Text
+	ActivityID uuid.UUID
+	Status     ActivityItemStatus
+	OccurredAt pgtype.Timestamptz
+	Content    pgtype.Text
+	ColorHex   pgtype.Text
 }
 
 // User-logged item for a non-fixed-schedule activity, created directly
@@ -92,7 +92,7 @@ func (q *Queries) CreateManualActivityItem(ctx context.Context, arg CreateManual
 		arg.Status,
 		arg.OccurredAt,
 		arg.Content,
-		arg.ColorPalette,
+		arg.ColorHex,
 	)
 	var i ActivityItem
 	err := row.Scan(
@@ -104,7 +104,7 @@ func (q *Queries) CreateManualActivityItem(ctx context.Context, arg CreateManual
 		&i.ConfirmedAt,
 		&i.OccurredAt,
 		&i.Content,
-		&i.ColorPalette,
+		&i.ColorHex,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -127,7 +127,7 @@ INSERT INTO activity_items(
     $3
 )
 ON CONFLICT(activity_id, scheduled_at) WHERE deleted_at IS NULL DO NOTHING
-    RETURNING id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_palette, created_at, updated_at, deleted_at
+    RETURNING id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_hex, created_at, updated_at, deleted_at
 `
 
 type CreateScheduledActivityItemParams struct {
@@ -153,7 +153,7 @@ func (q *Queries) CreateScheduledActivityItem(ctx context.Context, arg CreateSch
 		&i.ConfirmedAt,
 		&i.OccurredAt,
 		&i.Content,
-		&i.ColorPalette,
+		&i.ColorHex,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -162,7 +162,7 @@ func (q *Queries) CreateScheduledActivityItem(ctx context.Context, arg CreateSch
 }
 
 const getActivityItemByID = `-- name: GetActivityItemByID :one
-    SELECT id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_palette, created_at, updated_at, deleted_at FROM activity_items
+    SELECT id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_hex, created_at, updated_at, deleted_at FROM activity_items
     WHERE id = $1 AND deleted_at IS NULL
 `
 
@@ -178,7 +178,7 @@ func (q *Queries) GetActivityItemByID(ctx context.Context, id uuid.UUID) (Activi
 		&i.ConfirmedAt,
 		&i.OccurredAt,
 		&i.Content,
-		&i.ColorPalette,
+		&i.ColorHex,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -285,7 +285,7 @@ func (q *Queries) GetHeatmapData(ctx context.Context, arg GetHeatmapDataParams) 
 }
 
 const listActivityItemsByActivityID = `-- name: ListActivityItemsByActivityID :many
-    SELECT id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_palette, created_at, updated_at, deleted_at FROM activity_items
+    SELECT id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_hex, created_at, updated_at, deleted_at FROM activity_items
     WHERE activity_id = $1 AND deleted_at IS NULL
     ORDER BY occurred_at DESC
     LIMIT $3
@@ -317,7 +317,7 @@ func (q *Queries) ListActivityItemsByActivityID(ctx context.Context, arg ListAct
 			&i.ConfirmedAt,
 			&i.OccurredAt,
 			&i.Content,
-			&i.ColorPalette,
+			&i.ColorHex,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -333,7 +333,7 @@ func (q *Queries) ListActivityItemsByActivityID(ctx context.Context, arg ListAct
 }
 
 const listAwaitingItemsPastDeadline = `-- name: ListAwaitingItemsPastDeadline :many
-    SELECT activity_items.id, activity_items.activity_id, activity_items.schedule_id, activity_items.status, activity_items.scheduled_at, activity_items.confirmed_at, activity_items.occurred_at, activity_items.content, activity_items.color_palette, activity_items.created_at, activity_items.updated_at, activity_items.deleted_at
+    SELECT activity_items.id, activity_items.activity_id, activity_items.schedule_id, activity_items.status, activity_items.scheduled_at, activity_items.confirmed_at, activity_items.occurred_at, activity_items.content, activity_items.color_hex, activity_items.created_at, activity_items.updated_at, activity_items.deleted_at
     FROM activity_items
         JOIN activities ON activities.id = activity_items.activity_id
     WHERE activity_items.status = 'awaiting'
@@ -365,7 +365,7 @@ func (q *Queries) ListAwaitingItemsPastDeadline(ctx context.Context) ([]Activity
 			&i.ConfirmedAt,
 			&i.OccurredAt,
 			&i.Content,
-			&i.ColorPalette,
+			&i.ColorHex,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -431,23 +431,23 @@ func (q *Queries) SoftDeleteActivityItem(ctx context.Context, id uuid.UUID) erro
 const updateActivityItemMoment = `-- name: UpdateActivityItemMoment :one
     UPDATE activity_items
     SET content = $1,
-        color_palette = $2,
+        color_hex = $2,
         updated_at = NOW()
     WHERE id = $3
         AND deleted_at IS NULL
-        RETURNING id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_palette, created_at, updated_at, deleted_at
+        RETURNING id, activity_id, schedule_id, status, scheduled_at, confirmed_at, occurred_at, content, color_hex, created_at, updated_at, deleted_at
 `
 
 type UpdateActivityItemMomentParams struct {
-	Content      pgtype.Text
-	ColorPalette pgtype.Text
-	ID           uuid.UUID
+	Content  pgtype.Text
+	ColorHex pgtype.Text
+	ID       uuid.UUID
 }
 
 // Edit the logged moment (content/color) after the fact, without
 // touching status/confirmed_at.
 func (q *Queries) UpdateActivityItemMoment(ctx context.Context, arg UpdateActivityItemMomentParams) (ActivityItem, error) {
-	row := q.db.QueryRow(ctx, updateActivityItemMoment, arg.Content, arg.ColorPalette, arg.ID)
+	row := q.db.QueryRow(ctx, updateActivityItemMoment, arg.Content, arg.ColorHex, arg.ID)
 	var i ActivityItem
 	err := row.Scan(
 		&i.ID,
@@ -458,7 +458,7 @@ func (q *Queries) UpdateActivityItemMoment(ctx context.Context, arg UpdateActivi
 		&i.ConfirmedAt,
 		&i.OccurredAt,
 		&i.Content,
-		&i.ColorPalette,
+		&i.ColorHex,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,

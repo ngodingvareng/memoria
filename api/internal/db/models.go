@@ -104,7 +104,7 @@ type Activity struct {
 	Name                       string
 	Description                pgtype.Text
 	IsFixedSchedule            bool
-	ColorPalette               pgtype.Text
+	ColorHex                   pgtype.Text
 	ConfirmationTimeoutMinutes pgtype.Int4
 	CreatedAt                  pgtype.Timestamptz
 	UpdatedAt                  pgtype.Timestamptz
@@ -120,18 +120,18 @@ type ActivityImage struct {
 }
 
 type ActivityItem struct {
-	ID           uuid.UUID
-	ActivityID   uuid.UUID
-	ScheduleID   pgtype.UUID
-	Status       ActivityItemStatus
-	ScheduledAt  pgtype.Timestamptz
-	ConfirmedAt  pgtype.Timestamptz
-	OccurredAt   pgtype.Timestamptz
-	Content      pgtype.Text
-	ColorPalette pgtype.Text
-	CreatedAt    pgtype.Timestamptz
-	UpdatedAt    pgtype.Timestamptz
-	DeletedAt    pgtype.Timestamptz
+	ID          uuid.UUID
+	ActivityID  uuid.UUID
+	ScheduleID  pgtype.UUID
+	Status      ActivityItemStatus
+	ScheduledAt pgtype.Timestamptz
+	ConfirmedAt pgtype.Timestamptz
+	OccurredAt  pgtype.Timestamptz
+	Content     pgtype.Text
+	ColorHex    pgtype.Text
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	DeletedAt   pgtype.Timestamptz
 }
 
 type ActivityItemImage struct {
