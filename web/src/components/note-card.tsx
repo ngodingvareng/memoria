@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Item, ItemContent } from "@/components/ui/item";
+import { Button } from '@/components/ui/button';
+import { Item, ItemContent } from '@/components/ui/item';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { getNoteColorClass } from "@/lib/colors";
-import { cn } from "@/lib/utils";
-import type { Note } from "@/types/note";
+} from '@/components/ui/tooltip';
+import { getNoteColorClass } from '@/lib/colors';
+import { cn } from '@/lib/utils';
+import type { Note } from '@/types/note';
 import {
   Edit04Icon,
   PaintBoardIcon,
   Share01Icon,
   StarIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import React from "react";
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import React from 'react';
 
 interface NoteCardProps {
   note: Note;
@@ -38,10 +38,8 @@ export const NoteCard: React.FC<NoteCardProps> = ({
     <div className="flex group select-text hover:cursor-default selection:bg-primary selection:text-primary-foreground gap-4">
       <Item
         className={cn(
-          "max-w-2xs flex flex-col w-full overflow-hidden",
-          note.color
-            ? getNoteColorClass(note.color)
-            : getNoteColorClass("zinc"),
+          'max-w-2xs flex flex-col w-full overflow-hidden',
+          note.color ? getNoteColorClass(note.color) : getNoteColorClass('zinc')
         )}
       >
         <ItemContent className="flex flex-col items-end w-full relative z-10">

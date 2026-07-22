@@ -9,12 +9,43 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as UserRouteImport } from './routes/_user'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppUsernameRouteImport } from './routes/_app/$username'
+import { Route as AppAlbumRouteImport } from './routes/_app/album'
+import { Route as AppFollowedRouteImport } from './routes/_app/followed'
+import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
+import { Route as AppStoriesRouteImport } from './routes/_app/stories'
+import { Route as AuthSigninRouteImport } from './routes/_auth/signin'
+import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
+import { Route as AppActivitiesIndexRouteImport } from './routes/_app/activities.index'
+import { Route as UserUserIndexRouteImport } from './routes/_user/user.index'
+import { Route as UserUserAccountRouteImport } from './routes/_user/user.account'
+import { Route as UserUserActivityRouteImport } from './routes/_user/user.activity'
+import { Route as UserUserNotificationRouteImport } from './routes/_user/user.notification'
+import { Route as UserUserPrivacyRouteImport } from './routes/_user/user.privacy'
+import { Route as AppActivitiesIdIndexRouteImport } from './routes/_app/activities.$id.index'
+import { Route as AppActivitiesIdContentsRouteImport } from './routes/_app/activities.$id.contents'
+import { Route as AppActivitiesIdSchedulesRouteImport } from './routes/_app/activities.$id.schedules'
+import { Route as AppActivitiesIdSettingsRouteImport } from './routes/_app/activities.$id.settings'
+import { Route as AppActivitiesIdStatsRouteImport } from './routes/_app/activities.$id.stats'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserRoute = UserRouteImport.update({
+  id: '/_user',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -22,40 +53,309 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUsernameRoute = AppUsernameRouteImport.update({
+  id: '/$username',
+  path: '/$username',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAlbumRoute = AppAlbumRouteImport.update({
+  id: '/album',
+  path: '/album',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFollowedRoute = AppFollowedRouteImport.update({
+  id: '/followed',
+  path: '/followed',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStoriesRoute = AppStoriesRouteImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => AppRoute,
+} as any)
+const AuthSigninRoute = AuthSigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AppActivitiesIndexRoute = AppActivitiesIndexRouteImport.update({
+  id: '/activities/',
+  path: '/activities/',
+  getParentRoute: () => AppRoute,
+} as any)
+const UserUserIndexRoute = UserUserIndexRouteImport.update({
+  id: '/user/',
+  path: '/user/',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserUserAccountRoute = UserUserAccountRouteImport.update({
+  id: '/user/account',
+  path: '/user/account',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserUserActivityRoute = UserUserActivityRouteImport.update({
+  id: '/user/activity',
+  path: '/user/activity',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserUserNotificationRoute = UserUserNotificationRouteImport.update({
+  id: '/user/notification',
+  path: '/user/notification',
+  getParentRoute: () => UserRoute,
+} as any)
+const UserUserPrivacyRoute = UserUserPrivacyRouteImport.update({
+  id: '/user/privacy',
+  path: '/user/privacy',
+  getParentRoute: () => UserRoute,
+} as any)
+const AppActivitiesIdIndexRoute = AppActivitiesIdIndexRouteImport.update({
+  id: '/activities/$id/',
+  path: '/activities/$id/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppActivitiesIdContentsRoute = AppActivitiesIdContentsRouteImport.update({
+  id: '/activities/$id/contents',
+  path: '/activities/$id/contents',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppActivitiesIdSchedulesRoute =
+  AppActivitiesIdSchedulesRouteImport.update({
+    id: '/activities/$id/schedules',
+    path: '/activities/$id/schedules',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppActivitiesIdSettingsRoute = AppActivitiesIdSettingsRouteImport.update({
+  id: '/activities/$id/settings',
+  path: '/activities/$id/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppActivitiesIdStatsRoute = AppActivitiesIdStatsRouteImport.update({
+  id: '/activities/$id/stats',
+  path: '/activities/$id/stats',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
   '/about': typeof AboutRoute
+  '/help': typeof HelpRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/$username': typeof AppUsernameRoute
+  '/album': typeof AppAlbumRoute
+  '/followed': typeof AppFollowedRoute
+  '/notifications': typeof AppNotificationsRoute
+  '/stories': typeof AppStoriesRoute
+  '/signin': typeof AuthSigninRoute
+  '/signup': typeof AuthSignupRoute
+  '/user/account': typeof UserUserAccountRoute
+  '/user/activity': typeof UserUserActivityRoute
+  '/user/notification': typeof UserUserNotificationRoute
+  '/user/privacy': typeof UserUserPrivacyRoute
+  '/activities/': typeof AppActivitiesIndexRoute
+  '/user/': typeof UserUserIndexRoute
+  '/activities/$id/contents': typeof AppActivitiesIdContentsRoute
+  '/activities/$id/schedules': typeof AppActivitiesIdSchedulesRoute
+  '/activities/$id/settings': typeof AppActivitiesIdSettingsRoute
+  '/activities/$id/stats': typeof AppActivitiesIdStatsRoute
+  '/activities/$id/': typeof AppActivitiesIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
   '/about': typeof AboutRoute
+  '/help': typeof HelpRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/$username': typeof AppUsernameRoute
+  '/album': typeof AppAlbumRoute
+  '/followed': typeof AppFollowedRoute
+  '/notifications': typeof AppNotificationsRoute
+  '/stories': typeof AppStoriesRoute
+  '/signin': typeof AuthSigninRoute
+  '/signup': typeof AuthSignupRoute
+  '/user/account': typeof UserUserAccountRoute
+  '/user/activity': typeof UserUserActivityRoute
+  '/user/notification': typeof UserUserNotificationRoute
+  '/user/privacy': typeof UserUserPrivacyRoute
+  '/activities': typeof AppActivitiesIndexRoute
+  '/user': typeof UserUserIndexRoute
+  '/activities/$id/contents': typeof AppActivitiesIdContentsRoute
+  '/activities/$id/schedules': typeof AppActivitiesIdSchedulesRoute
+  '/activities/$id/settings': typeof AppActivitiesIdSettingsRoute
+  '/activities/$id/stats': typeof AppActivitiesIdStatsRoute
+  '/activities/$id': typeof AppActivitiesIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_auth': typeof AuthRouteWithChildren
+  '/_user': typeof UserRouteWithChildren
   '/about': typeof AboutRoute
+  '/help': typeof HelpRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
+  '/_app/$username': typeof AppUsernameRoute
+  '/_app/album': typeof AppAlbumRoute
+  '/_app/followed': typeof AppFollowedRoute
+  '/_app/notifications': typeof AppNotificationsRoute
+  '/_app/stories': typeof AppStoriesRoute
+  '/_auth/signin': typeof AuthSigninRoute
+  '/_auth/signup': typeof AuthSignupRoute
+  '/_app/': typeof AppIndexRoute
+  '/_user/user/account': typeof UserUserAccountRoute
+  '/_user/user/activity': typeof UserUserActivityRoute
+  '/_user/user/notification': typeof UserUserNotificationRoute
+  '/_user/user/privacy': typeof UserUserPrivacyRoute
+  '/_app/activities/': typeof AppActivitiesIndexRoute
+  '/_user/user/': typeof UserUserIndexRoute
+  '/_app/activities/$id/contents': typeof AppActivitiesIdContentsRoute
+  '/_app/activities/$id/schedules': typeof AppActivitiesIdSchedulesRoute
+  '/_app/activities/$id/settings': typeof AppActivitiesIdSettingsRoute
+  '/_app/activities/$id/stats': typeof AppActivitiesIdStatsRoute
+  '/_app/activities/$id/': typeof AppActivitiesIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/help'
+    | '/privacy'
+    | '/terms'
+    | '/$username'
+    | '/album'
+    | '/followed'
+    | '/notifications'
+    | '/stories'
+    | '/signin'
+    | '/signup'
+    | '/user/account'
+    | '/user/activity'
+    | '/user/notification'
+    | '/user/privacy'
+    | '/activities/'
+    | '/user/'
+    | '/activities/$id/contents'
+    | '/activities/$id/schedules'
+    | '/activities/$id/settings'
+    | '/activities/$id/stats'
+    | '/activities/$id/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to:
+    | '/'
+    | '/about'
+    | '/help'
+    | '/privacy'
+    | '/terms'
+    | '/$username'
+    | '/album'
+    | '/followed'
+    | '/notifications'
+    | '/stories'
+    | '/signin'
+    | '/signup'
+    | '/user/account'
+    | '/user/activity'
+    | '/user/notification'
+    | '/user/privacy'
+    | '/activities'
+    | '/user'
+    | '/activities/$id/contents'
+    | '/activities/$id/schedules'
+    | '/activities/$id/settings'
+    | '/activities/$id/stats'
+    | '/activities/$id'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_auth'
+    | '/_user'
+    | '/about'
+    | '/help'
+    | '/privacy'
+    | '/terms'
+    | '/_app/$username'
+    | '/_app/album'
+    | '/_app/followed'
+    | '/_app/notifications'
+    | '/_app/stories'
+    | '/_auth/signin'
+    | '/_auth/signup'
+    | '/_app/'
+    | '/_user/user/account'
+    | '/_user/user/activity'
+    | '/_user/user/notification'
+    | '/_user/user/privacy'
+    | '/_app/activities/'
+    | '/_user/user/'
+    | '/_app/activities/$id/contents'
+    | '/_app/activities/$id/schedules'
+    | '/_app/activities/$id/settings'
+    | '/_app/activities/$id/stats'
+    | '/_app/activities/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren
+  UserRoute: typeof UserRouteWithChildren
   AboutRoute: typeof AboutRoute
+  HelpRoute: typeof HelpRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_user': {
+      id: '/_user'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof UserRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -65,12 +365,233 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/$username': {
+      id: '/_app/$username'
+      path: '/$username'
+      fullPath: '/$username'
+      preLoaderRoute: typeof AppUsernameRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/album': {
+      id: '/_app/album'
+      path: '/album'
+      fullPath: '/album'
+      preLoaderRoute: typeof AppAlbumRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/followed': {
+      id: '/_app/followed'
+      path: '/followed'
+      fullPath: '/followed'
+      preLoaderRoute: typeof AppFollowedRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/notifications': {
+      id: '/_app/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/stories': {
+      id: '/_app/stories'
+      path: '/stories'
+      fullPath: '/stories'
+      preLoaderRoute: typeof AppStoriesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_auth/signin': {
+      id: '/_auth/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof AuthSigninRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/signup': {
+      id: '/_auth/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_app/activities/': {
+      id: '/_app/activities/'
+      path: '/activities'
+      fullPath: '/activities/'
+      preLoaderRoute: typeof AppActivitiesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_user/user/': {
+      id: '/_user/user/'
+      path: '/user'
+      fullPath: '/user/'
+      preLoaderRoute: typeof UserUserIndexRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/_user/user/account': {
+      id: '/_user/user/account'
+      path: '/user/account'
+      fullPath: '/user/account'
+      preLoaderRoute: typeof UserUserAccountRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/_user/user/activity': {
+      id: '/_user/user/activity'
+      path: '/user/activity'
+      fullPath: '/user/activity'
+      preLoaderRoute: typeof UserUserActivityRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/_user/user/notification': {
+      id: '/_user/user/notification'
+      path: '/user/notification'
+      fullPath: '/user/notification'
+      preLoaderRoute: typeof UserUserNotificationRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/_user/user/privacy': {
+      id: '/_user/user/privacy'
+      path: '/user/privacy'
+      fullPath: '/user/privacy'
+      preLoaderRoute: typeof UserUserPrivacyRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/_app/activities/$id/': {
+      id: '/_app/activities/$id/'
+      path: '/activities/$id'
+      fullPath: '/activities/$id/'
+      preLoaderRoute: typeof AppActivitiesIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/activities/$id/contents': {
+      id: '/_app/activities/$id/contents'
+      path: '/activities/$id/contents'
+      fullPath: '/activities/$id/contents'
+      preLoaderRoute: typeof AppActivitiesIdContentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/activities/$id/schedules': {
+      id: '/_app/activities/$id/schedules'
+      path: '/activities/$id/schedules'
+      fullPath: '/activities/$id/schedules'
+      preLoaderRoute: typeof AppActivitiesIdSchedulesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/activities/$id/settings': {
+      id: '/_app/activities/$id/settings'
+      path: '/activities/$id/settings'
+      fullPath: '/activities/$id/settings'
+      preLoaderRoute: typeof AppActivitiesIdSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/activities/$id/stats': {
+      id: '/_app/activities/$id/stats'
+      path: '/activities/$id/stats'
+      fullPath: '/activities/$id/stats'
+      preLoaderRoute: typeof AppActivitiesIdStatsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppUsernameRoute: typeof AppUsernameRoute
+  AppAlbumRoute: typeof AppAlbumRoute
+  AppFollowedRoute: typeof AppFollowedRoute
+  AppNotificationsRoute: typeof AppNotificationsRoute
+  AppStoriesRoute: typeof AppStoriesRoute
+  AppIndexRoute: typeof AppIndexRoute
+  AppActivitiesIndexRoute: typeof AppActivitiesIndexRoute
+  AppActivitiesIdContentsRoute: typeof AppActivitiesIdContentsRoute
+  AppActivitiesIdSchedulesRoute: typeof AppActivitiesIdSchedulesRoute
+  AppActivitiesIdSettingsRoute: typeof AppActivitiesIdSettingsRoute
+  AppActivitiesIdStatsRoute: typeof AppActivitiesIdStatsRoute
+  AppActivitiesIdIndexRoute: typeof AppActivitiesIdIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppUsernameRoute: AppUsernameRoute,
+  AppAlbumRoute: AppAlbumRoute,
+  AppFollowedRoute: AppFollowedRoute,
+  AppNotificationsRoute: AppNotificationsRoute,
+  AppStoriesRoute: AppStoriesRoute,
+  AppIndexRoute: AppIndexRoute,
+  AppActivitiesIndexRoute: AppActivitiesIndexRoute,
+  AppActivitiesIdContentsRoute: AppActivitiesIdContentsRoute,
+  AppActivitiesIdSchedulesRoute: AppActivitiesIdSchedulesRoute,
+  AppActivitiesIdSettingsRoute: AppActivitiesIdSettingsRoute,
+  AppActivitiesIdStatsRoute: AppActivitiesIdStatsRoute,
+  AppActivitiesIdIndexRoute: AppActivitiesIdIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface AuthRouteChildren {
+  AuthSigninRoute: typeof AuthSigninRoute
+  AuthSignupRoute: typeof AuthSignupRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthSigninRoute: AuthSigninRoute,
+  AuthSignupRoute: AuthSignupRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
+interface UserRouteChildren {
+  UserUserAccountRoute: typeof UserUserAccountRoute
+  UserUserActivityRoute: typeof UserUserActivityRoute
+  UserUserNotificationRoute: typeof UserUserNotificationRoute
+  UserUserPrivacyRoute: typeof UserUserPrivacyRoute
+  UserUserIndexRoute: typeof UserUserIndexRoute
+}
+
+const UserRouteChildren: UserRouteChildren = {
+  UserUserAccountRoute: UserUserAccountRoute,
+  UserUserActivityRoute: UserUserActivityRoute,
+  UserUserNotificationRoute: UserUserNotificationRoute,
+  UserUserPrivacyRoute: UserUserPrivacyRoute,
+  UserUserIndexRoute: UserUserIndexRoute,
+}
+
+const UserRouteWithChildren = UserRoute._addFileChildren(UserRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRouteWithChildren,
+  UserRoute: UserRouteWithChildren,
   AboutRoute: AboutRoute,
+  HelpRoute: HelpRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

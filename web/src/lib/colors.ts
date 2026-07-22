@@ -20,9 +20,9 @@ export const noteColorMap: Record<string, string> = {
   purple: 'bg-purple-500/20 text-purple-950 dark:text-purple-50',
   fuchsia: 'bg-fuchsia-500/20 text-fuchsia-950 dark:text-fuchsia-50',
   pink: 'bg-pink-500/20 text-pink-950 dark:text-pink-50',
-}
+};
 
 export function getNoteColorClass(color?: string): string {
-  if (!color) return 'bg-muted'
-  return noteColorMap[color] || 'bg-muted'
+  if (!color) return 'bg-muted';
+  return noteColorMap[color] || 'bg-muted';
 }

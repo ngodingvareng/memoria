@@ -1,10 +1,10 @@
-import AppHeader from "@/components/app-header";
-import AppSidebar from "@/components/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { UserSidebar } from "@/components/user-sidebar";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import AppHeader from '@/components/app-header';
+import AppSidebar from '@/components/app-sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { UserSidebar } from '@/components/user-sidebar';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
-export const Route = createFileRoute("/_user")({
+export const Route = createFileRoute('/_user')({
   component: RouteComponent,
 });
 

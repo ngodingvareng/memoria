@@ -4,7 +4,7 @@ import {
   Logout01Icon,
   Settings02Icon,
   Sun01Icon,
-} from "@hugeicons/core-free-icons";
+} from '@hugeicons/core-free-icons';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,59 +16,59 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Link } from "@tanstack/react-router";
+} from './ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Link } from '@tanstack/react-router';
 
 const data = {
   user: [
     [
       {
-        title: "Display Language: English",
+        title: 'Display Language: English',
         icon: LanguageSquareIcon,
         submenu: [
           {
-            title: "English",
+            title: 'English',
           },
           {
-            title: "Indonesia",
+            title: 'Indonesia',
           },
         ],
       },
       {
-        title: "Appereance: Device",
+        title: 'Appereance: Device',
         icon: Sun01Icon,
         submenu: [
           {
-            title: "Light theme",
+            title: 'Light theme',
           },
           {
-            title: "Dark theme",
+            title: 'Dark theme',
           },
           {
-            title: "Use device theme",
+            title: 'Use device theme',
           },
         ],
       },
       {
-        title: "Settings",
+        title: 'Settings',
         icon: Settings02Icon,
-        url: "/user",
+        url: '/user',
       },
     ],
     [
       {
-        title: "Sign Out",
+        title: 'Sign Out',
         icon: Logout01Icon,
-        url: ".",
+        url: '.',
       },
     ],
     [
       {
-        title: "Help",
+        title: 'Help',
         icon: HelpCircleIcon,
-        url: "/help",
+        url: '/help',
       },
     ],
   ],
@@ -114,7 +114,7 @@ export default function UserMenu() {
                 item.submenu ? (
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger>
-                      <HugeiconsIcon icon={item.icon} strokeWidth={2} />{" "}
+                      <HugeiconsIcon icon={item.icon} strokeWidth={2} />{' '}
                       {item.title}
                     </DropdownMenuSubTrigger>
                     <DropdownMenuPortal>
@@ -129,12 +129,12 @@ export default function UserMenu() {
                   <DropdownMenuItem
                     render={
                       <Link to={item.url}>
-                        <HugeiconsIcon icon={item.icon} strokeWidth={2} />{" "}
+                        <HugeiconsIcon icon={item.icon} strokeWidth={2} />{' '}
                         {item.title}
                       </Link>
                     }
                   />
-                ),
+                )
               )}
             </DropdownMenuGroup>
           </>

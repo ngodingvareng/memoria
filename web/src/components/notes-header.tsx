@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   CarouselHorizontalIcon,
   Edit04Icon,
   EyeIcon,
   MoreHorizontalSquare01Icon,
   Share01Icon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import React from "react";
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import React from 'react';
 
 interface NotesHeaderProps {
   isReadMode: boolean;

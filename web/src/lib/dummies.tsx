@@ -1,10 +1,10 @@
 export const dummyNotes = [
   {
     id: 1,
-    date: "12 Agustus 2036",
-    time: "10:00",
+    date: '12 Agustus 2036',
+    time: '10:00',
     published: true,
-    tags: ["science", "food"],
+    tags: ['science', 'food'],
     content: (
       <>
         <h1>Garlic bread with cheese: What the science tells us</h1>
@@ -23,11 +23,11 @@ export const dummyNotes = [
   },
   {
     id: 2,
-    date: "10 Agustus 2036",
-    time: "14:30",
-    color: "rose",
+    date: '10 Agustus 2036',
+    time: '14:30',
+    color: 'rose',
     published: true,
-    tags: ["work", "remote"],
+    tags: ['work', 'remote'],
     content: (
       <>
         <h1>The future of remote work</h1>
@@ -47,10 +47,10 @@ export const dummyNotes = [
   },
   {
     id: 3,
-    date: "8 Agustus 2036",
-    time: "09:15",
+    date: '8 Agustus 2036',
+    time: '09:15',
     published: false,
-    tags: ["programming", "rust", "learning"],
+    tags: ['programming', 'rust', 'learning'],
     content: (
       <>
         <h1>Learning a new programming language</h1>
@@ -73,11 +73,11 @@ export const dummyNotes = [
   },
   {
     id: 4,
-    date: "5 Agustus 2036",
-    time: "16:45",
-    color: "amber",
+    date: '5 Agustus 2036',
+    time: '16:45',
+    color: 'amber',
     published: true,
-    tags: ["meeting", "project"],
+    tags: ['meeting', 'project'],
     content: (
       <>
         <h1>Notes from today's meeting</h1>
@@ -101,11 +101,11 @@ export const dummyNotes = [
   },
   {
     id: 5,
-    date: "3 Agustus 2036",
-    time: "11:20",
-    color: "emerald",
+    date: '3 Agustus 2036',
+    time: '11:20',
+    color: 'emerald',
     published: true,
-    tags: ["recipe", "cooking", "ramen"],
+    tags: ['recipe', 'cooking', 'ramen'],
     content: (
       <>
         <h1>Recipe: Homemade Ramen</h1>
@@ -129,10 +129,10 @@ export const dummyNotes = [
   },
   {
     id: 6,
-    date: "1 Agustus 2036",
-    time: "08:00",
+    date: '1 Agustus 2036',
+    time: '08:00',
     published: false,
-    tags: ["personal", "reflection"],
+    tags: ['personal', 'reflection'],
     content: (
       <>
         <h1>Morning reflection</h1>
@@ -150,10 +150,10 @@ export const dummyNotes = [
   },
   {
     id: 7,
-    date: "28 Juli 2036",
-    time: "19:30",
+    date: '28 Juli 2036',
+    time: '19:30',
     published: true,
-    tags: ["book", "review", "self-improvement"],
+    tags: ['book', 'review', 'self-improvement'],
     content: (
       <>
         <h1>Book review: Atomic Habits</h1>
@@ -176,8 +176,8 @@ export const dummyNotes = [
   },
   {
     id: 8,
-    date: "25 Juli 2036",
-    time: "13:00",
+    date: '25 Juli 2036',
+    time: '13:00',
     published: false,
     tags: [],
     content: (
@@ -188,11 +188,11 @@ export const dummyNotes = [
   },
   {
     id: 9,
-    date: "22 Juli 2036",
-    time: "17:45",
-    color: "sky",
+    date: '22 Juli 2036',
+    time: '17:45',
+    color: 'sky',
     published: true,
-    tags: ["debugging", "programming", "websocket"],
+    tags: ['debugging', 'programming', 'websocket'],
     content: (
       <>
         <h1>Debugging session notes</h1>
@@ -218,10 +218,10 @@ export const dummyNotes = [
   },
   {
     id: 10,
-    date: "20 Juli 2036",
-    time: "10:30",
+    date: '20 Juli 2036',
+    time: '10:30',
     published: false,
-    tags: ["ideas", "app", "brainstorm"],
+    tags: ['ideas', 'app', 'brainstorm'],
     content: (
       <>
         <h1>Ideas for the new app</h1>

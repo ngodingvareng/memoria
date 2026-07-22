@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from '@tanstack/react-router';
 import {
   Sidebar,
   SidebarContent,
@@ -8,25 +8,25 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "./ui/sidebar";
+} from './ui/sidebar';
 
 const data = {
   user: [
     {
-      title: "Account",
-      url: "/user/account",
+      title: 'Account',
+      url: '/user/account',
     },
     {
-      title: "Activity",
-      url: "/user/activity",
+      title: 'Activity',
+      url: '/user/activity',
     },
     {
-      title: "Notification",
-      url: "/user/notification",
+      title: 'Notification',
+      url: '/user/notification',
     },
     {
-      title: "Privacy",
-      url: "/user/privacy",
+      title: 'Privacy',
+      url: '/user/privacy',
     },
   ],
 };

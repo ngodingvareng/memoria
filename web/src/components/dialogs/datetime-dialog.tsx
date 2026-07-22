@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
 import {
   Dialog,
   DialogClose,
@@ -9,21 +9,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Field, FieldLabel } from "@/components/ui/field";
+} from '@/components/ui/dialog';
+import { Field, FieldLabel } from '@/components/ui/field';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import React from "react";
+} from '@/components/ui/tooltip';
+import React from 'react';
 
 interface DateTimeDialogProps {
   open: boolean;
@@ -60,9 +60,9 @@ export const DateTimeDialog: React.FC<DateTimeDialogProps> = ({
                     {Array.from({ length: 31 }, (_, i) => (
                       <SelectItem
                         key={i + 1}
-                        value={(i + 1).toString().padStart(2, "0")}
+                        value={(i + 1).toString().padStart(2, '0')}
                       >
-                        {(i + 1).toString().padStart(2, "0")}
+                        {(i + 1).toString().padStart(2, '0')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -80,9 +80,9 @@ export const DateTimeDialog: React.FC<DateTimeDialogProps> = ({
                     {Array.from({ length: 12 }, (_, i) => (
                       <SelectItem
                         key={i + 1}
-                        value={(i + 1).toString().padStart(2, "0")}
+                        value={(i + 1).toString().padStart(2, '0')}
                       >
-                        {(i + 1).toString().padStart(2, "0")}
+                        {(i + 1).toString().padStart(2, '0')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -121,8 +121,8 @@ export const DateTimeDialog: React.FC<DateTimeDialogProps> = ({
                   </Tooltip>
                   <SelectContent>
                     {Array.from({ length: 24 }, (_, i) => (
-                      <SelectItem key={i} value={i.toString().padStart(2, "0")}>
-                        {i.toString().padStart(2, "0")}
+                      <SelectItem key={i} value={i.toString().padStart(2, '0')}>
+                        {i.toString().padStart(2, '0')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -138,8 +138,8 @@ export const DateTimeDialog: React.FC<DateTimeDialogProps> = ({
                   </Tooltip>
                   <SelectContent>
                     {Array.from({ length: 60 }, (_, i) => (
-                      <SelectItem key={i} value={i.toString().padStart(2, "0")}>
-                        {i.toString().padStart(2, "0")}
+                      <SelectItem key={i} value={i.toString().padStart(2, '0')}>
+                        {i.toString().padStart(2, '0')}
                       </SelectItem>
                     ))}
                   </SelectContent>

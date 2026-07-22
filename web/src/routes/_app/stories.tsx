@@ -1,12 +1,12 @@
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
-import { Input } from "@/components/ui/input";
-import Wrapper from "@/components/wrapper";
-import { Search01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
+import { Input } from '@/components/ui/input';
+import Wrapper from '@/components/wrapper';
+import { Search01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute("/_app/stories")({
+export const Route = createFileRoute('/_app/stories')({
   component: RouteComponent,
 });
 

@@ -6,15 +6,19 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "preview": "vite preview",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "lint:fix": "oxlint --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
     "@fontsource-variable/figtree": "^5.2.10",
-    "@fontsource-variable/merriweather": "^5.2.6",
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@hugeicons/core-free-icons": "^4.2.2",
     "@hugeicons/react": "^1.1.9",
+    "@mdxeditor/editor": "^4.1.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-router": "^1.170.18",
     "@tanstack/react-router-devtools": "^1.167.0",
@@ -38,6 +42,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "babel-plugin-react-compiler": "^1.0.0",
     "oxlint": "^1.74.0",
+    "prettier": "^3.9.6",
     "typescript": "~6.0.3",
     "vite": "^8.1.5"
   }

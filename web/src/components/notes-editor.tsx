@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
+import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +11,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Item, ItemContent } from "@/components/ui/item";
-import Wrapper from "@/components/wrapper";
+} from '@/components/ui/dropdown-menu';
+import { Item, ItemContent } from '@/components/ui/item';
 import {
   ArrowUp02Icon,
   Attachment01Icon,
@@ -24,16 +23,16 @@ import {
   HeadingIcon,
   MultiplicationSignIcon,
   PlusSignIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
   headingsPlugin,
   linkPlugin,
   markdownShortcutPlugin,
   MDXEditor,
-} from "@mdxeditor/editor";
-import "@mdxeditor/editor/style.css";
-import React from "react";
+} from '@mdxeditor/editor';
+import '@mdxeditor/editor/style.css';
+import React from 'react';
 
 interface NotesEditorProps {
   onOpenTimeDialog: () => void;

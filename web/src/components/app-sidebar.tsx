@@ -9,77 +9,77 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar';
 import {
   Activity01Icon,
   Album01Icon,
   BookOpen01Icon,
   Home05Icon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Link } from "@tanstack/react-router";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Link } from '@tanstack/react-router';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 // This is sample data.
 const data = {
   main: [
     {
-      title: "Home",
+      title: 'Home',
       icon: Home05Icon,
-      url: "/",
+      url: '/',
     },
     {
-      title: "Stories",
+      title: 'Stories',
       icon: BookOpen01Icon,
-      url: "/stories",
+      url: '/stories',
     },
     {
-      title: "Activities",
+      title: 'Activities',
       icon: Activity01Icon,
-      url: "/activities",
+      url: '/activities',
     },
     {
-      title: "Album",
+      title: 'Album',
       icon: Album01Icon,
-      url: "/album",
+      url: '/album',
     },
   ],
 
   followed: [
     {
-      name: "ShadCN",
-      imageSrc: "https://github.com/shadcn.png",
-      imageAlt: "hello",
-      url: "/@shadcn",
+      name: 'ShadCN',
+      imageSrc: 'https://github.com/shadcn.png',
+      imageAlt: 'hello',
+      url: '/@shadcn',
     },
     {
-      name: "Who Are You",
-      imageSrc: "https://github.com/shadcn.png",
-      imageAlt: "hello",
-      url: "/@shadcn",
+      name: 'Who Are You',
+      imageSrc: 'https://github.com/shadcn.png',
+      imageAlt: 'hello',
+      url: '/@shadcn',
     },
   ],
 
   recent: [
     {
-      title: "Apa si ini?",
-      url: "/activities/1",
+      title: 'Apa si ini?',
+      url: '/activities/1',
     },
     {
-      title: "He is not here anymore, so I should go tomorrow",
-      url: "/activities/2",
+      title: 'He is not here anymore, so I should go tomorrow',
+      url: '/activities/2',
     },
     {
-      title: "What",
-      url: "/activities/3",
+      title: 'What',
+      url: '/activities/3',
     },
     {
-      title: "PHOBOS <- Holy gd reference",
-      url: "/activities/4",
+      title: 'PHOBOS <- Holy gd reference',
+      url: '/activities/4',
     },
     {
       title: "There's weird light in front of my house",
-      url: "/activities/5",
+      url: '/activities/5',
     },
   ],
 };

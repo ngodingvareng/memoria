@@ -1,8 +1,8 @@
-import { Notification01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Link } from "@tanstack/react-router";
-import { SidebarTrigger } from "./ui/sidebar";
-import UserMenu from "./user-menu";
+import { Notification01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Link } from '@tanstack/react-router';
+import { SidebarTrigger } from './ui/sidebar';
+import UserMenu from './user-menu';
 
 export default function AppHeader() {
   return (

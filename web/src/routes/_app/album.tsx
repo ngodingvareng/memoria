@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute("/_app/album")({
+export const Route = createFileRoute('/_app/album')({
   component: RouteComponent,
 });
 

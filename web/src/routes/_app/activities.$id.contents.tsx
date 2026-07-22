@@ -1,16 +1,16 @@
-import { ColorPickerDialog } from "@/components/dialogs/color-picker-dialog";
-import { DateTimeDialog } from "@/components/dialogs/datetime-dialog";
-import { ShareDialog } from "@/components/dialogs/share-dialog";
-import { NoteList } from "@/components/note-list";
-import { NotesEditor } from "@/components/notes-editor";
-import { NotesHeader } from "@/components/notes-header";
-import { NotesHeroImage } from "@/components/notes-hero-image";
-import Wrapper from "@/components/wrapper";
-import { dummyNotes } from "@/lib/dummies";
-import { createFileRoute } from "@tanstack/react-router";
-import React from "react";
+import { ColorPickerDialog } from '@/components/dialogs/color-picker-dialog';
+import { DateTimeDialog } from '@/components/dialogs/datetime-dialog';
+import { ShareDialog } from '@/components/dialogs/share-dialog';
+import { NoteList } from '@/components/note-list';
+import { NotesEditor } from '@/components/notes-editor';
+import { NotesHeader } from '@/components/notes-header';
+import { NotesHeroImage } from '@/components/notes-hero-image';
+import Wrapper from '@/components/wrapper';
+import { dummyNotes } from '@/lib/dummies';
+import { createFileRoute } from '@tanstack/react-router';
+import React from 'react';
 
-export const Route = createFileRoute("/_app/activities/$id/contents")({
+export const Route = createFileRoute('/_app/activities/$id/contents')({
   component: RouteComponent,
 });
 
@@ -44,8 +44,8 @@ function RouteComponent() {
           notes={dummyNotes}
           onSetColor={() => setOpenCostumizationDialog(true)}
           onShare={() => setOpenShareDialog(true)}
-          onEdit={(id) => console.log("Editing note", id)}
-          onFavorite={(id) => console.log("Favoriting note", id)}
+          onEdit={(id) => console.log('Editing note', id)}
+          onFavorite={(id) => console.log('Favoriting note', id)}
         />
       </Wrapper>
 
@@ -58,7 +58,7 @@ function RouteComponent() {
       {!isReadMode && (
         <NotesEditor
           onOpenTimeDialog={() => setOpenTimeDialog(true)}
-          onPublish={() => console.log("Publishing...")}
+          onPublish={() => console.log('Publishing...')}
         />
       )}
 

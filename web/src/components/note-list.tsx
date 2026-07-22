@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { NoteCard } from "./note-card";
-import type { Note } from "@/types/note";
+import React from 'react';
+import { NoteCard } from './note-card';
+import type { Note } from '@/types/note';
 
 interface NoteListProps {
   notes: Note[];
