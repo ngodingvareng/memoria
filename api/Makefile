@@ -9,17 +9,21 @@ COLOR_INFO   := \e[36m
 COLOR_SUCCESS:= \e[32m
 COLOR_WARN   := \e[33m
 
-.PHONY: dev dev-only db-generate migrate-create mock-generate help
+.PHONY: dev dev-only build test test-unit test-integration test-all db-generate migrate-create mock-generate help
 
 # Default target: Display available commands
 help:
 	@printf "$(COLOR_INFO)Available Makefile commands:$(COLOR_RESET)\n"
 	@printf "  $(COLOR_SUCCESS)make dev$(COLOR_RESET)             - Start Docker Compose & Go app (Auto docker-down on Ctrl+C)\n"
 	@printf "  $(COLOR_SUCCESS)make dev-only$(COLOR_RESET)        - Run Go app only (without Docker)\n"
+	@printf "  $(COLOR_SUCCESS)make build$(COLOR_RESET)           - Build all Go packages\n"
+	@printf "  $(COLOR_SUCCESS)make test$(COLOR_RESET)            - Interactive test menu (unit, integration, all)\n"
+	@printf "  $(COLOR_SUCCESS)make test-unit$(COLOR_RESET)       - Run unit tests only\n"
+	@printf "  $(COLOR_SUCCESS)make test-integration$(COLOR_RESET) - Run integration tests only\n"
+	@printf "  $(COLOR_SUCCESS)make test-all$(COLOR_RESET)        - Run all tests (unit + integration)\n"
 	@printf "  $(COLOR_SUCCESS)make db-generate$(COLOR_RESET)     - Clean & regenerate DB code via sqlc\n"
 	@printf "  $(COLOR_SUCCESS)make migrate-create$(COLOR_RESET)  - Create a new SQL migration file\n"
 	@printf "  $(COLOR_SUCCESS)make mock-generate$(COLOR_RESET)   - Generate mock objects using Mockery\n"
-
 # ==============================================================================
 # DEVELOPMENT
 # ==============================================================================
@@ -44,6 +48,12 @@ dev:
 dev-only:
 	@printf "$(COLOR_INFO)Running Go application...$(COLOR_RESET)\n"
 	@go run cmd/api/main.go
+
+## build: Compile all packages in the project.
+build:
+	@printf "$(COLOR_INFO)Building application...$(COLOR_RESET)\n"
+	@go build ./...
+	@printf "$(COLOR_SUCCESS)✓ Build completed successfully.$(COLOR_RESET)\n"
 
 # ==============================================================================
 # DATABASE & MIGRATE
@@ -76,3 +86,25 @@ mock-generate:
 	@printf "$(COLOR_INFO)Generating mocks using Mockery...$(COLOR_RESET)\n"
 	@mockery
 	@printf "$(COLOR_SUCCESS)✓ Mocks generated successfully.$(COLOR_RESET)\n"
+
+## test: Interactive prompt to select test type.
+test:
+	@printf "$(COLOR_INFO)Select the test suite to run:$(COLOR_RESET)\n"
+	@printf "  1) Unit Tests\n"
+	@printf "  2) Integration Tests\n"
+	@read -p "Enter choice [1-3]: " choice; \
+	case "$$choice" in \
+		1) $(MAKE) test-unit ;; \
+		2) $(MAKE) test-integration ;; \
+		*) printf "$(COLOR_WARN)Invalid choice. Aborting.$(COLOR_RESET)\n"; exit 1 ;; \
+	esac
+
+## test-unit: Run unit tests only.
+test-unit:
+	@printf "$(COLOR_INFO)Running unit tests...$(COLOR_RESET)\n"
+	@go test ./internal/usecase -v
+
+## test-integration: Run integration tests only.
+test-integration:
+	@printf "$(COLOR_INFO)Running integration tests...$(COLOR_RESET)\n"
+	@go test -tags=integration ./internal/repository -v
