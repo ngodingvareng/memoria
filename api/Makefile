@@ -9,21 +9,20 @@ COLOR_INFO   := \e[36m
 COLOR_SUCCESS:= \e[32m
 COLOR_WARN   := \e[33m
 
-.PHONY: dev dev-only build test test-unit test-integration test-all db-generate migrate-create mock-generate help
+.PHONY: dev dev-only build test test-unit test-integration db-generate migrate-create mock-generate help
 
 # Default target: Display available commands
 help:
 	@printf "$(COLOR_INFO)Available Makefile commands:$(COLOR_RESET)\n"
-	@printf "  $(COLOR_SUCCESS)make dev$(COLOR_RESET)             - Start Docker Compose & Go app (Auto docker-down on Ctrl+C)\n"
-	@printf "  $(COLOR_SUCCESS)make dev-only$(COLOR_RESET)        - Run Go app only (without Docker)\n"
-	@printf "  $(COLOR_SUCCESS)make build$(COLOR_RESET)           - Build all Go packages\n"
-	@printf "  $(COLOR_SUCCESS)make test$(COLOR_RESET)            - Interactive test menu (unit, integration, all)\n"
-	@printf "  $(COLOR_SUCCESS)make test-unit$(COLOR_RESET)       - Run unit tests only\n"
+	@printf "  $(COLOR_SUCCESS)make dev$(COLOR_RESET)              - Start Docker Compose & Go app (Auto docker-down on Ctrl+C)\n"
+	@printf "  $(COLOR_SUCCESS)make dev-only$(COLOR_RESET)         - Run Go app only (without Docker)\n"
+	@printf "  $(COLOR_SUCCESS)make build$(COLOR_RESET)            - Build all Go packages\n"
+	@printf "  $(COLOR_SUCCESS)make test$(COLOR_RESET)             - Interactive test menu (unit, integration, all)\n"
+	@printf "  $(COLOR_SUCCESS)make test-unit$(COLOR_RESET)        - Run unit tests only\n"
 	@printf "  $(COLOR_SUCCESS)make test-integration$(COLOR_RESET) - Run integration tests only\n"
-	@printf "  $(COLOR_SUCCESS)make test-all$(COLOR_RESET)        - Run all tests (unit + integration)\n"
-	@printf "  $(COLOR_SUCCESS)make db-generate$(COLOR_RESET)     - Clean & regenerate DB code via sqlc\n"
-	@printf "  $(COLOR_SUCCESS)make migrate-create$(COLOR_RESET)  - Create a new SQL migration file\n"
-	@printf "  $(COLOR_SUCCESS)make mock-generate$(COLOR_RESET)   - Generate mock objects using Mockery\n"
+	@printf "  $(COLOR_SUCCESS)make db-generate$(COLOR_RESET)      - Clean & regenerate DB code via sqlc\n"
+	@printf "  $(COLOR_SUCCESS)make migrate-create$(COLOR_RESET)   - Create a new SQL migration file\n"
+	@printf "  $(COLOR_SUCCESS)make mock-generate$(COLOR_RESET)    - Generate mock objects using Mockery\n"
 # ==============================================================================
 # DEVELOPMENT
 # ==============================================================================
