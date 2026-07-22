@@ -4,7 +4,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -17,7 +16,7 @@ import {
   Home05Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Link } from '@tanstack/react-router';
+import { Link, useRouterState } from '@tanstack/react-router';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 // This is sample data.
@@ -31,12 +30,12 @@ const data = {
     {
       title: 'Stories',
       icon: BookOpen01Icon,
-      url: '/stories',
+      url: '/story',
     },
     {
       title: 'Activities',
       icon: Activity01Icon,
-      url: '/activities',
+      url: '/activity',
     },
     {
       title: 'Album',
@@ -72,23 +71,23 @@ const data = {
   recent: [
     {
       title: 'Apa si ini?',
-      url: '/activities/1',
+      url: '/activity/1/content',
     },
     {
       title: 'He is not here anymore, so I should go tomorrow',
-      url: '/activities/2',
+      url: '/activity/2/content',
     },
     {
       title: 'What',
-      url: '/activities/3',
+      url: '/activity/3/content',
     },
     {
       title: 'PHOBOS <- Holy gd reference',
-      url: '/activities/4',
+      url: '/activity/4/content',
     },
     {
       title: "There's weird light in front of my house",
-      url: '/activities/5',
+      url: '/activity/5/content',
     },
   ],
 };
@@ -96,6 +95,10 @@ const data = {
 export default function AppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+
   return (
     <Sidebar
       className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
@@ -109,6 +112,7 @@ export default function AppSidebar({
                 <SidebarMenuButton
                   size="lg"
                   className="text-lg font-medium [&_svg]:size-6"
+                  isActive={pathname === item.url}
                   render={
                     <Link to={item.url}>
                       <HugeiconsIcon icon={item.icon} strokeWidth={2} />

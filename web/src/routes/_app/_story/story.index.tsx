@@ -28,7 +28,7 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_app/_stories/stories/')({
+export const Route = createFileRoute('/_app/_story/story/')({
   component: RouteComponent,
 });
 

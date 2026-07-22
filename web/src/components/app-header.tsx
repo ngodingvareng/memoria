@@ -1,9 +1,16 @@
-import { Notification01Icon, Search01Icon } from '@hugeicons/core-free-icons';
+import {
+  MoreVerticalIcon,
+  Notification01Icon,
+  PlusSignIcon,
+  Search01Icon,
+} from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
 import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group';
 import { SidebarTrigger } from './ui/sidebar';
 import UserMenu from './user-menu';
+import { ButtonGroup } from './ui/button-group';
+import { Button } from './ui/button';
 
 export default function AppHeader() {
   return (
@@ -15,7 +22,7 @@ export default function AppHeader() {
         </Link>
       </div>
 
-      <div className="flex items-center gap-4 pr-2 justify-end grow">
+      <div className="flex items-center gap-3 pr-2 justify-end grow">
         <InputGroup className="max-w-xl w-full h-10 [&_svg]:size-5!">
           <InputGroupInput
             placeholder="Search for stories and activities..."
@@ -26,6 +33,16 @@ export default function AppHeader() {
             <HugeiconsIcon strokeWidth={2} icon={Search01Icon} />
           </InputGroupAddon>
         </InputGroup>
+        <div className="flex gap-2">
+          <ButtonGroup>
+            <Button size="lg">
+              <HugeiconsIcon icon={PlusSignIcon} /> New Activity
+            </Button>
+            <Button size="icon-lg">
+              <HugeiconsIcon icon={MoreVerticalIcon} />
+            </Button>
+          </ButtonGroup>
+        </div>
         <Link
           to="/notifications"
           className="size-10 flex justify-center items-center bg-primary/10 rounded-full"

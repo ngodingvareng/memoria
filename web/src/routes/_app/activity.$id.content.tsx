@@ -10,7 +10,7 @@ import { dummyNotes } from '@/lib/dummies';
 import { createFileRoute } from '@tanstack/react-router';
 import React from 'react';
 
-export const Route = createFileRoute('/_app/activities/$id/contents')({
+export const Route = createFileRoute('/_app/activity/$id/content')({
   component: RouteComponent,
 });
 
