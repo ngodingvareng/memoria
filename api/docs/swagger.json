@@ -1,0 +1,81 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Book API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/books": {
+            "post": {
+                "description": "Memasukkan data buku baru ke perpustakaan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Tambah Buku Baru",
+                "parameters": [
+                    {
+                        "description": "Data Buku",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "Budi Raharjo"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Learn Golang"
+                }
+            }
+        },
+        "github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest": {
+            "type": "object",
+            "required": [
+                "author",
+                "title"
+            ],
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "Budi Raharjo"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Learn Golang"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,54 @@
+basePath: /api/v1
+definitions:
+  github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse:
+    properties:
+      author:
+        example: Budi Raharjo
+        type: string
+      id:
+        example: 1
+        type: integer
+      title:
+        example: Learn Golang
+        type: string
+    type: object
+  github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest:
+    properties:
+      author:
+        example: Budi Raharjo
+        type: string
+      title:
+        example: Learn Golang
+        type: string
+    required:
+      - author
+      - title
+    type: object
+info:
+  contact: {}
+  title: Book API
+  version: "1.0"
+paths:
+  /books:
+    post:
+      consumes:
+        - application/json
+      description: Memasukkan data buku baru ke perpustakaan
+      parameters:
+        - description: Data Buku
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.CreateBookRequest"
+      produces:
+        - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: "#/definitions/github_com_moez-rd_memoria_internal_delivery_http_dto.BookResponse"
+      summary: Tambah Buku Baru
+      tags:
+        - Books
+swagger: "2.0"

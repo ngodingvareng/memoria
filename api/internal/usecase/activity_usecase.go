@@ -1,0 +1,72 @@
+package usecase
+
+import (
+	"context"
+
+	"github.com/google/uuid"
+	"github.com/moez-rd/memoria/internal/entity"
+)
+
+// defaultConfirmationTimeoutMinutes mirrors the DB column's own DEFAULT
+// 1440. It has to be applied here explicitly (not just left to Postgres)
+// because CreateActivity's sqlc query lists confirmation_timeout_minutes
+// in its explicit column list — inserting NULL there sets the column to
+// NULL, it does NOT fall back to the column's DEFAULT. Only omitting the
+// column entirely triggers the DEFAULT, which our fixed sqlc query can't
+// do conditionally.
+const defaultConfirmationTimeoutMinutes int32 = 1440
+
+type ActivityRepository interface {
+	Create(ctx context.Context, activity *entity.Activity) (*entity.Activity, error)
+	WithTransaction(ctx context.Context, fn func(ActivityRepository) error) error
+}
+
+type CreateActivityInput struct {
+	UserID                     uuid.UUID
+	Name                       string
+	Description                *string
+	IsFixedSchedule            bool
+	ColorPalette               *string
+	ConfirmationTimeoutMinutes *int32
+}
+
+type ActivityUsecase interface {
+	CreateActivity(ctx context.Context, input CreateActivityInput) (*entity.Activity, error)
+}
+
+type activityUsecase struct {
+	repo ActivityRepository
+}
+
+func NewActivityUsecase(repo ActivityRepository) ActivityUsecase {
+	return &activityUsecase{repo: repo}
+}
+
+// CreateActivity implements [ActivityUsecase].
+func (u *activityUsecase) CreateActivity(ctx context.Context, input CreateActivityInput) (*entity.Activity, error) {
+	timeout := defaultConfirmationTimeoutMinutes
+	if input.ConfirmationTimeoutMinutes != nil {
+		timeout = *input.ConfirmationTimeoutMinutes
+	}
+
+	activity := &entity.Activity{
+		UserID:                     input.UserID,
+		Name:                       input.Name,
+		Description:                input.Description,
+		IsFixedSchedule:            input.IsFixedSchedule,
+		ColorPalette:               input.ColorPalette,
+		ConfirmationTimeoutMinutes: &timeout,
+	}
+
+	var created *entity.Activity
+	err := u.repo.WithTransaction(ctx, func(tx ActivityRepository) error {
+		var txErr error
+		created, txErr = tx.Create(ctx, activity)
+		return txErr
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return created, nil
+}

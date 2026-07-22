@@ -1,0 +1,7 @@
+dir: "{{.InterfaceDir}}/mocks"
+filename: "{{.InterfaceName}}.go"
+pkgname: "mocks"
+packages:
+  "github.com/moez-rd/memoria/internal/usecase":
+    interfaces:
+      ActivityRepository:

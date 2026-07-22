@@ -1,61 +1,47 @@
 package main
 
 import (
-	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/static"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/moez-rd/memoria/internal/db"
+	"github.com/moez-rd/memoria/internal/app"
+	"github.com/moez-rd/memoria/internal/config"
 )
 
+// @title Book API
+// @version 1.0
+// @BasePath /api/v1
 func main() {
-	app := fiber.New()
-
-	// Runs first on every request
-	app.Use(func(c fiber.Ctx) error {
-		c.Set("X-Powered-By", "Fiber")
-		return c.Next()
-	})
-
-	// Serve files from ./public
-	app.Use("/", static.New("./public"))
-
-	app.Get("/", func(c fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
-
-	app.Get("/users/:id", func(c fiber.Ctx) error {
-		return c.SendString("User ID: " + c.Params("id"))
-	})
-
-	app.Get("/api/users", func(c fiber.Ctx) error {
-		return c.JSON([]fiber.Map{
-			{"id": 1, "name": "Alice"},
-			{"id": 2, "name": "Bob"},
-		})
-	})
-
-	app.Get("/admin", func(c fiber.Ctx) error {
-		return fiber.ErrForbidden
-	})
-
-	ctx := context.Background()
-
-	conn, err := pgx.Connect(ctx, "user=pqgotest dbname=pqgotest sslmode=verify-full")
+	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to load config: %v", err)
 	}
-	defer conn.Close(ctx)
 
-	queries := db.New(conn)
+	container, err := app.NewContainer(cfg)
+	if err != nil {
+		log.Fatalf("Failed to initialize app: %v", err)
+	}
 
-	_, err = queries.CreateAuthor(ctx, db.CreateAuthorParams{
-		Name: "Brian",
-		Bio:  pgtype.Text{String: ""},
-	})
+	go func() {
+		port := ":" + cfg.ServerPort
+		log.Printf("Server starting on port %s", port)
+		if err := container.App.Listen(port); err != nil {
+			log.Printf("Server failed: %v", err)
+		}
+	}()
 
-	log.Fatal(app.Listen(":3000"))
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	<-quit
+	log.Println("Shutting down gracefully...")
+
+	if err := container.App.Shutdown(); err != nil {
+		log.Printf("Fiber forced to shutdown: %v", err)
+	}
+
+	container.DB.Close()
+	log.Println("Database connection closed. Exiting.")
 }

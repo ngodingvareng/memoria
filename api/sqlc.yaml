@@ -9,3 +9,10 @@ sql:
         out: "internal/db"
         sql_package: "pgx/v5"
         emit_interface: true
+        emit_empty_slices: true
+        overrides:
+          # Postgres uuid -> github.com/google/uuid.UUID instead of the
+          # default pgtype.UUID, so entity/repository code (and the
+          # activity mapper) can work with plain uuid.UUID values.
+          - db_type: "uuid"
+            go_type: "github.com/google/uuid.UUID"

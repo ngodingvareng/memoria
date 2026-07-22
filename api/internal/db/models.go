@@ -5,11 +5,205 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
+
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Author struct {
-	ID   int64
-	Name string
-	Bio  pgtype.Text
+type ActivityItemStatus string
+
+const (
+	ActivityItemStatusAwaiting ActivityItemStatus = "awaiting"
+	ActivityItemStatusCaptured ActivityItemStatus = "captured"
+	ActivityItemStatusMissed   ActivityItemStatus = "missed"
+)
+
+func (e *ActivityItemStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ActivityItemStatus(s)
+	case string:
+		*e = ActivityItemStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ActivityItemStatus: %T", src)
+	}
+	return nil
+}
+
+type NullActivityItemStatus struct {
+	ActivityItemStatus ActivityItemStatus
+	Valid              bool // Valid is true if ActivityItemStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullActivityItemStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ActivityItemStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ActivityItemStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullActivityItemStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ActivityItemStatus), nil
+}
+
+type AuthProviderID string
+
+const (
+	AuthProviderIDGoogle     AuthProviderID = "google"
+	AuthProviderIDGithub     AuthProviderID = "github"
+	AuthProviderIDCredential AuthProviderID = "credential"
+)
+
+func (e *AuthProviderID) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthProviderID(s)
+	case string:
+		*e = AuthProviderID(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthProviderID: %T", src)
+	}
+	return nil
+}
+
+type NullAuthProviderID struct {
+	AuthProviderID AuthProviderID
+	Valid          bool // Valid is true if AuthProviderID is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthProviderID) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthProviderID, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthProviderID.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthProviderID) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuthProviderID), nil
+}
+
+type Activity struct {
+	ID                         uuid.UUID
+	UserID                     uuid.UUID
+	Name                       string
+	Description                pgtype.Text
+	IsFixedSchedule            bool
+	ColorPalette               pgtype.Text
+	ConfirmationTimeoutMinutes pgtype.Int4
+	CreatedAt                  pgtype.Timestamptz
+	UpdatedAt                  pgtype.Timestamptz
+	DeletedAt                  pgtype.Timestamptz
+}
+
+type ActivityImage struct {
+	ID         uuid.UUID
+	ActivityID uuid.UUID
+	ImagePath  string
+	ImageAlt   pgtype.Text
+	CreatedAt  pgtype.Timestamptz
+}
+
+type ActivityItem struct {
+	ID           uuid.UUID
+	ActivityID   uuid.UUID
+	ScheduleID   pgtype.UUID
+	Status       ActivityItemStatus
+	ScheduledAt  pgtype.Timestamptz
+	ConfirmedAt  pgtype.Timestamptz
+	OccurredAt   pgtype.Timestamptz
+	Content      pgtype.Text
+	ColorPalette pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+	DeletedAt    pgtype.Timestamptz
+}
+
+type ActivityItemImage struct {
+	ID             uuid.UUID
+	ActivityItemID uuid.UUID
+	ImagePath      string
+	ImageAlt       pgtype.Text
+	CreatedAt      pgtype.Timestamptz
+}
+
+type ActivitySchedule struct {
+	ID             uuid.UUID
+	ActivityID     uuid.UUID
+	CronExpression string
+	Timezone       pgtype.Text
+	CreatedAt      pgtype.Timestamptz
+}
+
+type ActivityScheduleHistory struct {
+	ID             uuid.UUID
+	ActivityID     uuid.UUID
+	ScheduleID     pgtype.UUID
+	CronExpression string
+	Timezone       pgtype.Text
+	ActiveFrom     pgtype.Timestamptz
+	ActiveUntil    pgtype.Timestamptz
+}
+
+type User struct {
+	ID            uuid.UUID
+	Name          string
+	Email         string
+	EmailVerified bool
+	ImagePath     pgtype.Text
+	Timezone      string
+	CreatedAt     pgtype.Timestamptz
+	UpdatedAt     pgtype.Timestamptz
+	DeletedAt     pgtype.Timestamptz
+}
+
+type UserAccount struct {
+	ID                    uuid.UUID
+	UserID                uuid.UUID
+	AccountID             string
+	ProviderID            AuthProviderID
+	AccessToken           pgtype.Text
+	RefreshToken          pgtype.Text
+	AccessTokenExpiresAt  pgtype.Timestamptz
+	RefreshTokenExpiresAt pgtype.Timestamptz
+	Scope                 pgtype.Text
+	IDToken               pgtype.Text
+	PasswordHash          pgtype.Text
+	CreatedAt             pgtype.Timestamptz
+	UpdatedAt             pgtype.Timestamptz
+}
+
+type UserSession struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	TokenHash string
+	ExpiresAt pgtype.Timestamptz
+	IpAddress pgtype.Text
+	UserAgent pgtype.Text
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type UserVerification struct {
+	ID         uuid.UUID
+	Identifier string
+	Value      string
+	ExpiresAt  pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
 }
