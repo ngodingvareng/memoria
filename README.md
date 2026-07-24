@@ -41,7 +41,7 @@ Install both of the API and the WEB application.
 (cd web && bun install)
 ```
 
-### Run you application
+### Run the application
 
 Run both the API and the WEB application. Starting the API will automatically spin up the database container via Docker (you can check the Makefile to see how it works)."
 
