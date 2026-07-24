@@ -91,7 +91,7 @@ test:
 	@printf "$(COLOR_INFO)Select the test suite to run:$(COLOR_RESET)\n"
 	@printf "  1) Unit Tests\n"
 	@printf "  2) Integration Tests\n"
-	@read -p "Enter choice [1-3]: " choice; \
+	@read -p "Enter choice [1-2]: " choice; \
 	case "$$choice" in \
 		1) $(MAKE) test-unit ;; \
 		2) $(MAKE) test-integration ;; \
