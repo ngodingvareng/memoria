@@ -14,7 +14,7 @@ Basically this is a fullstack application with Golang and React (using Tanstack 
 
 ### Requirements
 
-- You are using Linux (as you can see in `api/Makefile` and some commands below, there are some commands using linux commands, I'll fix them later so it can be run in everywhere)
+- You are using Linux (as you can see in `api/Makefile` and some commands below, there are some of them using linux style, I'll fix them later)
 - Golang 1.26
 - Make (if you don't have this thing, you can copy the commands from the `api/Makefile` and run manually in your terminal)
 - Docker (Used for containerized database and integration test)
