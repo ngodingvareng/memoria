@@ -8,21 +8,21 @@
 
 ## What is this dawg?
 
-Basically this is a fullstack application with Golang and React (using Tanstack router). I inspired from Instagram (as social media) and GitHub commit activity (as activity capturing. Any activities, like work, travelling, etc). What is that mean? I can't tell you right now.
+Basically, this is a full-stack application built with Golang and React (using TanStack Router). It is inspired by Instagram (for the social media side) and GitHub's commit activity (for tracking daily activities like work, traveling, etc.). What does that mean? I can't tell you just yet!
 
 ## Get started
 
 ### Requirements
 
-- You are using Linux (as you can see in `api/Makefile` and some commands below, there are some of them using linux style, I'll fix them later)
-- Golang 1.26
-- Make (if you don't have this thing, you can copy the commands from the `api/Makefile` and run manually in your terminal)
-- Docker (Used for containerized database and integration test)
-- Bun (recommended, alternatively you can use Nodejs with npm/pnpm/yarn or anything you want)
+- Linux OS (As seen in api/Makefile and the commands below, some shell scripts rely on Linux commands. Cross-platform support will be added later).
+- Go 1.26
+- Make (If you don't have make installed, you can copy the commands directly from api/Makefile and run them manually in your terminal).
+- Docker (Required for the containerized database and running integration tests).
+- Bun (Recommended. Alternatively, you can use Node.js with npm, pnpm, or yarn).
 
 ### Download repository
 
-Just clone the repo
+Just clone the repository.
 
 ```sh
 git clone https://github.com/ngodingvareng/memoria.git
@@ -34,7 +34,7 @@ gh repo clone ngodingvareng/memoria
 
 ### Install packages/dependencies
 
-Install in both of api and web
+Install both of the API and the WEB application.
 
 ```sh
 (cd api && go mod tidy)
@@ -43,7 +43,7 @@ Install in both of api and web
 
 ### Run you application
 
-Run both apps. The API will also start the database container (just look at Makefile if want to know how it works).
+Run both the API and the WEB application. Starting the API will automatically spin up the database container via Docker (you can check the Makefile to see how it works)."
 
 ```sh
 (cd api && make dev)
