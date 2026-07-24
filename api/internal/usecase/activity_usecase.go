@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
@@ -75,7 +76,7 @@ func (u *activityUsecase) CreateActivity(ctx context.Context, input CreateActivi
 		return txErr
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("creating activity: %w", err)
 	}
 
 	return created, nil

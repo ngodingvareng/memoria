@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
@@ -25,16 +25,26 @@ func CustomErrorHandler(c fiber.Ctx, err error) error {
 	if appErr, ok := errors.AsType[*errs.AppError](err); ok {
 		code = appErr.Code
 		message = appErr.Message
+	} else if fiberErr, ok := errors.AsType[*fiber.Error](err); ok {
+		code = fiberErr.Code
+		message = fiberErr.Message
 	} else {
-		if fiberErr, ok := errors.AsType[*fiber.Error](err); ok {
-			code = fiberErr.Code
-			message = fiberErr.Message
-		} else {
-			log.Printf("[SERVER ERROR]: %v\n", err)
-		}
+		// This is the one and only place an unhandled error gets logged.
+		// usecase and repository deliberately don't log — they just
+		// return (optionally wrapped) errors that bubble up to here.
+		// Logging at every layer would print the same failure multiple
+		// times as it climbs back up the call stack.
+		slog.ErrorContext(c, "unhandled error",
+			"error", err,
+			"method", c.Method(),
+			"path", c.Path(),
+		)
 	}
 
-	// Return the standardized JSON response
+	// NOTE: Errors: err.Error() below still exposes the raw error text
+	// for every response, including unhandled 500s — this predates the
+	// logging change and is a separate concern (worth gating behind an
+	// env check later so production doesn't leak internal error text).
 	return c.Status(code).JSON(dto.WebResponse[any]{
 		Code:    code,
 		Message: message,

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"log/slog"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -60,6 +62,11 @@ func (h *ActivityHandler) CreateActivity(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
+	slog.InfoContext(c, "activity created",
+		"activity_id", response.ID,
+		"user_id", response.UserID,
+	)
 
 	return c.Status(fiber.StatusCreated).JSON(dto.WebResponse[dto.ActivityResponse]{
 		Code:    fiber.StatusCreated,

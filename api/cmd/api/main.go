@@ -1,10 +1,12 @@
 package main
 
 import (
-	"log"
+	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/ngodingvareng/memoria/internal/app"
 	"github.com/ngodingvareng/memoria/internal/config"
@@ -14,34 +16,51 @@ import (
 // @version 1.0
 // @BasePath /api/v1
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
 	}
 
 	container, err := app.NewContainer(cfg)
 	if err != nil {
-		log.Fatalf("Failed to initialize app: %v", err)
+		slog.Error("failed to initialize app", "error", err)
+		os.Exit(1)
 	}
 
+	serveErr := make(chan error, 1)
 	go func() {
 		port := ":" + cfg.ServerPort
-		log.Printf("Server starting on port %s", port)
+		slog.Info("server starting", "port", port)
 		if err := container.App.Listen(port); err != nil {
-			log.Printf("Server failed: %v", err)
+			serveErr <- err
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
-	<-quit
-	log.Println("Shutting down gracefully...")
+	select {
+	case err := <-serveErr:
+		slog.Error("server failed to start", "error", err)
+		os.Exit(1)
+	case <-quit:
+		slog.Info("shutting down gracefully")
+	}
 
-	if err := container.App.Shutdown(); err != nil {
-		log.Printf("Fiber forced to shutdown: %v", err)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := container.App.ShutdownWithContext(ctx); err != nil {
+		slog.Error("fiber forced to shutdown", "error", err)
 	}
 
 	container.DB.Close()
-	log.Println("Database connection closed. Exiting.")
+	slog.Info("database connection closed, exiting")
+
 }

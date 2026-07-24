@@ -2,8 +2,10 @@ package app
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/config"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest"
@@ -11,6 +13,7 @@ import (
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
 	"github.com/ngodingvareng/memoria/internal/repository"
 	"github.com/ngodingvareng/memoria/internal/usecase"
+	slogfiber "github.com/samber/slog-fiber"
 )
 
 type Container struct {
@@ -24,9 +27,6 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// pgxpool.New is lazy (doesn't actually connect), so ping here to
-	// fail fast at startup instead of on the first real request.
 	if err := conn.Ping(context.Background()); err != nil {
 		return nil, err
 	}
@@ -36,17 +36,29 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	activityUsecase := usecase.NewActivityUsecase(activityRepo)
 	activityHandler := handler.NewActivityHandler(activityUsecase)
 
-	// 3. Router
-	app := fiber.New(fiber.Config{
+	// 3. Fiber app + global middleware.
+	// Renamed the local var from "app" to "fiberApp" — this file's own
+	// package is named "app", and reusing that name for a variable here
+	// reads confusingly once there are several fiberApp.Use(...) calls.
+	fiberApp := fiber.New(fiber.Config{
 		ErrorHandler: middleware.CustomErrorHandler,
 	})
 
-	rest.SetupRoutes(app, rest.Handlers{
+	// Access log for every request, structured via slog (see main.go for
+	// the JSON handler setup). recover.New() should sit right after it so
+	// a panic anywhere downstream still gets logged and turned into a
+	// normal 500 instead of crashing the whole process.
+	fiberApp.Use(slogfiber.New(slog.Default()))
+	fiberApp.Use(recover.New())
+
+	// 4. Router
+	rest.SetupRoutes(fiberApp, rest.Handlers{
 		Activity: activityHandler,
 	})
 
 	return &Container{
-		App: app,
+		App: fiberApp,
 		DB:  conn,
 	}, nil
+
 }
