@@ -37,7 +37,6 @@ import { Route as UserUserPrivacyRouteImport } from './routes/_user/user.privacy
 import { Route as AppStoryStoryIndexRouteImport } from './routes/_app/_story/story.index'
 import { Route as AppStoryStoryFollowingRouteImport } from './routes/_app/_story/story.following'
 import { Route as AppActivityIdIndexRouteImport } from './routes/_app/activity.$id.index'
-import { Route as AppActivityIdContentRouteImport } from './routes/_app/activity.$id.content'
 import { Route as AppActivityIdScheduleRouteImport } from './routes/_app/activity.$id.schedule'
 import { Route as AppActivityIdSettingsRouteImport } from './routes/_app/activity.$id.settings'
 import { Route as AppActivityIdStatsRouteImport } from './routes/_app/activity.$id.stats'
@@ -179,11 +178,6 @@ const AppActivityIdIndexRoute = AppActivityIdIndexRouteImport.update({
   path: '/activity/$id/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppActivityIdContentRoute = AppActivityIdContentRouteImport.update({
-  id: '/activity/$id/content',
-  path: '/activity/$id/content',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppActivityIdScheduleRoute = AppActivityIdScheduleRouteImport.update({
   id: '/activity/$id/schedule',
   path: '/activity/$id/schedule',
@@ -228,7 +222,6 @@ export interface FileRoutesByFullPath {
   '/group/': typeof AppGroupIndexRoute
   '/user/': typeof UserUserIndexRoute
   '/story/following': typeof AppStoryStoryFollowingRoute
-  '/activity/$id/content': typeof AppActivityIdContentRoute
   '/activity/$id/schedule': typeof AppActivityIdScheduleRoute
   '/activity/$id/settings': typeof AppActivityIdSettingsRoute
   '/activity/$id/stats': typeof AppActivityIdStatsRoute
@@ -259,7 +252,6 @@ export interface FileRoutesByTo {
   '/group': typeof AppGroupIndexRoute
   '/user': typeof UserUserIndexRoute
   '/story/following': typeof AppStoryStoryFollowingRoute
-  '/activity/$id/content': typeof AppActivityIdContentRoute
   '/activity/$id/schedule': typeof AppActivityIdScheduleRoute
   '/activity/$id/settings': typeof AppActivityIdSettingsRoute
   '/activity/$id/stats': typeof AppActivityIdStatsRoute
@@ -295,7 +287,6 @@ export interface FileRoutesById {
   '/_app/group/': typeof AppGroupIndexRoute
   '/_user/user/': typeof UserUserIndexRoute
   '/_app/_story/story/following': typeof AppStoryStoryFollowingRoute
-  '/_app/activity/$id/content': typeof AppActivityIdContentRoute
   '/_app/activity/$id/schedule': typeof AppActivityIdScheduleRoute
   '/_app/activity/$id/settings': typeof AppActivityIdSettingsRoute
   '/_app/activity/$id/stats': typeof AppActivityIdStatsRoute
@@ -328,7 +319,6 @@ export interface FileRouteTypes {
     | '/group/'
     | '/user/'
     | '/story/following'
-    | '/activity/$id/content'
     | '/activity/$id/schedule'
     | '/activity/$id/settings'
     | '/activity/$id/stats'
@@ -359,7 +349,6 @@ export interface FileRouteTypes {
     | '/group'
     | '/user'
     | '/story/following'
-    | '/activity/$id/content'
     | '/activity/$id/schedule'
     | '/activity/$id/settings'
     | '/activity/$id/stats'
@@ -394,7 +383,6 @@ export interface FileRouteTypes {
     | '/_app/group/'
     | '/_user/user/'
     | '/_app/_story/story/following'
-    | '/_app/activity/$id/content'
     | '/_app/activity/$id/schedule'
     | '/_app/activity/$id/settings'
     | '/_app/activity/$id/stats'
@@ -611,13 +599,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppActivityIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/activity/$id/content': {
-      id: '/_app/activity/$id/content'
-      path: '/activity/$id/content'
-      fullPath: '/activity/$id/content'
-      preLoaderRoute: typeof AppActivityIdContentRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/activity/$id/schedule': {
       id: '/_app/activity/$id/schedule'
       path: '/activity/$id/schedule'
@@ -687,7 +668,6 @@ interface AppRouteChildren {
   AppGroupNewRoute: typeof AppGroupNewRoute
   AppActivityIndexRoute: typeof AppActivityIndexRoute
   AppGroupIndexRoute: typeof AppGroupIndexRoute
-  AppActivityIdContentRoute: typeof AppActivityIdContentRoute
   AppActivityIdScheduleRoute: typeof AppActivityIdScheduleRoute
   AppActivityIdSettingsRoute: typeof AppActivityIdSettingsRoute
   AppActivityIdStatsRoute: typeof AppActivityIdStatsRoute
@@ -706,7 +686,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppGroupNewRoute: AppGroupNewRoute,
   AppActivityIndexRoute: AppActivityIndexRoute,
   AppGroupIndexRoute: AppGroupIndexRoute,
-  AppActivityIdContentRoute: AppActivityIdContentRoute,
   AppActivityIdScheduleRoute: AppActivityIdScheduleRoute,
   AppActivityIdSettingsRoute: AppActivityIdSettingsRoute,
   AppActivityIdStatsRoute: AppActivityIdStatsRoute,

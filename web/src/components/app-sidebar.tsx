@@ -49,7 +49,7 @@ const data = {
       name: 'NgodingVareng',
       imageSrc: 'https://github.com/shadcn.png',
       imageAlt: 'hello',
-      url: '/@shadcn',
+      url: '/activity/1',
     },
   ],
 
@@ -71,23 +71,23 @@ const data = {
   recent: [
     {
       title: 'Apa si ini?',
-      url: '/activity/1/content',
+      url: '/activity/1',
     },
     {
       title: 'He is not here anymore, so I should go tomorrow',
-      url: '/activity/2/content',
+      url: '/activity/2',
     },
     {
       title: 'What',
-      url: '/activity/3/content',
+      url: '/activity/3',
     },
     {
       title: 'PHOBOS <- Holy gd reference',
-      url: '/activity/4/content',
+      url: '/activity/4',
     },
     {
       title: "There's weird light in front of my house",
-      url: '/activity/5/content',
+      url: '/activity/5',
     },
   ],
 };

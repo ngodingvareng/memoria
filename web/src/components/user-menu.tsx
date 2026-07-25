@@ -5,6 +5,7 @@ import {
   Logout01Icon,
   Settings02Icon,
   Sun01Icon,
+  UserCircleIcon,
 } from '@hugeicons/core-free-icons';
 import {
   DropdownMenu,
@@ -28,6 +29,13 @@ export default function UserMenu() {
 
   const data = {
     user: [
+      [
+        {
+          title: 'Profile',
+          icon: UserCircleIcon,
+          url: '/@shadcn',
+        },
+      ],
       [
         {
           title: 'Display Language: English',

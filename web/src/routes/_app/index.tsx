@@ -33,6 +33,7 @@ import { getNoteColorClass } from '@/lib/colors';
 import { dummyStories } from '@/lib/dummies';
 import { cn } from '@/lib/utils';
 import {
+  ArrowDown01Icon,
   ArrowRight02Icon,
   Comment02Icon,
   FavouriteIcon,
@@ -99,24 +100,29 @@ function Index() {
             </div>
             <div className="flex flex-col gap-4">
               <div className="flex items-center">
-                <h2 className="text-xl font-semibold">Activity Stats</h2>
+                <h2 className="text-xl font-semibold">
+                  336k activities over the last year
+                </h2>
 
                 <div className="grow flex justify-end">
-                  <Select items={items} defaultValue="apple">
-                    <SelectTrigger className="w-full max-w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Year</SelectLabel>
-                        {items.map((item) => (
-                          <SelectItem key={item.value} value={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={<Button variant="secondary" />}
+                    >
+                      <span className="font-semibold text-muted-foreground">
+                        Year
+                      </span>{' '}
+                      2077
+                      <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem>2077</DropdownMenuItem>
+                        <DropdownMenuItem>2078</DropdownMenuItem>
+                        <DropdownMenuItem>2079</DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
@@ -372,7 +378,7 @@ function Index() {
               ))}
             </div>
             <div className="flex flex-col gap-4">
-              <h2 className="text-xl font-semibold">Your Stories</h2>
+              <h2 className="text-xl font-semibold">Last Stories</h2>
 
               {[dummyStories[0]].map((story) => (
                 <Item variant="outline">
