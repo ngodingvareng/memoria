@@ -49,7 +49,7 @@ const data = {
       name: 'NgodingVareng',
       imageSrc: 'https://github.com/shadcn.png',
       imageAlt: 'hello',
-      url: '/activity/1',
+      url: '/group/1',
     },
   ],
 

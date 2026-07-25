@@ -19,15 +19,6 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '@/components/ui/item';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import Wrapper from '@/components/wrapper';
 import { getNoteColorClass } from '@/lib/colors';
 import { dummyStories } from '@/lib/dummies';
