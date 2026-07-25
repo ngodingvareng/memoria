@@ -3,14 +3,14 @@ services:
     image: postgres:18-alpine
     container_name: memoria-postgres-dev
     restart: unless-stopped
+    ports:
+      - "${DATABASE_PORT}:5432"
     environment:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_DBNAME}
-    ports:
-      - "${DATABASE_PORT}:5432"
     volumes:
-      - pgdata:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql
     command:
       [
         "postgres",
@@ -31,6 +31,23 @@ services:
       timeout: 5s
       retries: 5
 
+  rustfs:
+    image: rustfs/rustfs:1.0.0-beta.11
+    container_name: memoria-rustfs-dev
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      # Dev-only credentials — change these (and set via env vars, not
+      # committed here) before this ever runs anywhere but localhost.
+      - RUSTFS_ACCESS_KEY=${STORAGE_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${STORAGE_SECRET_KEY:-rustfsadmin}
+    volumes:
+      - rustfs_data:/data
+
 volumes:
-  pgdata:
+  postgres_data:
+    driver: local
+  rustfs_data:
     driver: local

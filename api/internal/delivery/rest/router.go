@@ -10,7 +10,8 @@ import (
 // Handlers groups every handler the router needs. Add a field here each
 // time a new domain's handler is wired up in app.go.
 type Handlers struct {
-	Activity *handler.ActivityHandler
+	Activity      *handler.ActivityHandler
+	ActivityImage *handler.ActivityImageHandler
 }
 
 func SetupRoutes(app *fiber.App, h Handlers) {
@@ -26,4 +27,9 @@ func SetupRoutes(app *fiber.App, h Handlers) {
 
 	activities := app.Group("/activities")
 	activities.Post("/", h.Activity.CreateActivity)
+
+	activities.Post("/:id/images", h.ActivityImage.UploadActivityImage)
+	activities.Get("/:id/images", h.ActivityImage.ListActivityImages)
+	activities.Delete("/:id/images/:imageId", h.ActivityImage.DeleteActivityImage)
+
 }

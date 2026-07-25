@@ -29,10 +29,13 @@ help:
 
 ## dev: Start Docker containers and run the Go application.
 dev:
-	@printf "$(COLOR_INFO)[1/2] Starting Docker Compose...$(COLOR_RESET)\n"
+	@printf "$(COLOR_INFO)[1/3] Initializing Swagger...$(COLOR_RESET)\n"
+	@$(MAKE) swagger-generate
+	@printf "$(COLOR_SUCCESS)✓ Swagger initialized successfully.$(COLOR_RESET)\n"
+	@printf "$(COLOR_INFO)[2/3] Starting Docker Compose...$(COLOR_RESET)\n"
 	@docker-compose -f docker-compose.dev.yaml up -d
 	@printf "$(COLOR_SUCCESS)✓ Docker Compose started successfully.$(COLOR_RESET)\n"
-	@printf "$(COLOR_INFO)[2/2] Running Go application... (Press Ctrl+C to stop)$(COLOR_RESET)\n"
+	@printf "$(COLOR_INFO)[3/3] Running Go application... (Press Ctrl+C to stop)$(COLOR_RESET)\n"
 	@bash -c '\
 		cleanup() { \
 			printf "\n$(COLOR_WARN)Stopping server & shutting down Docker containers...$(COLOR_RESET)\n"; \
@@ -53,6 +56,13 @@ build:
 	@printf "$(COLOR_INFO)Building application...$(COLOR_RESET)\n"
 	@go build ./...
 	@printf "$(COLOR_SUCCESS)✓ Build completed successfully.$(COLOR_RESET)\n"
+
+
+# ==============================================================================
+# SWAGGER
+# ==============================================================================
+swagger-generate:
+	swag init -d ./cmd/api,./internal -g main.go --parseInternal --parseDependency
 
 # ==============================================================================
 # DATABASE & MIGRATE

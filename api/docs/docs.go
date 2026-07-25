@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/books": {
+        "/activities": {
             "post": {
-                "description": "Memasukkan data buku baru ke perpustakaan",
+                "description": "Create a new activity for the authenticated user",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,17 +25,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Books"
+                    "activities"
                 ],
-                "summary": "Tambah Buku Baru",
+                "summary": "Create a new activity",
                 "parameters": [
                     {
-                        "description": "Data Buku",
+                        "description": "Create activity request",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_http_dto.CreateBookRequest"
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateActivityRequest"
                         }
                     }
                 ],
@@ -43,45 +43,278 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_http_dto.BookResponse"
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ActivityResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/activities/{id}/images": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "List images for an activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-array_github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ActivityImageResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Upload an image for an activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ActivityImageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/activities/{id}/images/{imageId}": {
+            "delete": {
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Delete an activity image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Image ID",
+                        "name": "imageId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
         }
     },
     "definitions": {
-        "github_com_ngodingvareng_memoria_internal_delivery_http_dto.BookResponse": {
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ActivityImageResponse": {
             "type": "object",
             "properties": {
-                "author": {
-                    "type": "string",
-                    "example": "Budi Raharjo"
-                },
                 "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "title": {
                     "type": "string",
-                    "example": "Learn Golang"
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://storage.example.com/activities/.../abc123.jpg?X-Amz-..."
                 }
             }
         },
-        "github_com_ngodingvareng_memoria_internal_delivery_http_dto.CreateBookRequest": {
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ActivityResponse": {
+            "type": "object",
+            "properties": {
+                "color_hex": {
+                    "type": "string"
+                },
+                "confirmation_timeout_minutes": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "is_fixed_schedule": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Olahraga pagi"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateActivityRequest": {
             "type": "object",
             "required": [
-                "author",
-                "title"
+                "name"
             ],
             "properties": {
-                "author": {
+                "color_hex": {
                     "type": "string",
-                    "example": "Budi Raharjo"
+                    "example": "#FF5733"
                 },
-                "title": {
+                "confirmation_timeout_minutes": {
+                    "type": "integer",
+                    "example": 1440
+                },
+                "description": {
                     "type": "string",
-                    "example": "Learn Golang"
+                    "maxLength": 2000,
+                    "example": "Push-up dan lari tiap pagi kerja"
+                },
+                "is_fixed_schedule": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "example": "Olahraga pagi"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {},
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-array_github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ActivityImageResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ActivityImageResponse"
+                    }
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ActivityImageResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ActivityImageResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ActivityResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ActivityResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
                 }
             }
         }

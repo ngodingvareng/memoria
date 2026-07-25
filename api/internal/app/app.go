@@ -12,6 +12,7 @@ import (
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/handler"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
 	"github.com/ngodingvareng/memoria/internal/repository"
+	"github.com/ngodingvareng/memoria/internal/storage"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	slogfiber "github.com/samber/slog-fiber"
 )
@@ -22,26 +23,51 @@ type Container struct {
 }
 
 func NewContainer(cfg *config.Config) (*Container, error) {
+	ctx := context.Background()
+
 	// 1. DB
-	conn, err := pgxpool.New(context.Background(), cfg.GetDSN())
+	conn, err := pgxpool.New(ctx, cfg.GetDSN())
 	if err != nil {
 		return nil, err
 	}
-	if err := conn.Ping(context.Background()); err != nil {
+	if err := conn.Ping(ctx); err != nil {
 		return nil, err
 	}
 
-	// 2. Wiring: repository -> usecase -> handler
+	// 2. Object storage (RustFS in dev; any S3-compatible backend works
+	// the same way — only these config values change).
+	objectStorage, err := storage.NewS3Storage(ctx, storage.S3Config{
+		Endpoint:     cfg.StorageEndpoint,
+		Region:       cfg.StorageRegion,
+		AccessKey:    cfg.StorageAccessKey,
+		SecretKey:    cfg.StorageSecretKey,
+		Bucket:       cfg.StorageBucket,
+		UsePathStyle: cfg.StorageUsePathStyle,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Wiring: repository -> usecase -> handler
 	activityRepo := repository.NewActivityRepository(conn)
 	activityUsecase := usecase.NewActivityUsecase(activityRepo)
 	activityHandler := handler.NewActivityHandler(activityUsecase)
 
-	// 3. Fiber app + global middleware.
+	activityImageRepo := repository.NewActivityImageRepository(conn)
+	activityImageUsecase := usecase.NewActivityImageUsecase(activityImageRepo, objectStorage)
+	activityImageHandler := handler.NewActivityImageHandler(activityImageUsecase)
+
+	// 4. Fiber app + global middleware.
 	// Renamed the local var from "app" to "fiberApp" — this file's own
 	// package is named "app", and reusing that name for a variable here
 	// reads confusingly once there are several fiberApp.Use(...) calls.
 	fiberApp := fiber.New(fiber.Config{
 		ErrorHandler: middleware.CustomErrorHandler,
+		// Default fasthttp body limit is 4MB — too small for image
+		// uploads. ActivityImageHandler also enforces its own
+		// maxImageUploadSize as a second, more specific check.
+		BodyLimit: 15 * 1024 * 1024, // 15 MB
+
 	})
 
 	// Access log for every request, structured via slog (see main.go for
@@ -51,9 +77,10 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	fiberApp.Use(slogfiber.New(slog.Default()))
 	fiberApp.Use(recover.New())
 
-	// 4. Router
+	// 5. Router
 	rest.SetupRoutes(fiberApp, rest.Handlers{
-		Activity: activityHandler,
+		Activity:      activityHandler,
+		ActivityImage: activityImageHandler,
 	})
 
 	return &Container{

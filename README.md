@@ -37,6 +37,7 @@ gh repo clone ngodingvareng/memoria
 Install both of the API and the WEB application.
 
 ```sh
+(cd api && cp .env.example .env)
 (cd api && go mod tidy)
 (cd web && bun install)
 ```
