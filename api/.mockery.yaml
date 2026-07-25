@@ -5,3 +5,5 @@ packages:
   "github.com/ngodingvareng/memoria/internal/usecase":
     interfaces:
       ActivityRepository:
+      ActivityImageRepository:
+      Storage:

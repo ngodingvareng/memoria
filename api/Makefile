@@ -111,9 +111,9 @@ test:
 ## test-unit: Run unit tests only.
 test-unit:
 	@printf "$(COLOR_INFO)Running unit tests...$(COLOR_RESET)\n"
-	@go test ./internal/usecase -v
+	@go test -tags=unit ./... -v
 
 ## test-integration: Run integration tests only.
 test-integration:
 	@printf "$(COLOR_INFO)Running integration tests...$(COLOR_RESET)\n"
-	@go test -tags=integration ./internal/repository -v
+	@go test -tags=integration ./... -v
