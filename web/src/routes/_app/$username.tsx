@@ -8,8 +8,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Item, ItemContent } from '@/components/ui/item';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipTrigger } from '@/components/ui/tooltip';
 import Wrapper from '@/components/wrapper';
 import { getNoteColorClass } from '@/lib/colors';
 import { dummyStories } from '@/lib/dummies';
@@ -19,7 +17,6 @@ import {
   FavouriteIcon,
   MoreVerticalIcon,
   Share01Icon,
-  StarIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
@@ -50,20 +47,20 @@ function RouteComponent() {
       </div>
       <div className="flex flex-col gap-6 pt-6">
         <div>
-          <p className="font-medium text-2xl/5">Rahmat</p>
-          <p className="text-lg/5 text-muted-foreground">@rahmat</p>
+          <p className="font-medium text-2xl/5">zaraa</p>
+          <p className="text-lg/5 text-muted-foreground">@safaza_</p>
         </div>
         <div className="flex gap-4">
           <p>
-            <span className="font-semibold">2882</span>{' '}
+            <span className="font-semibold">1553</span>{' '}
             <span className="text-muted-foreground">followers</span>
           </p>
           <p>
-            <span className="font-semibold">2882</span>{' '}
+            <span className="font-semibold">954</span>{' '}
             <span className="text-muted-foreground">following</span>
           </p>
           <p>
-            <span className="font-semibold">2882</span>{' '}
+            <span className="font-semibold">6.7M</span>{' '}
             <span className="text-muted-foreground">activities</span>
           </p>
         </div>

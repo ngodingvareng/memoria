@@ -1,13 +1,30 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Wrapper from '@/components/wrapper';
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useRouterState,
+} from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/_group')({
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+
+  const activeTab = pathname.includes('/settings')
+    ? 'settings'
+    : pathname.includes('/member')
+      ? 'members'
+      : pathname.includes('/activity')
+        ? 'activities'
+        : 'overview';
+
   return (
     <Wrapper>
       <div className="flex flex-col gap-6">
@@ -23,17 +40,45 @@ function RouteComponent() {
             </Avatar>
             <div>
               <p className="font-medium text-2xl/5">NgodingVareng</p>
-              <p className="text-lg/5 text-muted-foreground">#ngodingvareng</p>
+              <p className="text-lg/5 text-muted-foreground">g/ngodingvareng</p>
             </div>
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="border-b-2">
+        <Tabs value={activeTab} className="border-b-2">
           <TabsList variant="line">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="activities">Activities</TabsTrigger>
-            <TabsTrigger value="members">Members</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger
+              value="overview"
+              render={
+                <Link to="/g/$id" params={{ id: '1' }}>
+                  Overview
+                </Link>
+              }
+            />
+            <TabsTrigger
+              value="activities"
+              render={
+                <Link to="/g/$id/activity" params={{ id: '1' }}>
+                  Activities
+                </Link>
+              }
+            />
+            <TabsTrigger
+              value="members"
+              render={
+                <Link to="/g/$id/member" params={{ id: '1' }}>
+                  Members
+                </Link>
+              }
+            />
+            <TabsTrigger
+              value="settings"
+              render={
+                <Link to="/g/$id/settings" params={{ id: '1' }}>
+                  Settings
+                </Link>
+              }
+            />
           </TabsList>
         </Tabs>
         <Outlet />

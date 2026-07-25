@@ -14,6 +14,7 @@ import {
   Album01Icon,
   BookOpen01Icon,
   Home05Icon,
+  PlusSignSquareIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link, useRouterState } from '@tanstack/react-router';
@@ -49,7 +50,7 @@ const data = {
       name: 'NgodingVareng',
       imageSrc: 'https://github.com/shadcn.png',
       imageAlt: 'hello',
-      url: '/group/1',
+      url: '/g/1',
     },
   ],
 
@@ -147,6 +148,16 @@ export default function AppSidebar({
                 />
               </SidebarMenuItem>
             ))}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                render={
+                  <Link to="/group/new" className="[&_svg]:size-6">
+                    <HugeiconsIcon icon={PlusSignSquareIcon} />
+                    <span className="min-w-0 truncate">Create new group</span>
+                  </Link>
+                }
+              />
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 

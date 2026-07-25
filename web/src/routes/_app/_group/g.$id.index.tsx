@@ -19,13 +19,11 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '@/components/ui/item';
-import Wrapper from '@/components/wrapper';
 import { getNoteColorClass } from '@/lib/colors';
 import { dummyStories } from '@/lib/dummies';
 import { cn } from '@/lib/utils';
 import {
   ArrowDown01Icon,
-  ArrowRight02Icon,
   Comment02Icon,
   FavouriteIcon,
   Globe02Icon,
@@ -34,14 +32,6 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-
-const items = [
-  { label: '2044', value: 'apple' },
-  { label: '2045', value: 'banana' },
-  { label: '2046', value: 'blueberry' },
-  { label: '2047', value: 'grapes' },
-  { label: '2048', value: 'pineapple' },
-];
 
 const music = [
   {
@@ -63,7 +53,7 @@ const music = [
     duration: '3:30',
   },
 ];
-export const Route = createFileRoute('/_app/_group/group/$id/')({
+export const Route = createFileRoute('/_app/_group/g/$id/')({
   component: RouteComponent,
 });
 

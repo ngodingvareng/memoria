@@ -1,16 +1,14 @@
 import {
-  MoreVerticalIcon,
   Notification01Icon,
   PlusSignIcon,
   Search01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
+import { Button } from './ui/button';
 import { InputGroup, InputGroupAddon, InputGroupInput } from './ui/input-group';
 import { SidebarTrigger } from './ui/sidebar';
 import UserMenu from './user-menu';
-import { ButtonGroup } from './ui/button-group';
-import { Button } from './ui/button';
 
 export default function AppHeader() {
   return (
@@ -34,14 +32,14 @@ export default function AppHeader() {
           </InputGroupAddon>
         </InputGroup>
         <div className="flex gap-2">
-          <ButtonGroup>
-            <Button size="lg">
-              <HugeiconsIcon icon={PlusSignIcon} /> New Activity
-            </Button>
-            <Button size="icon-lg">
-              <HugeiconsIcon icon={MoreVerticalIcon} />
-            </Button>
-          </ButtonGroup>
+          <Button
+            size="lg"
+            render={
+              <Link to="/activity/new">
+                <HugeiconsIcon icon={PlusSignIcon} /> New Activity
+              </Link>
+            }
+          />
         </div>
         <Link
           to="/notifications"
