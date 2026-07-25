@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/ngodingvareng/memoria/pkg/ptr"
 )
 
 // This file holds pgtype <-> plain-Go-pointer conversions shared by
@@ -18,7 +17,7 @@ func pgTextToPtr(t pgtype.Text) *string {
 	if !t.Valid {
 		return nil
 	}
-	return ptr.To(t.String)
+	return new(t.String)
 }
 
 func ptrToPgText(s *string) pgtype.Text {
@@ -32,7 +31,7 @@ func pgInt4ToPtr(i pgtype.Int4) *int32 {
 	if !i.Valid {
 		return nil
 	}
-	return ptr.To(i.Int32)
+	return new(i.Int32)
 }
 
 func ptrToPgInt4(i *int32) pgtype.Int4 {
@@ -46,7 +45,7 @@ func pgTimestamptzToPtr(t pgtype.Timestamptz) *time.Time {
 	if !t.Valid {
 		return nil
 	}
-	return ptr.To(t.Time)
+	return new(t.Time)
 }
 
 func ptrToPgTimestamptz(t *time.Time) pgtype.Timestamptz {
