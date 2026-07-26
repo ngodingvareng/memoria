@@ -26,7 +26,7 @@ CREATE TABLE users(
 
     -- Soft delete: lets account deletion have a recovery grace period
     -- instead of instantly cascading a hard DELETE into activities /
-    -- activity_items (which would permanently erase the user's history).
+    -- activity_captures (which would permanently erase the user's history).
     -- The app should hard-delete the row (triggering the real CASCADE)
     -- only after the grace period via a purge job.
     deleted_at TIMESTAMPTZ DEFAULT NULL

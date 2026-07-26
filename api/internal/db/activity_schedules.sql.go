@@ -48,7 +48,7 @@ type DeleteActivityScheduleParams struct {
 }
 
 // Retire a schedule entirely. The caller should archive it into
-// activity_schedule_histories first. Existing activity_items that
+// activity_schedule_histories first. Existing activity_captures that
 // referenced it keep activity_id intact and just get schedule_id set to
 // NULL (composite FK, ON DELETE SET NULL (schedule_id)).
 func (q *Queries) DeleteActivitySchedule(ctx context.Context, arg DeleteActivityScheduleParams) error {
@@ -124,7 +124,7 @@ WHERE activities.deleted_at IS NULL AND activities.is_fixed_schedule = TRUE
 // Feed for the scheduler worker: every active schedule belonging to a
 // non-deleted, is_fixed_schedule = true activity. The worker evaluates
 // cron_expression/timezone itself and calls
-// activity_items.CreateScheduledActivityItem when a slot fires.
+// activity_captures.CreateScheduledActivityCapture when a slot fires.
 func (q *Queries) ListActiveSchedulesForGeneration(ctx context.Context) ([]ActivitySchedule, error) {
 	rows, err := q.db.Query(ctx, listActiveSchedulesForGeneration)
 	if err != nil {
@@ -166,7 +166,7 @@ type UpdateActivityScheduleParams struct {
 	ActivityID     uuid.UUID
 }
 
-// Update in place (same id) so existing activity_items.schedule_id links
+// Update in place (same id) so existing activity_captures.schedule_id links
 // stay valid. The caller must insert a row into
 // activity_schedule_histories with the OLD cron_expression/timezone
 // BEFORE calling this, in the same transaction.

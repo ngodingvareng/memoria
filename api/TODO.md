@@ -23,10 +23,10 @@ Remaining work collected from the project review session (schema, architecture, 
 - [ ] `internal/repository/session_mapper.go` guesses the sqlc-generated field name for `ip_address` as `IpAddress` — verify against your actual generated code (could be `IPAddress` depending on sqlc's initialism handling).
 - [ ] Ownership check still missing on activity image routes (`UploadActivityImage`/`ListActivityImages`/`DeleteActivityImage` don't verify the activity belongs to the now-real authenticated user) — was flagged before auth existed at all; now that `RequireAuth` is wired in, this is finally checkable but not yet done. Needs a `GetActivityByID` usecase/repository method (query already exists) to check `activity.UserID == authenticatedUserID`.
 - [ ] No tests yet for the auth feature (usecase unit tests with mocks, repository integration tests) — same pattern as `activity`/`activity_image`, just not asked for yet.
-- [ ] **Scheduler worker** — a job that evaluates cron expressions from `activity_schedules` and auto-generates `activity_items`. The `ListActiveSchedulesForGeneration` query exists, but there's no worker actually parsing cron and calling `CreateScheduledActivityItem`.
+- [ ] **Scheduler worker** — a job that evaluates cron expressions from `activity_schedules` and auto-generates `activity_captures`. The `ListActiveSchedulesForGeneration` query exists, but there's no worker actually parsing cron and calling `CreateScheduledActivityCapture`.
 - [ ] **Timeout worker** — a periodic job calling `MarkOverdueItemsAsMissed` (see the note on retroactive timeout below before implementing this).
 - [ ] **Statistics endpoints** — heatmap & confirmation-delay chart. The `GetHeatmapData` / `GetConfirmationDelayStats` queries exist, but there's no usecase/handler yet.
-- [x] **Image upload** — implemented for `activity_images` using RustFS (S3-compatible). `activity_item_images` needs the identical pattern (repository/usecase/handler), not yet done.
+- [x] **Image upload** — implemented for `activity_images` using RustFS (S3-compatible). `activity_capture_images` needs the identical pattern (repository/usecase/handler), not yet done.
 
 ## Follow-ups from the image upload implementation
 
@@ -58,9 +58,9 @@ Remaining work collected from the project review session (schema, architecture, 
 - [ ] `is_fixed_schedule` can drift out of sync with the contents of `activity_schedules` (no enforcement, purely an app-layer discipline).
 - [ ] Changing `confirmation_timeout_minutes` applies retroactively to old `awaiting` items — decide whether this is the intended behavior before implementing the timeout worker.
 - [ ] Soft-deleting a user doesn't automatically revoke their `user_sessions` — needs `DeleteAllSessionsByUserID` called explicitly as part of the `SoftDeleteUser` flow.
-- [ ] Image files (`activity_images`/`activity_item_images`) become orphaned after a hard delete — no cleanup job yet.
+- [ ] Image files (`activity_images`/`activity_capture_images`) become orphaned after a hard delete — no cleanup job yet.
 - [ ] `user_verifications` is vulnerable to replay (no `consumed_at` / row-lock during validation).
-- [ ] `activity_items.status` transitions aren't restricted (a `missed` item could go back to `captured`) — decide whether late confirmation should actually be supported.
+- [ ] `activity_captures.status` transitions aren't restricted (a `missed` item could go back to `captured`) — decide whether late confirmation should actually be supported.
 
 ## Code tidiness (not urgent yet, but worth watching for these thresholds)
 

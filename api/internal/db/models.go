@@ -12,47 +12,47 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type ActivityItemStatus string
+type ActivityCaptureStatus string
 
 const (
-	ActivityItemStatusAwaiting ActivityItemStatus = "awaiting"
-	ActivityItemStatusCaptured ActivityItemStatus = "captured"
-	ActivityItemStatusMissed   ActivityItemStatus = "missed"
+	ActivityCaptureStatusAwaiting ActivityCaptureStatus = "awaiting"
+	ActivityCaptureStatusCaptured ActivityCaptureStatus = "captured"
+	ActivityCaptureStatusMissed   ActivityCaptureStatus = "missed"
 )
 
-func (e *ActivityItemStatus) Scan(src interface{}) error {
+func (e *ActivityCaptureStatus) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = ActivityItemStatus(s)
+		*e = ActivityCaptureStatus(s)
 	case string:
-		*e = ActivityItemStatus(s)
+		*e = ActivityCaptureStatus(s)
 	default:
-		return fmt.Errorf("unsupported scan type for ActivityItemStatus: %T", src)
+		return fmt.Errorf("unsupported scan type for ActivityCaptureStatus: %T", src)
 	}
 	return nil
 }
 
-type NullActivityItemStatus struct {
-	ActivityItemStatus ActivityItemStatus
-	Valid              bool // Valid is true if ActivityItemStatus is not NULL
+type NullActivityCaptureStatus struct {
+	ActivityCaptureStatus ActivityCaptureStatus
+	Valid                 bool // Valid is true if ActivityCaptureStatus is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullActivityItemStatus) Scan(value interface{}) error {
+func (ns *NullActivityCaptureStatus) Scan(value interface{}) error {
 	if value == nil {
-		ns.ActivityItemStatus, ns.Valid = "", false
+		ns.ActivityCaptureStatus, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.ActivityItemStatus.Scan(value)
+	return ns.ActivityCaptureStatus.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullActivityItemStatus) Value() (driver.Value, error) {
+func (ns NullActivityCaptureStatus) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.ActivityItemStatus), nil
+	return string(ns.ActivityCaptureStatus), nil
 }
 
 type AuthProviderID string
@@ -111,19 +111,11 @@ type Activity struct {
 	DeletedAt                  pgtype.Timestamptz
 }
 
-type ActivityImage struct {
-	ID         uuid.UUID
-	ActivityID uuid.UUID
-	ImagePath  string
-	ImageAlt   pgtype.Text
-	CreatedAt  pgtype.Timestamptz
-}
-
-type ActivityItem struct {
+type ActivityCapture struct {
 	ID          uuid.UUID
 	ActivityID  uuid.UUID
 	ScheduleID  pgtype.UUID
-	Status      ActivityItemStatus
+	Status      ActivityCaptureStatus
 	ScheduledAt pgtype.Timestamptz
 	ConfirmedAt pgtype.Timestamptz
 	OccurredAt  pgtype.Timestamptz
@@ -134,12 +126,20 @@ type ActivityItem struct {
 	DeletedAt   pgtype.Timestamptz
 }
 
-type ActivityItemImage struct {
-	ID             uuid.UUID
-	ActivityItemID uuid.UUID
-	ImagePath      string
-	ImageAlt       pgtype.Text
-	CreatedAt      pgtype.Timestamptz
+type ActivityCaptureImage struct {
+	ID                uuid.UUID
+	ActivityCaptureID uuid.UUID
+	ImagePath         string
+	ImageAlt          pgtype.Text
+	CreatedAt         pgtype.Timestamptz
+}
+
+type ActivityImage struct {
+	ID         uuid.UUID
+	ActivityID uuid.UUID
+	ImagePath  string
+	ImageAlt   pgtype.Text
+	CreatedAt  pgtype.Timestamptz
 }
 
 type ActivitySchedule struct {

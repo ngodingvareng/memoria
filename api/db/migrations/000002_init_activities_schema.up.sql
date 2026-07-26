@@ -1,4 +1,4 @@
-CREATE TYPE activity_item_status AS ENUM('awaiting', 'captured', 'missed');
+CREATE TYPE activity_capture_status AS ENUM('awaiting', 'captured', 'missed');
 
 -- ---------------------------------------------------------
 -- activities
@@ -28,7 +28,7 @@ CREATE INDEX idx_activities_user_id ON activities(user_id);
 -- activity_images
 -- ---------------------------------------------------------
 -- Images attached to the activity itself (e.g. a cover photo / gallery
--- describing the activity in general), as opposed to activity_item_images
+-- describing the activity in general), as opposed to activity_capture_images
 -- which are moments captured at a specific occurrence.
 CREATE TABLE activity_images(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -59,7 +59,7 @@ CREATE TABLE activity_schedules(
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     -- fixed: removed trailing comma that caused a syntax error
 
-    -- Lets activity_items enforce, via a composite FK, that a linked
+    -- Lets activity_captures enforce, via a composite FK, that a linked
     -- schedule actually belongs to the same activity as the item.
     CONSTRAINT uq_activity_schedules_activity_id_id UNIQUE(activity_id, id)
 );
@@ -88,9 +88,9 @@ CREATE INDEX idx_activity_schedule_histories_schedule_id ON activity_schedule_hi
 
 
 -- ---------------------------------------------------------
--- activity_items
+-- activity_captures
 -- ---------------------------------------------------------
-CREATE TABLE activity_items(
+CREATE TABLE activity_captures(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     activity_id UUID NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
 
@@ -103,7 +103,7 @@ CREATE TABLE activity_items(
     -- belong to the same activity as this item.
     schedule_id UUID,
 
-    status activity_item_status NOT NULL DEFAULT 'awaiting',
+    status activity_capture_status NOT NULL DEFAULT 'awaiting',
 
     -- When the system expected/generated this item (fixed-schedule only).
     -- Drives the confirmation-timeout logic and the "muncul -> konfirmasi"
@@ -127,7 +127,7 @@ CREATE TABLE activity_items(
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ DEFAULT NULL,
 
-    CONSTRAINT chk_activity_items_color_hex
+    CONSTRAINT chk_activity_captures_color_hex
     CHECK (color_hex ~ '^#[0-9A-Fa-f]{6}$'),
 
     -- Requires PostgreSQL 15+: the column list on SET NULL means only
@@ -135,19 +135,19 @@ CREATE TABLE activity_items(
     -- without it, Postgres would try to null activity_id too (since it's
     -- part of this composite FK), which would fail because activity_id
     -- is NOT NULL.
-    CONSTRAINT fk_activity_items_schedule_activity
+    CONSTRAINT fk_activity_captures_schedule_activity
     FOREIGN KEY(activity_id, schedule_id)
     REFERENCES activity_schedules(activity_id, id)
     ON DELETE SET NULL (schedule_id)
 );
 
-CREATE INDEX idx_activity_items_schedule_id ON activity_items(schedule_id);
+CREATE INDEX idx_activity_captures_schedule_id ON activity_captures(schedule_id);
 
 -- Supports heatmap / history queries that bucket items by the date they
 -- actually took place ("kapan dilaksanakan"), for both fixed-schedule
 -- and manual (possibly backdated) items alike.
-CREATE INDEX idx_activity_items_occurred_at
-ON activity_items(occurred_at)
+CREATE INDEX idx_activity_captures_occurred_at
+ON activity_captures(occurred_at)
 WHERE deleted_at IS NULL;
 
 -- Uniqueness of (activity_id, scheduled_at) among "live" rows only —
@@ -156,20 +156,20 @@ WHERE deleted_at IS NULL;
 -- active schedules, e.g. "pagi" and "sore", if they ever computed the
 -- same instant). Postgres treats NULL <> NULL, so rows with
 -- scheduled_at IS NULL (manual items) never conflict with each other.
-CREATE UNIQUE INDEX uq_activity_items_activity_scheduled_at
-ON activity_items(activity_id, scheduled_at)
+CREATE UNIQUE INDEX uq_activity_captures_activity_scheduled_at
+ON activity_captures(activity_id, scheduled_at)
 WHERE deleted_at IS NULL;
 
 
 -- ---------------------------------------------------------
--- activity_item_images
+-- activity_capture_images
 -- ---------------------------------------------------------
-CREATE TABLE activity_item_images(
+CREATE TABLE activity_capture_images(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    activity_item_id UUID NOT NULL REFERENCES activity_items(id) ON DELETE CASCADE,
+    activity_capture_id UUID NOT NULL REFERENCES activity_captures(id) ON DELETE CASCADE,
     image_path TEXT NOT NULL,
     image_alt VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_activity_item_images_activity_item_id ON activity_item_images(activity_item_id);
+CREATE INDEX idx_activity_capture_images_activity_capture_id ON activity_capture_images(activity_capture_id);
