@@ -1,5 +1,3 @@
-'use client';
-
 import { Cambio } from 'cambio';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';

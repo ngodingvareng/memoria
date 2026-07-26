@@ -1,25 +1,22 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
+import { ButtonGroup } from '@/components/ui/button-group';
 import { Edit04Icon, EyeIcon, Search01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import React from 'react';
-import { ButtonGroup } from './ui/button-group';
 import { Link } from '@tanstack/react-router';
 
-interface NotesHeaderProps {
+interface ActivityHeaderProps {
   isReadMode: boolean;
   onToggleMode: () => void;
   onShare: () => void;
   noteCount: number;
 }
 
-export const NotesHeader: React.FC<NotesHeaderProps> = ({
+export function ActivityHeader({
   isReadMode,
   onToggleMode,
   onShare,
   noteCount,
-}) => {
+}: ActivityHeaderProps) {
   return (
     <div className="flex flex-col gap-2 mt-4">
       <div className="flex items-center justify-end gap-1">
@@ -55,4 +52,4 @@ export const NotesHeader: React.FC<NotesHeaderProps> = ({
       </div>
     </div>
   );
-};
+}

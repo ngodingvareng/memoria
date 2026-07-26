@@ -1,11 +1,14 @@
 import { ColorPickerDialog } from '@/components/dialogs/color-picker-dialog';
 import { DateTimeDialog } from '@/components/dialogs/datetime-dialog';
 import { ShareDialog } from '@/components/dialogs/share-dialog';
-import { NoteList } from '@/components/note-list';
-import { NotesEditor } from '@/components/notes-editor';
-import { NotesHeader } from '@/components/notes-header';
-import { NotesHeroImage } from '@/components/notes-hero-image';
+
 import Wrapper from '@/components/wrapper';
+import {
+  ActivityCaptureInput,
+  ActivityCaptureList,
+  ActivityHeader,
+  ActivityHero,
+} from '@/features/activities';
 import { dummyNotes } from '@/lib/dummies';
 import { createFileRoute } from '@tanstack/react-router';
 import React from 'react';
@@ -26,12 +29,12 @@ function RouteComponent() {
   return (
     <>
       <Wrapper>
-        <NotesHeroImage
+        <ActivityHero
           isReadMode={isReadMode}
           imageUrl="https://images.unsplash.com/photo-1604076850742-4c7221f3101b?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           imageAlt="Photo by mymind on Unsplash"
         />
-        <NotesHeader
+        <ActivityHeader
           isReadMode={isReadMode}
           noteCount={noteCount}
           onToggleMode={() => setIsReadMode(!isReadMode)}
@@ -40,7 +43,7 @@ function RouteComponent() {
       </Wrapper>
 
       <Wrapper>
-        <NoteList
+        <ActivityCaptureList
           notes={dummyNotes}
           onSetColor={() => setOpenCostumizationDialog(true)}
           onShare={() => setOpenShareDialog(true)}
@@ -56,7 +59,7 @@ function RouteComponent() {
       )}
 
       {!isReadMode && (
-        <NotesEditor
+        <ActivityCaptureInput
           onOpenTimeDialog={() => setOpenTimeDialog(true)}
           onPublish={() => console.log('Publishing...')}
         />

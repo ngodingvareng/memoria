@@ -1,5 +1,3 @@
-import ActivityGraph from '@/components/activity-graph';
-import { NotesHeroImage } from '@/components/notes-hero-image';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,19 +6,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemGroup,
-  ItemTitle,
-} from '@/components/ui/item';
 import Wrapper from '@/components/wrapper';
-import {
-  ArrowDown01Icon,
-  ArrowLeft02Icon,
-  LinkBackwardIcon,
-} from '@hugeicons/core-free-icons';
+import { ActivityGraph, ActivityHero } from '@/features/activities';
+import { ArrowDown01Icon, ArrowLeft02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute } from '@tanstack/react-router';
 
@@ -42,7 +30,7 @@ function RouteComponent() {
       </div>
       <div className="flex flex-col gap-12">
         <div className="flex flex-col gap-4">
-          <NotesHeroImage
+          <ActivityHero
             isReadMode={false}
             imageUrl="https://images.unsplash.com/photo-1604076850742-4c7221f3101b?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             imageAlt="Photo by mymind on Unsplash"

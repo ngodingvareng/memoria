@@ -1,4 +1,3 @@
-import AlbumTimeline from '@/components/album-timeline';
 import { Button } from '@/components/ui/button';
 import { CambioImage } from '@/components/ui/cambio-image';
 import {
@@ -8,8 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Item, ItemHeader } from '@/components/ui/item';
 import Wrapper from '@/components/wrapper';
+import { AlbumTimeline } from '@/features/album';
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute } from '@tanstack/react-router';

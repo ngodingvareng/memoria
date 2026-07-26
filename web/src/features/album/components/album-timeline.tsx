@@ -9,7 +9,7 @@ interface AlbumTimelineProps {
   albums: album[];
 }
 
-const AlbumTimeline = ({ albums }: AlbumTimelineProps) => {
+export function AlbumTimeline({ albums }: AlbumTimelineProps) {
   return (
     <>
       {albums.map((album, index) => (
@@ -41,6 +41,4 @@ const AlbumTimeline = ({ albums }: AlbumTimelineProps) => {
       ))}
     </>
   );
-};
-
-export default AlbumTimeline;
+}

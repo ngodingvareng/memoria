@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import {
@@ -32,17 +30,16 @@ import {
   MDXEditor,
 } from '@mdxeditor/editor';
 import '@mdxeditor/editor/style.css';
-import React from 'react';
 
-interface NotesEditorProps {
+interface ActivityCaptureInputProps {
   onOpenTimeDialog: () => void;
   onPublish: () => void;
 }
 
-export const NotesEditor: React.FC<NotesEditorProps> = ({
+export function ActivityCaptureInput({
   onOpenTimeDialog,
   onPublish,
-}) => {
+}: ActivityCaptureInputProps) {
   return (
     <div className="sticky bottom-0 pb-6 left-0 z-30 bg-linear-to-t from-background pt-20 from-60% to-transparent w-full">
       <Item variant="outline" className="mx-auto shadow-sm bg-card max-w-5xl">
@@ -126,4 +123,4 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
       </Item>
     </div>
   );
-};
+}

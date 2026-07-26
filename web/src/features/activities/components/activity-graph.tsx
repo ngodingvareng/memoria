@@ -1,5 +1,5 @@
+import { Item, ItemContent } from '@/components/ui/item';
 import { ActivityCalendar } from 'react-activity-calendar';
-import { Item, ItemContent } from './ui/item';
 
 const data = [
   {
@@ -1829,7 +1829,7 @@ const data = [
   },
 ];
 
-export default function ActivityGraph() {
+export function ActivityGraph() {
   return (
     <div className="flex flex-col gap-2">
       <Item variant="outline">

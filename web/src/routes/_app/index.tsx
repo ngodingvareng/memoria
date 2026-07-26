@@ -1,4 +1,3 @@
-import ActivityGraph from '@/components/activity-graph';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +19,7 @@ import {
   ItemTitle,
 } from '@/components/ui/item';
 import Wrapper from '@/components/wrapper';
+import { ActivityGraph } from '@/features/activities';
 import { getNoteColorClass } from '@/lib/colors';
 import { dummyStories } from '@/lib/dummies';
 import { cn } from '@/lib/utils';
@@ -34,14 +34,6 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-
-const items = [
-  { label: '2044', value: 'apple' },
-  { label: '2045', value: 'banana' },
-  { label: '2046', value: 'blueberry' },
-  { label: '2047', value: 'grapes' },
-  { label: '2048', value: 'pineapple' },
-];
 
 const music = [
   {

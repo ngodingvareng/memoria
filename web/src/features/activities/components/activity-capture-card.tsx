@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { Item, ItemContent } from '@/components/ui/item';
 import {
@@ -17,9 +15,8 @@ import {
   StarIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import React from 'react';
 
-interface NoteCardProps {
+interface ActivityCaptureCardProps {
   note: Note;
   onSetColor: (id: number) => void;
   onShare: (id: number) => void;
@@ -27,13 +24,13 @@ interface NoteCardProps {
   onFavorite: (id: number) => void;
 }
 
-export const NoteCard: React.FC<NoteCardProps> = ({
+export function ActivityCaptureCard({
   note,
   onSetColor,
   onShare,
   onEdit,
   onFavorite,
-}) => {
+}: ActivityCaptureCardProps) {
   return (
     <div className="flex group select-text hover:cursor-default selection:bg-primary selection:text-primary-foreground gap-4">
       <Item
@@ -135,4 +132,4 @@ export const NoteCard: React.FC<NoteCardProps> = ({
       </Item>
     </div>
   );
-};
+}

@@ -1,18 +1,14 @@
-'use client';
-
-import React from 'react';
-
-interface NotesHeroImageProps {
+interface ActivityHeroProps {
   isReadMode: boolean;
   imageUrl: string;
   imageAlt: string;
 }
 
-export const NotesHeroImage: React.FC<NotesHeroImageProps> = ({
+export function ActivityHero({
   isReadMode,
   imageUrl,
   imageAlt,
-}) => {
+}: ActivityHeroProps) {
   if (isReadMode) return null;
 
   return (
@@ -28,4 +24,4 @@ export const NotesHeroImage: React.FC<NotesHeroImageProps> = ({
       />
     </div>
   );
-};
+}

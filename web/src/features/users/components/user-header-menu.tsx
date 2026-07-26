@@ -18,13 +18,13 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
-import { useTheme, type Theme } from './theme-provider';
+import { useTheme, type Theme } from '@/components/theme-provider';
 
-export default function UserMenu() {
+export function UserHeaderMenu() {
   const { theme, setTheme } = useTheme();
 
   const data = {

@@ -8,7 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from './ui/sidebar';
+} from '@/components/ui/sidebar';
 
 const data = {
   user: [
@@ -31,7 +31,7 @@ const data = {
   ],
 };
 
-export function UserSidebar({
+export function UserSettingsSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   return (

@@ -41,7 +41,7 @@ function RouteComponent() {
       </div>
       <div className="flex flex-col gap-6 pt-6">
         <div className="flex gap-4">
-          <Avatar className="size-full size-20">
+          <Avatar className="size-20">
             <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>

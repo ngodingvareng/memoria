@@ -1,10 +1,7 @@
-'use client';
-
-import React from 'react';
-import { NoteCard } from './note-card';
 import type { Note } from '@/types/note';
+import { ActivityCaptureCard } from './activity-capture-card';
 
-interface NoteListProps {
+interface ActivityCaptureListProps {
   notes: Note[];
   onSetColor: (id: number) => void;
   onShare: (id: number) => void;
@@ -12,17 +9,17 @@ interface NoteListProps {
   onFavorite: (id: number) => void;
 }
 
-export const NoteList: React.FC<NoteListProps> = ({
+export function ActivityCaptureList({
   notes,
   onSetColor,
   onShare,
   onEdit,
   onFavorite,
-}) => {
+}: ActivityCaptureListProps) {
   return (
     <div className="flex flex-col gap-6 w-full bottom-0">
       {notes.map((note) => (
-        <NoteCard
+        <ActivityCaptureCard
           key={note.id}
           note={note}
           onSetColor={onSetColor}
@@ -33,4 +30,4 @@ export const NoteList: React.FC<NoteListProps> = ({
       ))}
     </div>
   );
-};
+}
