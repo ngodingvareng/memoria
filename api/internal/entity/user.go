@@ -11,7 +11,9 @@ type User struct {
 	Name          string
 	Email         string
 	EmailVerified bool
-	Image         *string
+	ImagePath     *string
+	Timezone      string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+	DeletedAt     *time.Time
 }

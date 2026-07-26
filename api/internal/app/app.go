@@ -12,6 +12,7 @@ import (
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/handler"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
 	"github.com/ngodingvareng/memoria/internal/repository"
+	"github.com/ngodingvareng/memoria/internal/security"
 	"github.com/ngodingvareng/memoria/internal/storage"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	slogfiber "github.com/samber/slog-fiber"
@@ -49,6 +50,19 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	}
 
 	// 3. Wiring: repository -> usecase -> handler
+
+	// 3a. Auth
+	userRepo := repository.NewUserRepository(conn)
+	userAccountRepo := repository.NewUserAccountRepository(conn)
+	sessionRepo := repository.NewUserSessionRepository(conn)
+	authUoW := repository.NewAuthUnitOfWork(conn)
+	passwordHasher := security.NewScryptHasher()
+	tokenGenerator := security.NewSessionTokenGenerator()
+
+	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, sessionRepo, passwordHasher, tokenGenerator)
+	authHandler := handler.NewAuthHandler(authUsecase, cfg.SecureCookies)
+
+	// 3b. Activities
 	activityRepo := repository.NewActivityRepository(conn)
 	activityUsecase := usecase.NewActivityUsecase(activityRepo)
 	activityHandler := handler.NewActivityHandler(activityUsecase)
@@ -79,6 +93,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 
 	// 5. Router
 	rest.SetupRoutes(fiberApp, rest.Handlers{
+		Auth:          authHandler,
 		Activity:      activityHandler,
 		ActivityImage: activityImageHandler,
 	})

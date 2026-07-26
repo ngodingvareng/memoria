@@ -10,6 +10,7 @@ import (
 // Handlers groups every handler the router needs. Add a field here each
 // time a new domain's handler is wired up in app.go.
 type Handlers struct {
+	Auth          *handler.AuthHandler
 	Activity      *handler.ActivityHandler
 	ActivityImage *handler.ActivityImageHandler
 }
@@ -24,6 +25,11 @@ func SetupRoutes(app *fiber.App, h Handlers) {
 	app.Get("/swagger.json", func(c fiber.Ctx) error {
 		return c.SendFile("./docs/swagger.json")
 	})
+
+	auth := app.Group("/auth")
+	auth.Post("/register", h.Auth.Register)
+	auth.Post("/login", h.Auth.Login)
+	auth.Post("/logout", h.Auth.Logout)
 
 	activities := app.Group("/activities")
 	activities.Post("/", h.Activity.CreateActivity)

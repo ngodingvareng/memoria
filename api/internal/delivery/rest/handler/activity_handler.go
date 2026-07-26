@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
+	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	"github.com/ngodingvareng/memoria/pkg/errs"
 	"github.com/ngodingvareng/memoria/pkg/util"
@@ -45,11 +45,10 @@ func (h *ActivityHandler) CreateActivity(c fiber.Ctx) error {
 		return &errs.ValidationError{Errors: util.FormatValidationErrors(err)}
 	}
 
-	// TODO: replace with the authenticated user's id once auth middleware
-	// is wired in, e.g.:
-	//   userID, ok := c.Locals("user_id").(uuid.UUID)
-	//   if !ok { return errs.ErrUnauthorized }
-	userID := uuid.New()
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
 
 	response, err := h.usecase.CreateActivity(c, usecase.CreateActivityInput{
 		UserID:                     userID,

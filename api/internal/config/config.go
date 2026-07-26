@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	ServerPort string `mapstructure:"SERVER_PORT"`
+	ServerPort    string `mapstructure:"SERVER_PORT"`
+	SecureCookies bool   `mapstructure:"SECURE_COOKIES"`
 
 	DBUsername string `mapstructure:"DATABASE_USERNAME"`
 	DBPassword string `mapstructure:"DATABASE_PASSWORD"`
