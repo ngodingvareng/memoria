@@ -38,31 +38,38 @@ function RouteComponent() {
             className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale"
           />
         </div>
-        <div className="flex absolute w-20 top-24 z-30 flex-col gap-2 left-4">
-          <Avatar className="size-full">
+      </div>
+      <div className="flex flex-col gap-6 pt-6">
+        <div className="flex gap-4">
+          <Avatar className="size-full size-20">
             <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
-        </div>
-      </div>
-      <div className="flex flex-col gap-6 pt-6">
-        <div>
-          <p className="font-medium text-2xl/5">zaraa</p>
-          <p className="text-lg/5 text-muted-foreground">@safaza_</p>
-        </div>
-        <div className="flex gap-4">
-          <p>
-            <span className="font-semibold">1553</span>{' '}
-            <span className="text-muted-foreground">followers</span>
-          </p>
-          <p>
-            <span className="font-semibold">954</span>{' '}
-            <span className="text-muted-foreground">following</span>
-          </p>
-          <p>
-            <span className="font-semibold">6.7M</span>{' '}
-            <span className="text-muted-foreground">activities</span>
-          </p>
+          <div className="flex flex-col gap-1">
+            <div>
+              <p className="font-medium text-2xl/5">zaraa</p>
+              <p className="text-lg/5 text-muted-foreground">@safaza_</p>
+            </div>
+
+            <div className="flex gap-4">
+              <p>
+                <span className="font-semibold">1553</span>{' '}
+                <span className="text-muted-foreground">followers</span>
+              </p>
+              <p>
+                <span className="font-semibold">954</span>{' '}
+                <span className="text-muted-foreground">following</span>
+              </p>
+              <p>
+                <span className="font-semibold">6.7M</span>{' '}
+                <span className="text-muted-foreground">activities</span>
+              </p>
+            </div>
+
+            <div>
+              <Button>Follow</Button>
+            </div>
+          </div>
         </div>
 
         {dummyStories.map((story) => (
