@@ -1,4 +1,6 @@
+import AlbumTimeline from '@/components/album-timeline';
 import { Button } from '@/components/ui/button';
+import { CambioImage } from '@/components/ui/cambio-image';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,18 +50,49 @@ function RouteComponent() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button>New Activity</Button>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          {album.map((item) => (
-            <img
-              src={item}
-              width={128}
-              height={128}
-              className="aspect-video w-full rounded-sm object-cover"
-            />
-          ))}
+        <div>
+          <AlbumTimeline
+            albums={[
+              {
+                date: 'November 7, 2029',
+                content: (
+                  <div className="grid grid-cols-3 gap-x-1.5">
+                    {album.map((item) => (
+                      <CambioImage
+                        key={item}
+                        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+                        alt="Beautiful mountain landscape"
+                        width={800}
+                        height={600}
+                        motion="smooth"
+                        className="rounded-md"
+                      />
+                    ))}
+                  </div>
+                ),
+              },
+              {
+                date: 'November 4, 2029',
+                content: (
+                  <div className="grid grid-cols-3 gap-x-1.5">
+                    {album.map((item) => (
+                      <CambioImage
+                        key={item}
+                        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+                        alt="Beautiful mountain landscape"
+                        width={800}
+                        height={600}
+                        motion="smooth"
+                        className="rounded-md"
+                      />
+                    ))}
+                  </div>
+                ),
+              },
+            ]}
+          />
         </div>
       </div>
     </Wrapper>
