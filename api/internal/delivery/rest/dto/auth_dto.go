@@ -9,11 +9,11 @@ import (
 type RegisterRequest struct {
 	Name  string `json:"name" validate:"required,min=1,max=255" example:"Budi Santoso"`
 	Email string `json:"email" validate:"required,email,max=255" example:"budi@example.com"`
-	// max=72: bcrypt silently truncates anything past 72 bytes rather
-	// than erroring — validating here avoids a confusing situation where
-	// a very long password "works" but only its first 72 bytes actually
-	// matter for the hash.
-	Password string `json:"password" validate:"required,min=8,max=72" example:"correct horse battery staple"`
+	// scrypt hashes the whole password with no truncation. max=256 is
+	// just a generous sane upper bound (prevents someone posting a
+	// multi-KB "password" that'd waste CPU/memory on the scrypt KDF
+	// for no real security benefit).
+	Password string `json:"password" validate:"required,min=8,max=256" example:"correct horse battery staple"`
 }
 
 type LoginRequest struct {
