@@ -1,6 +1,6 @@
-export { ActivityCaptureCard } from './components/activity-capture-card';
-export { ActivityCaptureInput } from './components/activity-capture-input';
-export { ActivityCaptureList } from './components/activity-capture-list';
+export { CaptureCard } from './components/capture-card';
+export { CaptureInput } from './components/capture-input';
+export { CaptureList } from './components/capture-list';
 export { ActivityGraph } from './components/activity-graph';
 export { ActivityHeader } from './components/activity-header';
 export { ActivityHero } from './components/activity-hero';

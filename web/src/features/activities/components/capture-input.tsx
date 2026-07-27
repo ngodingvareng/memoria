@@ -31,15 +31,15 @@ import {
 } from '@mdxeditor/editor';
 import '@mdxeditor/editor/style.css';
 
-interface ActivityCaptureInputProps {
+interface CaptureInputProps {
   onOpenTimeDialog: () => void;
   onPublish: () => void;
 }
 
-export function ActivityCaptureInput({
+export function CaptureInput({
   onOpenTimeDialog,
   onPublish,
-}: ActivityCaptureInputProps) {
+}: CaptureInputProps) {
   return (
     <div className="sticky bottom-0 pb-6 left-0 z-30 bg-linear-to-t from-background pt-20 from-60% to-transparent w-full">
       <Item variant="outline" className="mx-auto shadow-sm bg-card max-w-5xl">

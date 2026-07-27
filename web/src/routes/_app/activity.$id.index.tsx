@@ -4,8 +4,8 @@ import { ShareDialog } from '@/components/dialogs/share-dialog';
 
 import Wrapper from '@/components/wrapper';
 import {
-  ActivityCaptureInput,
-  ActivityCaptureList,
+  CaptureInput,
+  CaptureList,
   ActivityHeader,
   ActivityHero,
 } from '@/features/activities';
@@ -43,7 +43,7 @@ function RouteComponent() {
       </Wrapper>
 
       <Wrapper>
-        <ActivityCaptureList
+        <CaptureList
           notes={dummyNotes}
           onSetColor={() => setOpenCostumizationDialog(true)}
           onShare={() => setOpenShareDialog(true)}
@@ -59,7 +59,7 @@ function RouteComponent() {
       )}
 
       {!isReadMode && (
-        <ActivityCaptureInput
+        <CaptureInput
           onOpenTimeDialog={() => setOpenTimeDialog(true)}
           onPublish={() => console.log('Publishing...')}
         />

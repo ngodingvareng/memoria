@@ -16,7 +16,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 
-interface ActivityCaptureCardProps {
+interface CaptureCardProps {
   note: Note;
   onSetColor: (id: number) => void;
   onShare: (id: number) => void;
@@ -24,13 +24,13 @@ interface ActivityCaptureCardProps {
   onFavorite: (id: number) => void;
 }
 
-export function ActivityCaptureCard({
+export function CaptureCard({
   note,
   onSetColor,
   onShare,
   onEdit,
   onFavorite,
-}: ActivityCaptureCardProps) {
+}: CaptureCardProps) {
   return (
     <div className="flex group select-text hover:cursor-default selection:bg-primary selection:text-primary-foreground gap-4">
       <Item

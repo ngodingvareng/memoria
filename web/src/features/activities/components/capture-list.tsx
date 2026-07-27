@@ -1,7 +1,7 @@
 import type { Note } from '@/types/note';
-import { ActivityCaptureCard } from './activity-capture-card';
+import { CaptureCard } from './capture-card';
 
-interface ActivityCaptureListProps {
+interface CaptureListProps {
   notes: Note[];
   onSetColor: (id: number) => void;
   onShare: (id: number) => void;
@@ -9,17 +9,17 @@ interface ActivityCaptureListProps {
   onFavorite: (id: number) => void;
 }
 
-export function ActivityCaptureList({
+export function CaptureList({
   notes,
   onSetColor,
   onShare,
   onEdit,
   onFavorite,
-}: ActivityCaptureListProps) {
+}: CaptureListProps) {
   return (
     <div className="flex flex-col gap-6 w-full bottom-0">
       {notes.map((note) => (
-        <ActivityCaptureCard
+        <CaptureCard
           key={note.id}
           note={note}
           onSetColor={onSetColor}
