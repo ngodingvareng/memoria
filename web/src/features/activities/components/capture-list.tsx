@@ -1,33 +1,36 @@
-import type { Note } from '@/types/note';
-import { CaptureCard } from './capture-card';
+import { ItemGroup, ItemSeparator } from '@/components/ui/item';
+import { CaptureCard, type CaptureCardParam } from './capture-card';
 
 interface CaptureListProps {
-  notes: Note[];
-  onSetColor: (id: number) => void;
-  onShare: (id: number) => void;
-  onEdit: (id: number) => void;
-  onFavorite: (id: number) => void;
+  captures: CaptureCardParam[];
+  withStoryLayout?: boolean;
 }
 
 export function CaptureList({
-  notes,
-  onSetColor,
-  onShare,
-  onEdit,
-  onFavorite,
+  captures,
+  withStoryLayout = false,
 }: CaptureListProps) {
   return (
-    <div className="flex flex-col gap-6 w-full bottom-0">
-      {notes.map((note) => (
-        <CaptureCard
-          key={note.id}
-          note={note}
-          onSetColor={onSetColor}
-          onShare={onShare}
-          onEdit={onEdit}
-          onFavorite={onFavorite}
-        />
+    <ItemGroup>
+      {captures.map((capture, index) => (
+        <>
+          <CaptureCard
+            user={capture.user}
+            activity={capture.activity}
+            stats={capture.stats}
+            color={capture.color}
+            content={capture.content}
+            tags={capture.tags}
+            createdAt={capture.createdAt}
+            capturedAt={capture.capturedAt}
+            isPublished={withStoryLayout || capture.isPublished}
+            isOwnedByCurrentUser={
+              !withStoryLayout || capture.isOwnedByCurrentUser
+            }
+          />
+          {withStoryLayout && captures.length - 1 != index && <ItemSeparator />}
+        </>
       ))}
-    </div>
+    </ItemGroup>
   );
 }

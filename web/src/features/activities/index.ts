@@ -6,3 +6,4 @@ export { ActivityHeader } from './components/activity-header';
 export { ActivityHero } from './components/activity-hero';
 export { CreateActivityForm } from './components/create-activity-form';
 export { CreateActivityHeaderLink } from './components/create-activity-header-link';
+export type { CaptureCardParam } from './components/capture-card';

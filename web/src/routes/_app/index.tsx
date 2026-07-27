@@ -19,11 +19,12 @@ import {
   ItemTitle,
 } from '@/components/ui/item';
 import Wrapper from '@/components/wrapper';
-import { ActivityGraph } from '@/features/activities';
 import {
-  ActivityStoryCard,
-  type ActivityStoryParam,
-} from '@/features/activities/components/activity-story-card';
+  ActivityGraph,
+  CaptureList,
+  type CaptureCardParam,
+} from '@/features/activities';
+
 import { getNoteColorClass } from '@/lib/colors';
 import { dummyStories } from '@/lib/dummies';
 import { cn } from '@/lib/utils';
@@ -59,98 +60,95 @@ const music = [
   },
 ];
 
-export const dummyActivityStories: ActivityStoryParam[] = [
+export const dummyActivityStories: CaptureCardParam[] = [
   {
-    capture: {
-      user: {
-        name: 'Budi Santoso',
-        username: '@budisans',
-        imageSrc: 'https://randomuser.me/api/portraits/men/32.jpg',
-        imageAlt: 'Foto profil Budi Santoso',
-      },
-      activity: {
-        name: 'Lari Pagi 5KM',
-      },
-      color: 'orange', // Oranye
-      content: (
-        <div>
-          <p>
-            Memulai hari dengan lari sejauh 5km di sekitar kawasan GBK. Cuaca
-            hari ini sangat cerah dan udaranya segar! 🏃‍♂️☀️
-          </p>
-        </div>
-      ),
-      tags: ['running', 'health', 'morningvibes'],
-      createdAt: new Date('2026-07-26T06:30:00'),
-      stats: {
-        likes: 124,
-        comments: 12,
-        shares: 3,
-      },
+    user: {
+      name: 'Budi Santoso',
+      username: '@budisans',
+      imageSrc: 'https://randomuser.me/api/portraits/men/32.jpg',
+      imageAlt: 'Foto profil Budi Santoso',
+    },
+    activity: {
+      name: 'Lari Pagi 5KM',
+    },
+    color: 'orange', // Oranye
+    content: (
+      <div>
+        <p>
+          Memulai hari dengan lari sejauh 5km di sekitar kawasan GBK. Cuaca hari
+          ini sangat cerah dan udaranya segar! 🏃‍♂️☀️
+        </p>
+      </div>
+    ),
+    tags: ['running', 'health', 'morningvibes'],
+    createdAt: new Date('2026-07-26T06:30:00'),
+    capturedAt: new Date('2026-07-26T06:30:00'),
+    stats: {
+      likes: 124,
+      comments: 12,
+      shares: 3,
     },
   },
   {
-    capture: {
-      user: {
-        name: 'Siti Aminah',
-        username: '@sitiamin',
-        imageSrc: 'https://randomuser.me/api/portraits/women/44.jpg',
-        imageAlt: 'Foto profil Siti Aminah',
-      },
-      activity: {
-        name: 'Eksplorasi Kuliner',
-      },
-      color: 'yellow', // Kuning
-      content: (
-        <div>
-          <p>
-            Mencoba kedai kopi baru yang lagi viral di Jakarta Selatan. Kopinya
-            enak dan suasananya sangat <i>cozy</i> untuk nugas atau WFC. ☕🥐
-          </p>
-          <img
-            src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-            alt="Kopi dan Croissant"
-            style={{ width: '100%', borderRadius: '8px', marginTop: '10px' }}
-          />
-        </div>
-      ),
-      tags: ['kuliner', 'coffee', 'weekend', 'jaksel'],
-      createdAt: new Date('2026-07-25T15:45:00'),
-      stats: {
-        likes: 342,
-        comments: 45,
-        shares: 18,
-      },
+    user: {
+      name: 'Siti Aminah',
+      username: '@sitiamin',
+      imageSrc: 'https://randomuser.me/api/portraits/women/44.jpg',
+      imageAlt: 'Foto profil Siti Aminah',
+    },
+    activity: {
+      name: 'Eksplorasi Kuliner',
+    },
+    color: 'yellow', // Kuning
+    content: (
+      <div>
+        <p>
+          Mencoba kedai kopi baru yang lagi viral di Jakarta Selatan. Kopinya
+          enak dan suasananya sangat <i>cozy</i> untuk nugas atau WFC. ☕🥐
+        </p>
+        <img
+          src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+          alt="Kopi dan Croissant"
+          style={{ width: '100%', borderRadius: '8px', marginTop: '10px' }}
+        />
+      </div>
+    ),
+    tags: ['kuliner', 'coffee', 'weekend', 'jaksel'],
+    createdAt: new Date('2026-07-25T15:45:00'),
+    capturedAt: new Date('2026-07-25T15:45:00'),
+    stats: {
+      likes: 342,
+      comments: 45,
+      shares: 18,
     },
   },
   {
-    capture: {
-      user: {
-        name: 'Reza Rahadian',
-        username: '@rezadev',
-        imageSrc: 'https://randomuser.me/api/portraits/men/75.jpg',
-        imageAlt: 'Foto profil Reza Rahadian',
-      },
-      activity: {
-        name: 'Live Coding',
-      },
-      color: 'blue', // Biru
-      content: (
-        <div>
-          <p>
-            Akhirnya berhasil menyelesaikan *bug* yang sudah mengganggu selama 3
-            hari. <b>React hooks</b> memang luar biasa tapi kadang bikin pusing!
-            💻🚀
-          </p>
-        </div>
-      ),
-      tags: ['coding', 'reactjs', 'webdev', 'programming'],
-      createdAt: new Date('2026-07-26T20:15:00'),
-      stats: {
-        likes: 89,
-        comments: 8,
-        shares: 2,
-      },
+    user: {
+      name: 'Reza Rahadian',
+      username: '@rezadev',
+      imageSrc: 'https://randomuser.me/api/portraits/men/75.jpg',
+      imageAlt: 'Foto profil Reza Rahadian',
+    },
+    activity: {
+      name: 'Live Coding',
+    },
+    color: 'blue', // Biru
+    content: (
+      <div>
+        <p>
+          Akhirnya berhasil menyelesaikan *bug* yang sudah mengganggu selama 3
+          hari. <b>React hooks</b> memang luar biasa tapi kadang bikin pusing!
+          💻🚀
+        </p>
+      </div>
+    ),
+    tags: ['coding', 'reactjs', 'webdev', 'programming'],
+    createdAt: new Date('2026-07-26T20:15:00'),
+    capturedAt: new Date('2026-07-26T20:15:00'),
+    stats: {
+      likes: 89,
+      comments: 8,
+      shares: 2,
     },
   },
 ];
@@ -337,134 +335,15 @@ function Index() {
                   </Button>
                 </div>
               </div>
-              {[dummyStories[0]].map((story) => (
-                <Item variant="outline">
-                  <ItemContent className="flex flex-col gap-4">
-                    <div className="flex items-center">
-                      <Link
-                        to="/$username"
-                        params={{ username: story.user.username }}
-                        className="flex gap-2 items-center"
-                      >
-                        <Avatar size="lg">
-                          <AvatarImage
-                            src={story.user.imageSrc}
-                            alt={story.user.imageAlt}
-                          />
-                          <AvatarFallback>CN</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-base/3">
-                            {story.user.name}
-                          </p>
-                          <p>{story.user.username}</p>
-                        </div>
-                      </Link>
-                      <div className="grow flex gap-2 justify-end">
-                        <div className="flex gap-1 items-center">
-                          <p className="font-bold">{story.date}</p>
-                          <p className="text-primary/60 text-lg font-semibold">
-                            /
-                          </p>
-                          <p className="font-medium">{story.time}</p>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            render={
-                              <Button size="icon" variant="ghost">
-                                <HugeiconsIcon
-                                  strokeWidth={2}
-                                  icon={MoreVerticalIcon}
-                                />
-                              </Button>
-                            }
-                          />
-                          <DropdownMenuContent className="w-40" align="start">
-                            <DropdownMenuGroup>
-                              <DropdownMenuItem>Profile</DropdownMenuItem>
-                              <DropdownMenuItem>Billing</DropdownMenuItem>
-                              <DropdownMenuItem>Settings</DropdownMenuItem>
-                            </DropdownMenuGroup>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-
-                    <div className="flex group select-text hover:cursor-default selection:bg-primary selection:text-primary-foreground gap-4">
-                      <Item
-                        className={cn(
-                          'max-w-2xs flex flex-col w-full overflow-hidden',
-                          story.color
-                            ? getNoteColorClass(story.color)
-                            : getNoteColorClass('zinc')
-                        )}
-                      />
-                      <Item className="grow">
-                        <ItemContent className="typeset max-w-none">
-                          {story.content}
-                          <div className="flex flex-wrap gap-x-2">
-                            {story.tags
-                              .map((tag) => `#${tag}`)
-                              .map((tag) => (
-                                <p>
-                                  <a
-                                    key={tag}
-                                    className="hover:underline font-medium"
-                                  >
-                                    {tag}
-                                  </a>
-                                </p>
-                              ))}
-                          </div>
-                          <div className="flex gap-1 -ml-3 mt-4">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="[&_svg]:size-5!"
-                            >
-                              <HugeiconsIcon
-                                strokeWidth={2}
-                                icon={FavouriteIcon}
-                                className="fill-rose-600 text-rose-600"
-                              />
-                              423 Likes
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="[&_svg]:size-5!"
-                            >
-                              <HugeiconsIcon
-                                strokeWidth={2}
-                                icon={Comment02Icon}
-                              />
-                              65 Comments
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="[&_svg]:size-5!"
-                            >
-                              <HugeiconsIcon
-                                strokeWidth={2}
-                                icon={LinkForwardIcon}
-                              />
-                              64k Share
-                            </Button>
-                          </div>
-                        </ItemContent>
-                      </Item>
-                    </div>
-                  </ItemContent>
-                </Item>
-              ))}
+              <CaptureList
+                captures={[dummyActivityStories[0]]}
+                withStoryLayout
+              />
             </div>
             <div className="flex flex-col gap-4">
               <h2 className="text-xl font-semibold">Last Stories</h2>
 
-              {dummyActivityStories.map((capture) => (
-                <ActivityStoryCard capture={capture.capture} />
-              ))}
+              <CaptureList captures={dummyActivityStories} withStoryLayout />
             </div>
           </div>
         </Wrapper>
