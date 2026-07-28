@@ -50,3 +50,15 @@ Run both the API and the WEB application. Starting the API will automatically sp
 (cd api && make dev)
 (cd web && bun dev)
 ```
+
+## Architecture
+
+### Backend
+
+We use clean architecture for this app stack. We also use unit of work for repository pattern (see https://rednafi.com/go/repo-txn-uow)
+
+- Techstack: Golang, Fiber, SQLC, Postgres, Mockery, Golang migrate, Swaggo, RustFS
+
+### Frontend
+
+- Techstack: React, Tanstack Router, Tanstack Form, Bun, Vite, Tailwindcss, ShadCN
