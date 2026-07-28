@@ -9,9 +9,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
+	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
-	"github.com/ngodingvareng/memoria/pkg/errs"
-	"github.com/ngodingvareng/memoria/pkg/util"
+	"github.com/ngodingvareng/memoria/internal/validate"
 )
 
 type AuthHandler struct {
@@ -49,7 +49,7 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 		return errs.ErrInvalidInput
 	}
 	if err := h.validate.Struct(req); err != nil {
-		return &errs.ValidationError{Errors: util.FormatValidationErrors(err)}
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
 	}
 
 	user, err := h.usecase.Register(c, usecase.RegisterInput{
@@ -85,7 +85,7 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 		return errs.ErrInvalidInput
 	}
 	if err := h.validate.Struct(req); err != nil {
-		return &errs.ValidationError{Errors: util.FormatValidationErrors(err)}
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
 	}
 
 	ip := c.IP()

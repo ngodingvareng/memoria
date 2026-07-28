@@ -6,8 +6,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
+	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
-	"github.com/ngodingvareng/memoria/pkg/errs"
 )
 
 // maxImageUploadSize caps a single image upload independently of the

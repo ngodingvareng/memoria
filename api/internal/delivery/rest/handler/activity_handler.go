@@ -7,9 +7,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
+	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
-	"github.com/ngodingvareng/memoria/pkg/errs"
-	"github.com/ngodingvareng/memoria/pkg/util"
+	"github.com/ngodingvareng/memoria/internal/validate"
 )
 
 type ActivityHandler struct {
@@ -42,7 +42,7 @@ func (h *ActivityHandler) CreateActivity(c fiber.Ctx) error {
 	}
 
 	if err := h.validate.Struct(req); err != nil {
-		return &errs.ValidationError{Errors: util.FormatValidationErrors(err)}
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
 	}
 
 	userID, ok := middleware.UserIDFromContext(c)

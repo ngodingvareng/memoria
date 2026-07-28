@@ -3,8 +3,8 @@ package middleware
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
+	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
-	"github.com/ngodingvareng/memoria/pkg/errs"
 )
 
 // SessionCookieName is shared with the auth handler (which sets/clears

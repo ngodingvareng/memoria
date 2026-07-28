@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"github.com/ngodingvareng/memoria/internal/entity"
-	"github.com/ngodingvareng/memoria/pkg/errs"
+	"github.com/ngodingvareng/memoria/internal/errs"
 )
 
 const (
@@ -16,15 +17,19 @@ const (
 	defaultUserTimezone = "UTC"
 )
 
+// --- Repository interfaces, defined here per the Dependency Rule ---
+
 type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) (*entity.User, error)
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
 }
+
 type UserAccountRepository interface {
 	CreateCredential(ctx context.Context, userID uuid.UUID, accountID, passwordHash string) (*entity.UserAccount, error)
 	GetCredentialByUserID(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error)
 }
+
 type UserSessionRepository interface {
 	Create(ctx context.Context, session *entity.UserSession) (*entity.UserSession, error)
 	GetByTokenHash(ctx context.Context, tokenHash string) (*entity.UserSession, error)
@@ -50,6 +55,8 @@ type AuthUnitOfWork interface {
 	WithTransaction(ctx context.Context, fn func(AuthRepositories) error) error
 }
 
+// --- Supporting interfaces ---
+
 type PasswordHasher interface {
 	Hash(password string) (string, error)
 	Compare(hash, password string) error
@@ -59,6 +66,8 @@ type TokenGenerator interface {
 	GenerateSessionToken() (string, error)
 	HashToken(rawToken string) string
 }
+
+// --- Inputs / outputs ---
 
 type RegisterInput struct {
 	Name     string
@@ -73,11 +82,16 @@ type LoginInput struct {
 	UserAgent *string
 }
 
+// LoginResult carries the raw session token — the only place it exists
+// outside the client's cookie. It's never persisted; only its hash
+// (TokenGenerator.HashToken) is, via UserSessionRepository.Create.
 type LoginResult struct {
 	User         *entity.User
 	SessionToken string
 	ExpiresAt    time.Time
 }
+
+// --- Usecase ---
 
 type AuthUsecase interface {
 	Register(ctx context.Context, input RegisterInput) (*entity.User, error)
@@ -113,7 +127,6 @@ func NewAuthUsecase(
 	}
 }
 
-// Register implements [AuthUsecase].
 func (u *authUsecase) Register(ctx context.Context, input RegisterInput) (*entity.User, error) {
 	existing, err := u.users.GetByEmail(ctx, input.Email)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
@@ -161,17 +174,80 @@ func (u *authUsecase) Register(ctx context.Context, input RegisterInput) (*entit
 	return created, nil
 }
 
-// Login implements [AuthUsecase].
 func (u *authUsecase) Login(ctx context.Context, input LoginInput) (*LoginResult, error) {
-	panic("unimplemented")
+	user, err := u.users.GetByEmail(ctx, input.Email)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			// Deliberately the same error as a wrong password below.
+			// Distinguishing "no such email" from "wrong password" would
+			// let an attacker enumerate registered email addresses.
+			return nil, errs.ErrInvalidCredentials
+		}
+		return nil, fmt.Errorf("looking up user: %w", err)
+	}
+
+	account, err := u.userAccounts.GetCredentialByUserID(ctx, user.ID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			// A user that only has an OAuth account, no credential one.
+			return nil, errs.ErrInvalidCredentials
+		}
+		return nil, fmt.Errorf("looking up credential account: %w", err)
+	}
+
+	if account.PasswordHash == nil {
+		return nil, errs.ErrInvalidCredentials
+	}
+	if err := u.hasher.Compare(*account.PasswordHash, input.Password); err != nil {
+		return nil, errs.ErrInvalidCredentials
+	}
+
+	rawToken, err := u.tokens.GenerateSessionToken()
+	if err != nil {
+		return nil, fmt.Errorf("generating session token: %w", err)
+	}
+
+	expiresAt := time.Now().Add(sessionTTL)
+	if _, err := u.userSessions.Create(ctx, &entity.UserSession{
+		UserID:    user.ID,
+		TokenHash: u.tokens.HashToken(rawToken),
+		ExpiresAt: expiresAt,
+		IPAddress: input.IPAddress,
+		UserAgent: input.UserAgent,
+	}); err != nil {
+		return nil, fmt.Errorf("creating session: %w", err)
+	}
+
+	return &LoginResult{User: user, SessionToken: rawToken, ExpiresAt: expiresAt}, nil
 }
 
-// Logout implements [AuthUsecase].
 func (u *authUsecase) Logout(ctx context.Context, sessionToken string) error {
-	panic("unimplemented")
+	if err := u.userSessions.DeleteByTokenHash(ctx, u.tokens.HashToken(sessionToken)); err != nil {
+		return fmt.Errorf("deleting session: %w", err)
+	}
+	return nil
 }
 
-// ValidateSession implements [AuthUsecase].
 func (u *authUsecase) ValidateSession(ctx context.Context, sessionToken string) (*entity.User, error) {
-	panic("unimplemented")
+	session, err := u.userSessions.GetByTokenHash(ctx, u.tokens.HashToken(sessionToken))
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return nil, errs.ErrUnauthorized
+		}
+		return nil, fmt.Errorf("looking up session: %w", err)
+	}
+
+	if session.ExpiresAt.Before(time.Now()) {
+		return nil, errs.ErrTokenExpired
+	}
+
+	user, err := u.users.GetByID(ctx, session.UserID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return nil, errs.ErrUnauthorized
+		}
+		return nil, fmt.Errorf("looking up session user: %w", err)
+	}
+
+	return user, nil
 }

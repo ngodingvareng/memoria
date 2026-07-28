@@ -11,8 +11,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/db"
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
-	"github.com/ngodingvareng/memoria/pkg/errs"
 )
 
 var _ usecase.UserAccountRepository = (*userAccountRepository)(nil)

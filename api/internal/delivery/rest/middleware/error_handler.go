@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
-	"github.com/ngodingvareng/memoria/pkg/errs"
+	"github.com/ngodingvareng/memoria/internal/errs"
 )
 
 func CustomErrorHandler(c fiber.Ctx, err error) error {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ngodingvareng/memoria/pkg/util"
+	"github.com/ngodingvareng/memoria/internal/validate"
 )
 
 type AppError struct {
@@ -61,7 +61,7 @@ var (
 )
 
 type ValidationError struct {
-	Errors []*util.ErrorResponse // assuming this is your util return type
+	Errors []*validate.ErrorResponse // assuming this is your util return type
 }
 
 func (e *ValidationError) Error() string {

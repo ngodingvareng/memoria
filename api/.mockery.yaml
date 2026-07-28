@@ -4,6 +4,15 @@ pkgname: "mocks"
 packages:
   "github.com/ngodingvareng/memoria/internal/usecase":
     interfaces:
+      Storage:
+
+      PasswordHasher:
+      TokenGenerator:
+
+      AuthUnitOfWork:
+
       ActivityRepository:
       ActivityImageRepository:
-      Storage:
+      UserRepository:
+      UserAccountRepository:
+      UserSessionRepository:
