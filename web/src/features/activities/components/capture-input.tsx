@@ -26,6 +26,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import {
   headingsPlugin,
   linkPlugin,
+  listsPlugin,
   markdownShortcutPlugin,
   MDXEditor,
 } from '@mdxeditor/editor';
@@ -48,12 +49,14 @@ export function CaptureInput({
             <MDXEditor
               markdown=""
               placeholder="Woylah cikk, ketik sini..."
-              contentEditableClassName="typeset! max-w-none!"
+              contentEditableClassName="typeset text-foreground! max-w-none!"
               plugins={[
                 headingsPlugin(),
                 linkPlugin(),
                 markdownShortcutPlugin(),
+                listsPlugin(),
               ]}
+              spellCheck={false}
             />
           </div>
           <div className="flex justify-between gap-1">
