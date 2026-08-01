@@ -153,11 +153,11 @@ func (h *ActivityHandler) DeleteActivity(c fiber.Ctx) error {
 		return errs.ErrUnauthorized
 	}
 
-	if err := h.usecase.DeleteActivity(c, activityID, userID); err != nil {
+	if err := h.usecase.SoftDeleteActivity(c, activityID, userID); err != nil {
 		return err
 	}
 
-	slog.InfoContext(c, "activity deleted",
+	slog.InfoContext(c, "activity soft-deleted",
 		"activity_id", activityID,
 		"user_id", userID,
 	)

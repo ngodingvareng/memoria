@@ -108,12 +108,12 @@ func (_c *MockActivityRepository_Create_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
-// Delete provides a mock function for the type MockActivityRepository
-func (_mock *MockActivityRepository) Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+// SoftDelete provides a mock function for the type MockActivityRepository
+func (_mock *MockActivityRepository) SoftDelete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
 	ret := _mock.Called(ctx, id, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Delete")
+		panic("no return value specified for SoftDelete")
 	}
 
 	var r0 error
@@ -125,20 +125,20 @@ func (_mock *MockActivityRepository) Delete(ctx context.Context, id uuid.UUID, u
 	return r0
 }
 
-// MockActivityRepository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
-type MockActivityRepository_Delete_Call struct {
+// MockActivityRepository_SoftDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SoftDelete'
+type MockActivityRepository_SoftDelete_Call struct {
 	*mock.Call
 }
 
-// Delete is a helper method to define mock.On call
+// SoftDelete is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id uuid.UUID
 //   - userID uuid.UUID
-func (_e *MockActivityRepository_Expecter) Delete(ctx any, id any, userID any) *MockActivityRepository_Delete_Call {
-	return &MockActivityRepository_Delete_Call{Call: _e.mock.On("Delete", ctx, id, userID)}
+func (_e *MockActivityRepository_Expecter) SoftDelete(ctx any, id any, userID any) *MockActivityRepository_SoftDelete_Call {
+	return &MockActivityRepository_SoftDelete_Call{Call: _e.mock.On("SoftDelete", ctx, id, userID)}
 }
 
-func (_c *MockActivityRepository_Delete_Call) Run(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID)) *MockActivityRepository_Delete_Call {
+func (_c *MockActivityRepository_SoftDelete_Call) Run(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID)) *MockActivityRepository_SoftDelete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -161,12 +161,12 @@ func (_c *MockActivityRepository_Delete_Call) Run(run func(ctx context.Context, 
 	return _c
 }
 
-func (_c *MockActivityRepository_Delete_Call) Return(err error) *MockActivityRepository_Delete_Call {
+func (_c *MockActivityRepository_SoftDelete_Call) Return(err error) *MockActivityRepository_SoftDelete_Call {
 	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockActivityRepository_Delete_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID) error) *MockActivityRepository_Delete_Call {
+func (_c *MockActivityRepository_SoftDelete_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID) error) *MockActivityRepository_SoftDelete_Call {
 	_c.Call.Return(run)
 	return _c
 }

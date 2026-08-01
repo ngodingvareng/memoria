@@ -231,7 +231,7 @@ func TestActivityUsecase_UpdateActivity_DefaultsAppliedLikeCreate(t *testing.T) 
 
 // --- DeleteActivity ---
 
-func TestActivityUsecase_DeleteActivity_Success(t *testing.T) {
+func TestActivityUsecase_SoftDeleteActivity_Success(t *testing.T) {
 	repo := mocks.NewMockActivityRepository(t)
 	uc := usecase.NewActivityUsecase(repo)
 
@@ -239,23 +239,23 @@ func TestActivityUsecase_DeleteActivity_Success(t *testing.T) {
 	userID := uuid.New()
 
 	expectPassthroughTransaction(repo)
-	repo.EXPECT().Delete(mock.Anything, activityID, userID).Return(nil)
+	repo.EXPECT().SoftDelete(mock.Anything, activityID, userID).Return(nil)
 
-	err := uc.DeleteActivity(context.Background(), activityID, userID)
+	err := uc.SoftDeleteActivity(context.Background(), activityID, userID)
 
 	assert.NoError(t, err)
 }
 
-func TestActivityUsecase_DeleteActivity_RepositoryError(t *testing.T) {
+func TestActivityUsecase_SoftDeleteActivity_RepositoryError(t *testing.T) {
 	repo := mocks.NewMockActivityRepository(t)
 	uc := usecase.NewActivityUsecase(repo)
 
 	wantErr := errors.New("db exploded")
 
 	expectPassthroughTransaction(repo)
-	repo.EXPECT().Delete(mock.Anything, mock.Anything, mock.Anything).Return(wantErr)
+	repo.EXPECT().SoftDelete(mock.Anything, mock.Anything, mock.Anything).Return(wantErr)
 
-	err := uc.DeleteActivity(context.Background(), uuid.New(), uuid.New())
+	err := uc.SoftDeleteActivity(context.Background(), uuid.New(), uuid.New())
 
 	assert.ErrorIs(t, err, wantErr)
 }

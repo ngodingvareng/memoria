@@ -177,7 +177,7 @@ func TestActivityImageUsecase_ListActivityImages_PresignFails(t *testing.T) {
 	assert.ErrorIs(t, err, presignErr)
 }
 
-func TestActivityImageUsecase_DeleteActivityImage_Success(t *testing.T) {
+func TestActivityImageUsecase_SoftDeleteActivityImage_Success(t *testing.T) {
 	repo := mocks.NewMockActivityImageRepository(t)
 	store := mocks.NewMockStorage(t)
 	uc := usecase.NewActivityImageUsecase(repo, store)
@@ -190,7 +190,7 @@ func TestActivityImageUsecase_DeleteActivityImage_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestActivityImageUsecase_DeleteActivityImage_RepoError(t *testing.T) {
+func TestActivityImageUsecase_SoftDeleteActivityImage_RepoError(t *testing.T) {
 	repo := mocks.NewMockActivityImageRepository(t)
 	store := mocks.NewMockStorage(t)
 	uc := usecase.NewActivityImageUsecase(repo, store)

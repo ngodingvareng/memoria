@@ -165,7 +165,7 @@ func TestActivityRepository_Update_WrongUserID_NotFound(t *testing.T) {
 	require.ErrorIs(t, err, errs.ErrNotFound)
 }
 
-func TestActivityRepository_Delete_Success(t *testing.T) {
+func TestActivityRepository_SoftDelete_Success(t *testing.T) {
 	pool := setupTestDB(t)
 	userID := seedTestUser(t, pool)
 	repo := repository.NewActivityRepository(pool)
@@ -175,7 +175,7 @@ func TestActivityRepository_Delete_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = repo.Delete(context.Background(), created.ID, userID)
+	err = repo.SoftDelete(context.Background(), created.ID, userID)
 	require.NoError(t, err)
 
 	var deletedAt *time.Time
@@ -186,7 +186,7 @@ func TestActivityRepository_Delete_Success(t *testing.T) {
 	require.NotNil(t, deletedAt, "deleted_at should be set after Delete")
 }
 
-func TestActivityRepository_Delete_WrongUserID_NoOp(t *testing.T) {
+func TestActivityRepository_SoftDelete_WrongUserID_NoOp(t *testing.T) {
 	// Same silent-no-op contract as ActivityImageRepository.Delete: the
 	// underlying query is :exec, so a non-matching WHERE (wrong owner
 	// here) doesn't surface as an error — the activity must still exist
@@ -201,7 +201,7 @@ func TestActivityRepository_Delete_WrongUserID_NoOp(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = repo.Delete(context.Background(), created.ID, otherUserID)
+	err = repo.SoftDelete(context.Background(), created.ID, otherUserID)
 	require.NoError(t, err)
 
 	var name string

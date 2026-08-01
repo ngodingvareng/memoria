@@ -30,12 +30,12 @@ type ActivityRepository interface {
 	// GetActivityByID). Returns errs.ErrNotFound if no row matches (wrong
 	// owner, wrong id, or already soft-deleted).
 	Update(ctx context.Context, activity *entity.Activity) (*entity.Activity, error)
-	// Delete soft-deletes (sets deleted_at), scoped to userID as the
+	// SoftDelete soft-deletes (sets deleted_at), scoped to userID as the
 	// ownership check. Mirrors ActivityImageRepository.Delete: the
 	// underlying sqlc query is :exec, so a WHERE clause matching zero
 	// rows (wrong owner/id, or already deleted) is a silent no-op here
 	// rather than surfacing errs.ErrNotFound.
-	Delete(ctx context.Context, id, userID uuid.UUID) error
+	SoftDelete(ctx context.Context, id, userID uuid.UUID) error
 	WithTransaction(ctx context.Context, fn func(ActivityRepository) error) error
 }
 
@@ -65,7 +65,7 @@ type UpdateActivityInput struct {
 type ActivityUsecase interface {
 	CreateActivity(ctx context.Context, input CreateActivityInput) (*entity.Activity, error)
 	UpdateActivity(ctx context.Context, input UpdateActivityInput) (*entity.Activity, error)
-	DeleteActivity(ctx context.Context, id, userID uuid.UUID) error
+	SoftDeleteActivity(ctx context.Context, id, userID uuid.UUID) error
 }
 
 type activityUsecase struct {
@@ -148,13 +148,13 @@ func (u *activityUsecase) UpdateActivity(ctx context.Context, input UpdateActivi
 	return updated, nil
 }
 
-// DeleteActivity implements [ActivityUsecase].
-func (u *activityUsecase) DeleteActivity(ctx context.Context, id, userID uuid.UUID) error {
+// SoftDeleteActivity implements [ActivityUsecase].
+func (u *activityUsecase) SoftDeleteActivity(ctx context.Context, id, userID uuid.UUID) error {
 	err := u.repo.WithTransaction(ctx, func(tx ActivityRepository) error {
-		return tx.Delete(ctx, id, userID)
+		return tx.SoftDelete(ctx, id, userID)
 	})
 	if err != nil {
-		return fmt.Errorf("deleting activity: %w", err)
+		return fmt.Errorf("soft-deleting activity: %w", err)
 	}
 	return nil
 }

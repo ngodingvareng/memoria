@@ -54,7 +54,7 @@ func (r *activityRepository) Update(ctx context.Context, activity *entity.Activi
 	return toEntityActivity(row), nil
 }
 
-// Delete implements [usecase.ActivityRepository]. Soft delete only — sets
+// SoftDelete implements [usecase.ActivityRepository]. Soft delete only — sets
 // deleted_at rather than removing the row, same recovery-grace-period
 // reasoning as SoftDeleteUser (see SCHEMA_REVIEW.md #9 for why a hard
 // delete here would also orphan any activity_images/activity_captures
@@ -66,7 +66,7 @@ func (r *activityRepository) Update(ctx context.Context, activity *entity.Activi
 // clause matching zero rows is a silent no-op here, not errs.ErrNotFound.
 // If callers need a real 404 on a missing/foreign activity, look it up
 // via GetActivityByID first.
-func (r *activityRepository) Delete(ctx context.Context, id, userID uuid.UUID) error {
+func (r *activityRepository) SoftDelete(ctx context.Context, id, userID uuid.UUID) error {
 	if err := r.q.SoftDeleteActivity(ctx, db.SoftDeleteActivityParams{
 		ID:     id,
 		UserID: userID,
