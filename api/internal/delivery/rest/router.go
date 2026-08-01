@@ -29,7 +29,7 @@ func SetupRoutes(app *fiber.App, h Handlers) {
 	auth := app.Group("/auth")
 	auth.Post("/register", h.Auth.Register)
 	auth.Post("/login", h.Auth.Login)
-	app.Post("/auth/refresh", h.Auth.Refresh)
+	auth.Post("/refresh", h.Auth.Refresh)
 	auth.Post("/logout", h.Auth.Logout)
 
 	activities := app.Group("/activities")
