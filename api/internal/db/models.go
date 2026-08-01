@@ -160,6 +160,20 @@ type ActivityScheduleHistory struct {
 	ActiveUntil    pgtype.Timestamptz
 }
 
+type RefreshToken struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	FamilyID     uuid.UUID
+	TokenHash    string
+	ExpiresAt    pgtype.Timestamptz
+	RevokedAt    pgtype.Timestamptz
+	ReplacedByID pgtype.UUID
+	IpAddress    pgtype.Text
+	UserAgent    pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+}
+
 type User struct {
 	ID            uuid.UUID
 	Name          string
@@ -186,17 +200,6 @@ type UserAccount struct {
 	PasswordHash          pgtype.Text
 	CreatedAt             pgtype.Timestamptz
 	UpdatedAt             pgtype.Timestamptz
-}
-
-type UserSession struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	TokenHash string
-	ExpiresAt pgtype.Timestamptz
-	IpAddress pgtype.Text
-	UserAgent pgtype.Text
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
 }
 
 type UserVerification struct {

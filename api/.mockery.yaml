@@ -7,7 +7,8 @@ packages:
       Storage:
 
       PasswordHasher:
-      TokenGenerator:
+      AccessTokenIssuer:
+      RefreshTokenGenerator:
 
       AuthUnitOfWork:
 
@@ -15,4 +16,4 @@ packages:
       ActivityImageRepository:
       UserRepository:
       UserAccountRepository:
-      UserSessionRepository:
+      RefreshTokenRepository:

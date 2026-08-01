@@ -54,12 +54,14 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	// 3a. Auth
 	userRepo := repository.NewUserRepository(conn)
 	userAccountRepo := repository.NewUserAccountRepository(conn)
-	sessionRepo := repository.NewUserSessionRepository(conn)
+	refreshTokenRepo := repository.NewRefreshTokenRepository(conn)
 	authUoW := repository.NewAuthUnitOfWork(conn)
-	passwordHasher := security.NewScryptHasher()
-	tokenGenerator := security.NewSessionTokenGenerator()
 
-	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, sessionRepo, passwordHasher, tokenGenerator)
+	accessTokenIssuer := security.NewJWTAccessTokenIssuer([]byte(cfg.JWTSecret), cfg.JWTAccessTokenTTL, cfg.JWTIssuer)
+	refreshTokenGenerator := security.NewRefreshTokenGenerator()
+	hasher := security.NewScryptHasher()
+
+	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, hasher, accessTokenIssuer, refreshTokenGenerator, cfg.JWTRefreshTokenTTL)
 	authHandler := handler.NewAuthHandler(authUsecase, cfg.SecureCookies)
 
 	// 3b. Activities

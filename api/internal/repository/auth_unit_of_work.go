@@ -17,9 +17,10 @@ var _ usecase.AuthUnitOfWork = (*authUnitOfWork)(nil)
 // authUnitOfWork coordinates a transaction across MORE than one
 // repository — the multi-repository counterpart to activityRepository's
 // own single-repository WithTransaction. Register needs to insert both a
-// users row and a user_accounts row atomically; neither repository alone
-// can guarantee that, so this exists specifically to own that
-// transaction boundary.
+// users row and a user_accounts row atomically; Refresh needs to insert
+// a new refresh_tokens row and revoke the old one atomically. Neither
+// repository alone can guarantee that, so this exists specifically to
+// own that transaction boundary.
 type authUnitOfWork struct {
 	pool *pgxpool.Pool
 }
@@ -42,13 +43,13 @@ func (u *authUnitOfWork) WithTransaction(ctx context.Context, fn func(usecase.Au
 
 	q := db.New(tx)
 	repos := usecase.AuthRepositories{
-		User:        &userRepository{q: q},
-		UserAccount: &userAccountRepository{q: q},
+		User:         &userRepository{q: q},
+		UserAccount:  &userAccountRepository{q: q},
+		RefreshToken: &refreshTokenRepository{q: q},
 	}
 
 	if err := fn(repos); err != nil {
 		return err
 	}
 	return tx.Commit(ctx)
-
 }

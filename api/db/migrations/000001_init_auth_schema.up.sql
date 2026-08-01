@@ -78,31 +78,48 @@ CREATE INDEX idx_user_accounts_user_id ON user_accounts(user_id);
 
 
 -- ---------------------------------------------------------
--- user_sessions
+-- refresh_tokens
 -- ---------------------------------------------------------
-CREATE TABLE user_sessions(
+CREATE TABLE refresh_tokens(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
-    -- Hash of the session token (e.g. SHA-256 hex digest), not the raw
-    -- token. The raw token is only ever held by the client (cookie); the
-    -- app hashes the incoming token with the same function before doing
-    -- the lookup. This way a DB leak doesn't hand out usable sessions.
+    -- Groups every token produced by rotating a given login into one
+    -- chain. When a refresh token that has already been rotated out
+    -- gets presented again (reuse/theft), the whole chain is revoked
+    -- at once, not just that single row.
+    family_id UUID NOT NULL DEFAULT gen_random_uuid(),
+
+    -- Hash of the refresh token (e.g. SHA-256 hex digest), not the raw
+    -- value. The raw value only ever exists on the client (cookie);
+    -- the app hashes the incoming token with the same function before
+    -- doing the lookup.
     token_hash VARCHAR(255) NOT NULL UNIQUE,
 
     expires_at TIMESTAMPTZ NOT NULL,
+
+    -- NULL while still active; set once this token has been rotated
+    -- (replaced by a new one) or explicitly logged out. A refresh
+    -- request presenting a token whose revoked_at is already set is a
+    -- reuse/theft signal.
+    revoked_at TIMESTAMPTZ,
+
+    -- Points to the row that replaced this one after rotation.
+    replaced_by_id UUID REFERENCES refresh_tokens(id) ON DELETE SET NULL,
+
     ip_address VARCHAR(45),
     user_agent TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
+CREATE INDEX idx_refresh_tokens_family_id ON refresh_tokens(family_id);
 
--- Supports a periodic cleanup job (DELETE FROM user_sessions WHERE
+-- Supports a periodic cleanup job (DELETE FROM refresh_tokens WHERE
 -- expires_at < NOW()); Postgres has no built-in TTL, so this needs
 -- to be run by the app or a scheduler (e.g. pg_cron).
-CREATE INDEX idx_user_sessions_expires_at ON user_sessions(expires_at);
+CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 
 
 -- ---------------------------------------------------------

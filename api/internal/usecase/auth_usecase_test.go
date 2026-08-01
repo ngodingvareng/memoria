@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/ngodingvareng/memoria/internal/entity"
 	"github.com/ngodingvareng/memoria/internal/errs"
@@ -18,30 +19,42 @@ import (
 	"github.com/ngodingvareng/memoria/internal/usecase/mocks"
 )
 
+// testRefreshTokenTTL is an arbitrary fixed duration passed into every
+// usecase instance under test — the exact value doesn't matter for
+// these tests, only that AuthTokens.RefreshTokenExpiresAt lands roughly
+// time.Now()+ttl, which the affected tests assert with WithinDuration
+// rather than exact equality (constructing the token happens a few
+// nanoseconds after time.Now() is read here).
+const testRefreshTokenTTL = 30 * 24 * time.Hour
+
 func newAuthUsecase(t *testing.T) (
 	usecase.AuthUsecase,
 	*mocks.MockUserRepository,
 	*mocks.MockUserAccountRepository,
-	*mocks.MockUserSessionRepository,
+	*mocks.MockRefreshTokenRepository,
 	*mocks.MockAuthUnitOfWork,
 	*mocks.MockPasswordHasher,
-	*mocks.MockTokenGenerator,
+	*mocks.MockAccessTokenIssuer,
+	*mocks.MockRefreshTokenGenerator,
 ) {
 	users := mocks.NewMockUserRepository(t)
 	userAccounts := mocks.NewMockUserAccountRepository(t)
-	sessions := mocks.NewMockUserSessionRepository(t)
+	refreshTokens := mocks.NewMockRefreshTokenRepository(t)
 	uow := mocks.NewMockAuthUnitOfWork(t)
 	hasher := mocks.NewMockPasswordHasher(t)
-	tokens := mocks.NewMockTokenGenerator(t)
+	accessTokens := mocks.NewMockAccessTokenIssuer(t)
+	refreshTokenGen := mocks.NewMockRefreshTokenGenerator(t)
 
-	uc := usecase.NewAuthUsecase(uow, users, userAccounts, sessions, hasher, tokens)
-	return uc, users, userAccounts, sessions, uow, hasher, tokens
+	uc := usecase.NewAuthUsecase(uow, users, userAccounts, refreshTokens, hasher, accessTokens, refreshTokenGen, testRefreshTokenTTL)
+	return uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen
 }
 
 // --- Register ---
+// Unchanged behavior from before this refactor — Register never touches
+// tokens at all, so these cases carry over as-is.
 
 func TestAuthUsecase_Register_Success(t *testing.T) {
-	uc, users, userAccounts, _, uow, hasher, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, uow, hasher, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").Return(nil, errs.ErrNotFound)
 	hasher.EXPECT().Hash("s3cur3-password").Return("hashed-password", nil)
@@ -72,7 +85,7 @@ func TestAuthUsecase_Register_Success(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_EmailAlreadyExists(t *testing.T) {
-	uc, users, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").
 		Return(&entity.User{ID: uuid.New(), Email: "budi@example.com"}, nil)
@@ -91,7 +104,7 @@ func TestAuthUsecase_Register_EmailAlreadyExists(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_HashingFails(t *testing.T) {
-	uc, users, _, _, _, hasher, _ := newAuthUsecase(t)
+	uc, users, _, _, _, hasher, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 	wantErr := errors.New("hashing exploded")
@@ -106,7 +119,7 @@ func TestAuthUsecase_Register_HashingFails(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_TransactionFails(t *testing.T) {
-	uc, users, userAccounts, _, uow, hasher, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, uow, hasher, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 	hasher.EXPECT().Hash(mock.Anything).Return("hashed", nil)
@@ -133,31 +146,45 @@ func TestAuthUsecase_Register_TransactionFails(t *testing.T) {
 // --- Login ---
 
 func TestAuthUsecase_Login_Success(t *testing.T) {
-	uc, users, userAccounts, sessions, _, hasher, tokens := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New(), Email: "budi@example.com"}
 	passwordHash := "scrypt-hash"
+	accessExpiresAt := time.Now().Add(15 * time.Minute)
+	wantRefreshExpiresAt := time.Now().Add(testRefreshTokenTTL)
+
 	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").Return(user, nil)
 	userAccounts.EXPECT().GetCredentialByUserID(mock.Anything, user.ID).
 		Return(&entity.UserAccount{PasswordHash: &passwordHash}, nil)
 	hasher.EXPECT().Compare(passwordHash, "correct-password").Return(nil)
-	tokens.EXPECT().GenerateSessionToken().Return("raw-token", nil)
-	tokens.EXPECT().HashToken("raw-token").Return("hashed-token")
-	sessions.EXPECT().Create(mock.Anything, mock.MatchedBy(func(s *entity.UserSession) bool {
-		return s.UserID == user.ID && s.TokenHash == "hashed-token"
-	})).Return(&entity.UserSession{}, nil)
+	accessTokens.EXPECT().Generate(user.ID).Return("access-token", accessExpiresAt, nil)
+	refreshTokenGen.EXPECT().Generate().Return("raw-refresh-token", nil)
+	refreshTokenGen.EXPECT().Hash("raw-refresh-token").Return("hashed-refresh-token")
+	refreshTokens.EXPECT().
+		Create(mock.Anything, mock.MatchedBy(func(rt *entity.RefreshToken) bool {
+			// FamilyID is generated fresh (uuid.New()) inside Login for
+			// every new session, so the test can only assert it's set,
+			// not its exact value.
+			return rt.UserID == user.ID &&
+				rt.TokenHash == "hashed-refresh-token" &&
+				rt.FamilyID != uuid.Nil
+		})).
+		Return(&entity.RefreshToken{ID: uuid.New()}, nil)
 
 	result, err := uc.Login(context.Background(), usecase.LoginInput{
 		Email: "budi@example.com", Password: "correct-password",
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, user, result.User)
-	assert.Equal(t, "raw-token", result.SessionToken)
+	assert.Equal(t, "access-token", result.AccessToken)
+	assert.Equal(t, accessExpiresAt, result.AccessTokenExpiresAt)
+	assert.Equal(t, "raw-refresh-token", result.RefreshToken)
+	assert.WithinDuration(t, wantRefreshExpiresAt, result.RefreshTokenExpiresAt, time.Second)
 }
 
 func TestAuthUsecase_Login_EmailNotFound(t *testing.T) {
-	uc, users, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 
@@ -171,7 +198,7 @@ func TestAuthUsecase_Login_EmailNotFound(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_NoCredentialAccount(t *testing.T) {
-	uc, users, userAccounts, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(user, nil)
@@ -183,7 +210,7 @@ func TestAuthUsecase_Login_NoCredentialAccount(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_WrongPassword(t *testing.T) {
-	uc, users, userAccounts, _, _, hasher, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, hasher, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	hash := "some-hash"
@@ -198,7 +225,7 @@ func TestAuthUsecase_Login_WrongPassword(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_NilPasswordHash_OAuthOnlyAccount(t *testing.T) {
-	uc, users, userAccounts, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(user, nil)
@@ -212,83 +239,208 @@ func TestAuthUsecase_Login_NilPasswordHash_OAuthOnlyAccount(t *testing.T) {
 	assert.ErrorIs(t, err, errs.ErrInvalidCredentials)
 }
 
-// --- Logout ---
+// --- Refresh ---
 
-func TestAuthUsecase_Logout_Success(t *testing.T) {
-	uc, _, _, sessions, _, _, tokens := newAuthUsecase(t)
-
-	tokens.EXPECT().HashToken("raw-token").Return("hashed-token")
-	sessions.EXPECT().DeleteByTokenHash(mock.Anything, "hashed-token").Return(nil)
-
-	err := uc.Logout(context.Background(), "raw-token")
-
-	assert.NoError(t, err)
-}
-
-func TestAuthUsecase_Logout_Error(t *testing.T) {
-	uc, _, _, sessions, _, _, tokens := newAuthUsecase(t)
-
-	wantErr := errors.New("db exploded")
-	tokens.EXPECT().HashToken(mock.Anything).Return("hashed-token")
-	sessions.EXPECT().DeleteByTokenHash(mock.Anything, mock.Anything).Return(wantErr)
-
-	err := uc.Logout(context.Background(), "raw-token")
-
-	assert.ErrorIs(t, err, wantErr)
-}
-
-// --- ValidateSession ---
-
-func TestAuthUsecase_ValidateSession_Success(t *testing.T) {
-	uc, users, _, sessions, _, _, tokens := newAuthUsecase(t)
+func TestAuthUsecase_Refresh_Success_RotatesToken(t *testing.T) {
+	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
-	session := &entity.UserSession{UserID: user.ID, ExpiresAt: time.Now().Add(1 * time.Hour)}
+	familyID := uuid.New()
+	existing := &entity.RefreshToken{
+		ID:        uuid.New(),
+		UserID:    user.ID,
+		FamilyID:  familyID,
+		ExpiresAt: time.Now().Add(1 * time.Hour),
+	}
 
-	tokens.EXPECT().HashToken("raw-token").Return("hashed-token")
-	sessions.EXPECT().GetByTokenHash(mock.Anything, "hashed-token").Return(session, nil)
+	refreshTokenGen.EXPECT().Hash("old-raw-token").Return("old-hash")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "old-hash").Return(existing, nil)
 	users.EXPECT().GetByID(mock.Anything, user.ID).Return(user, nil)
 
-	result, err := uc.ValidateSession(context.Background(), "raw-token")
+	newAccessExpiresAt := time.Now().Add(15 * time.Minute)
+	newTokenRow := &entity.RefreshToken{ID: uuid.New()}
 
-	assert.NoError(t, err)
-	assert.Equal(t, user, result)
+	uow.EXPECT().
+		WithTransaction(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, fn func(usecase.AuthRepositories) error) error {
+			return fn(usecase.AuthRepositories{RefreshToken: refreshTokens})
+		})
+	accessTokens.EXPECT().Generate(user.ID).Return("new-access-token", newAccessExpiresAt, nil)
+	refreshTokenGen.EXPECT().Generate().Return("new-raw-token", nil)
+	refreshTokenGen.EXPECT().Hash("new-raw-token").Return("new-hash")
+	refreshTokens.EXPECT().
+		Create(mock.Anything, mock.MatchedBy(func(rt *entity.RefreshToken) bool {
+			// The rotated token must stay in the SAME family as the one
+			// it replaces — that's what lets RevokeFamily catch reuse
+			// later even after several rotations.
+			return rt.UserID == user.ID && rt.FamilyID == familyID && rt.TokenHash == "new-hash"
+		})).
+		Return(newTokenRow, nil)
+	refreshTokens.EXPECT().Rotate(mock.Anything, existing.ID, newTokenRow.ID).Return(nil)
+
+	result, err := uc.Refresh(context.Background(), usecase.RefreshInput{RefreshToken: "old-raw-token"})
+
+	require.NoError(t, err)
+	assert.Equal(t, user, result.User)
+	assert.Equal(t, "new-access-token", result.AccessToken)
+	assert.Equal(t, "new-raw-token", result.RefreshToken)
 }
 
-func TestAuthUsecase_ValidateSession_SessionNotFound(t *testing.T) {
-	uc, _, _, sessions, _, _, tokens := newAuthUsecase(t)
+func TestAuthUsecase_Refresh_TokenNotFound(t *testing.T) {
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
 
-	tokens.EXPECT().HashToken(mock.Anything).Return("hashed-token")
-	sessions.EXPECT().GetByTokenHash(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
+	refreshTokenGen.EXPECT().Hash("unknown-token").Return("unknown-hash")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "unknown-hash").Return(nil, errs.ErrNotFound)
 
-	_, err := uc.ValidateSession(context.Background(), "raw-token")
+	_, err := uc.Refresh(context.Background(), usecase.RefreshInput{RefreshToken: "unknown-token"})
 
 	assert.ErrorIs(t, err, errs.ErrUnauthorized)
 }
 
-func TestAuthUsecase_ValidateSession_Expired(t *testing.T) {
-	uc, _, _, sessions, _, _, tokens := newAuthUsecase(t)
+func TestAuthUsecase_Refresh_Expired(t *testing.T) {
+	uc, users, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
 
-	session := &entity.UserSession{UserID: uuid.New(), ExpiresAt: time.Now().Add(-1 * time.Hour)}
-	tokens.EXPECT().HashToken(mock.Anything).Return("hashed-token")
-	sessions.EXPECT().GetByTokenHash(mock.Anything, mock.Anything).Return(session, nil)
-	// users.GetByID deliberately not stubbed — an expired session should
+	existing := &entity.RefreshToken{
+		ID:        uuid.New(),
+		UserID:    uuid.New(),
+		FamilyID:  uuid.New(),
+		ExpiresAt: time.Now().Add(-1 * time.Hour),
+	}
+	refreshTokenGen.EXPECT().Hash("expired-token").Return("expired-hash")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "expired-hash").Return(existing, nil)
+	// users.GetByID deliberately not stubbed — an expired token should
 	// short-circuit before ever looking up the user.
+	_ = users
 
-	_, err := uc.ValidateSession(context.Background(), "raw-token")
+	_, err := uc.Refresh(context.Background(), usecase.RefreshInput{RefreshToken: "expired-token"})
 
 	assert.ErrorIs(t, err, errs.ErrTokenExpired)
 }
 
-func TestAuthUsecase_ValidateSession_UserNotFound(t *testing.T) {
-	uc, users, _, sessions, _, _, tokens := newAuthUsecase(t)
+func TestAuthUsecase_Refresh_ReuseDetected_RevokesEntireFamily(t *testing.T) {
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
 
-	session := &entity.UserSession{UserID: uuid.New(), ExpiresAt: time.Now().Add(1 * time.Hour)}
-	tokens.EXPECT().HashToken(mock.Anything).Return("hashed-token")
-	sessions.EXPECT().GetByTokenHash(mock.Anything, mock.Anything).Return(session, nil)
-	users.EXPECT().GetByID(mock.Anything, session.UserID).Return(nil, errs.ErrNotFound)
+	familyID := uuid.New()
+	revokedAt := time.Now().Add(-1 * time.Minute)
+	existing := &entity.RefreshToken{
+		ID:        uuid.New(),
+		FamilyID:  familyID,
+		RevokedAt: &revokedAt, // already rotated out once before
+		ExpiresAt: time.Now().Add(1 * time.Hour),
+	}
 
-	_, err := uc.ValidateSession(context.Background(), "raw-token")
+	refreshTokenGen.EXPECT().Hash("stolen-token").Return("stolen-hash")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "stolen-hash").Return(existing, nil)
+	refreshTokens.EXPECT().RevokeFamily(mock.Anything, familyID).Return(nil)
+	// users.GetByID and uow.WithTransaction deliberately not stubbed —
+	// a reused token must be rejected before ever minting new tokens.
+
+	_, err := uc.Refresh(context.Background(), usecase.RefreshInput{RefreshToken: "stolen-token"})
 
 	assert.ErrorIs(t, err, errs.ErrUnauthorized)
+}
+
+func TestAuthUsecase_Refresh_UserNotFound(t *testing.T) {
+	uc, users, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+
+	existing := &entity.RefreshToken{
+		ID: uuid.New(), UserID: uuid.New(), FamilyID: uuid.New(),
+		ExpiresAt: time.Now().Add(1 * time.Hour),
+	}
+	refreshTokenGen.EXPECT().Hash("orphaned-token").Return("orphaned-hash")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "orphaned-hash").Return(existing, nil)
+	users.EXPECT().GetByID(mock.Anything, existing.UserID).Return(nil, errs.ErrNotFound)
+
+	_, err := uc.Refresh(context.Background(), usecase.RefreshInput{RefreshToken: "orphaned-token"})
+
+	assert.ErrorIs(t, err, errs.ErrUnauthorized)
+}
+
+func TestAuthUsecase_Refresh_ConflictOnRotate_TreatedAsUnauthorized(t *testing.T) {
+	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen := newAuthUsecase(t)
+
+	user := &entity.User{ID: uuid.New()}
+	existing := &entity.RefreshToken{
+		ID: uuid.New(), UserID: user.ID, FamilyID: uuid.New(),
+		ExpiresAt: time.Now().Add(1 * time.Hour),
+	}
+
+	refreshTokenGen.EXPECT().Hash("raced-token").Return("raced-hash")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "raced-hash").Return(existing, nil)
+	users.EXPECT().GetByID(mock.Anything, user.ID).Return(user, nil)
+
+	newTokenRow := &entity.RefreshToken{ID: uuid.New()}
+	uow.EXPECT().
+		WithTransaction(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, fn func(usecase.AuthRepositories) error) error {
+			return fn(usecase.AuthRepositories{RefreshToken: refreshTokens})
+		})
+	accessTokens.EXPECT().Generate(user.ID).Return("new-access-token", time.Now().Add(15*time.Minute), nil)
+	refreshTokenGen.EXPECT().Generate().Return("new-raw-token", nil)
+	refreshTokenGen.EXPECT().Hash("new-raw-token").Return("new-hash")
+	refreshTokens.EXPECT().Create(mock.Anything, mock.Anything).Return(newTokenRow, nil)
+	// Simulates another concurrent Refresh request winning the race and
+	// rotating this same token first.
+	refreshTokens.EXPECT().Rotate(mock.Anything, existing.ID, newTokenRow.ID).Return(errs.ErrConflict)
+
+	_, err := uc.Refresh(context.Background(), usecase.RefreshInput{RefreshToken: "raced-token"})
+
+	assert.ErrorIs(t, err, errs.ErrUnauthorized)
+}
+
+// --- Logout ---
+
+func TestAuthUsecase_Logout_Success(t *testing.T) {
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+
+	row := &entity.RefreshToken{ID: uuid.New()}
+	refreshTokenGen.EXPECT().Hash("raw-token").Return("hashed-token")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "hashed-token").Return(row, nil)
+	refreshTokens.EXPECT().Revoke(mock.Anything, row.ID).Return(nil)
+
+	err := uc.Logout(context.Background(), "raw-token")
+
+	assert.NoError(t, err)
+}
+
+func TestAuthUsecase_Logout_TokenNotFound_IsIdempotent(t *testing.T) {
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+
+	refreshTokenGen.EXPECT().Hash("already-gone").Return("gone-hash")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "gone-hash").Return(nil, errs.ErrNotFound)
+	// Revoke deliberately not stubbed — logging out a token that's
+	// already gone should be a no-op, not an error.
+
+	err := uc.Logout(context.Background(), "already-gone")
+
+	assert.NoError(t, err)
+}
+
+func TestAuthUsecase_Logout_AlreadyRevoked_IsIdempotent(t *testing.T) {
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+
+	revokedAt := time.Now().Add(-time.Minute)
+	row := &entity.RefreshToken{ID: uuid.New(), RevokedAt: &revokedAt}
+	refreshTokenGen.EXPECT().Hash("already-revoked").Return("revoked-hash")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "revoked-hash").Return(row, nil)
+	// Revoke deliberately not stubbed — calling Revoke again on an
+	// already-revoked row would be redundant.
+
+	err := uc.Logout(context.Background(), "already-revoked")
+
+	assert.NoError(t, err)
+}
+
+func TestAuthUsecase_Logout_RevokeError(t *testing.T) {
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+
+	row := &entity.RefreshToken{ID: uuid.New()}
+	wantErr := errors.New("db exploded")
+	refreshTokenGen.EXPECT().Hash(mock.Anything).Return("hashed-token")
+	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, mock.Anything).Return(row, nil)
+	refreshTokens.EXPECT().Revoke(mock.Anything, row.ID).Return(wantErr)
+
+	err := uc.Logout(context.Background(), "raw-token")
+
+	assert.ErrorIs(t, err, wantErr)
 }

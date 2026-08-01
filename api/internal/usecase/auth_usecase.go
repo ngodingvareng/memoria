@@ -12,11 +12,6 @@ import (
 	"github.com/ngodingvareng/memoria/internal/errs"
 )
 
-const (
-	sessionTTL          = 30 * 24 * time.Hour // 30 days
-	defaultUserTimezone = "UTC"
-)
-
 // --- Repository interfaces, defined here per the Dependency Rule ---
 
 type UserRepository interface {
@@ -30,11 +25,16 @@ type UserAccountRepository interface {
 	GetCredentialByUserID(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error)
 }
 
-type UserSessionRepository interface {
-	Create(ctx context.Context, session *entity.UserSession) (*entity.UserSession, error)
-	GetByTokenHash(ctx context.Context, tokenHash string) (*entity.UserSession, error)
-	DeleteByTokenHash(ctx context.Context, tokenHash string) error
-	DeleteAllByUserID(ctx context.Context, userID uuid.UUID) error
+type RefreshTokenRepository interface {
+	Create(ctx context.Context, rt *entity.RefreshToken) (*entity.RefreshToken, error)
+	GetByTokenHash(ctx context.Context, tokenHash string) (*entity.RefreshToken, error)
+	Revoke(ctx context.Context, id uuid.UUID) error
+	// Rotate atomically marks the id as revoked+replaced, but
+	// ONLY if it hasn't been revoked. errs.ErrConflict means it lost the race
+	// (concurrent refresh) or the token is no longer the tip of the chain.
+	Rotate(ctx context.Context, id, replacedByID uuid.UUID) error
+	RevokeFamily(ctx context.Context, familyID uuid.UUID) error
+	RevokeAllByUserID(ctx context.Context, userID uuid.UUID) error
 }
 
 // AuthRepositories groups the repositories a single atomic auth
@@ -42,8 +42,9 @@ type UserSessionRepository interface {
 // user_accounts row as one all-or-nothing unit — neither UserRepository
 // nor UserAccountRepository alone can guarantee that.
 type AuthRepositories struct {
-	User        UserRepository
-	UserAccount UserAccountRepository
+	User         UserRepository
+	UserAccount  UserAccountRepository
+	RefreshToken RefreshTokenRepository
 }
 
 // AuthUnitOfWork runs fn with repositories all bound to the SAME
@@ -62,9 +63,18 @@ type PasswordHasher interface {
 	Compare(hash, password string) error
 }
 
-type TokenGenerator interface {
-	GenerateSessionToken() (string, error)
-	HashToken(rawToken string) string
+// AccessTokenIssuer mints/verifies the stateless JWT access token.
+// Middleware bergantung langsung ke interface ini (bukan lewat
+// AuthUsecase) karena verifikasi access token tidak butuh apa pun dari
+// alur auth lain — cuma butuh parse & validasi signature/exp.
+type AccessTokenIssuer interface {
+	Generate(userID uuid.UUID) (token string, expiresAt time.Time, err error)
+	Parse(token string) (uuid.UUID, error)
+}
+
+type RefreshTokenGenerator interface {
+	Generate() (raw string, err error)
+	Hash(raw string) string
 }
 
 // --- Inputs / outputs ---
@@ -82,6 +92,23 @@ type LoginInput struct {
 	UserAgent *string
 }
 
+type RefreshInput struct {
+	RefreshToken string
+	IPAddress    *string
+	UserAgent    *string
+}
+
+// AuthTokens dikembalikan Login & Refresh — dua-duanya mencetak
+// pasangan access/refresh baru. RefreshToken di sini raw — satu-
+// satunya tempat nilai mentahnya keluar; yang disimpan cuma hash-nya.
+type AuthTokens struct {
+	User                  *entity.User
+	AccessToken           string
+	AccessTokenExpiresAt  time.Time
+	RefreshToken          string
+	RefreshTokenExpiresAt time.Time
+}
+
 // LoginResult carries the raw session token — the only place it exists
 // outside the client's cookie. It's never persisted; only its hash
 // (TokenGenerator.HashToken) is, via UserSessionRepository.Create.
@@ -95,35 +122,36 @@ type LoginResult struct {
 
 type AuthUsecase interface {
 	Register(ctx context.Context, input RegisterInput) (*entity.User, error)
-	Login(ctx context.Context, input LoginInput) (*LoginResult, error)
-	Logout(ctx context.Context, sessionToken string) error
-	ValidateSession(ctx context.Context, sessionToken string) (*entity.User, error)
+	Login(ctx context.Context, input LoginInput) (*AuthTokens, error)
+	Refresh(ctx context.Context, input RefreshInput) (*AuthTokens, error)
+	Logout(ctx context.Context, refreshToken string) error
 }
 
 type authUsecase struct {
-	uow          AuthUnitOfWork
-	users        UserRepository
-	userAccounts UserAccountRepository
-	userSessions UserSessionRepository
-	hasher       PasswordHasher
-	tokens       TokenGenerator
+	uow             AuthUnitOfWork
+	users           UserRepository
+	userAccounts    UserAccountRepository
+	refreshTokens   RefreshTokenRepository
+	hasher          PasswordHasher
+	accessTokens    AccessTokenIssuer
+	refreshTokenGen RefreshTokenGenerator
+	refreshTokenTTL time.Duration
 }
 
 func NewAuthUsecase(
 	uow AuthUnitOfWork,
 	users UserRepository,
 	userAccounts UserAccountRepository,
-	userSessions UserSessionRepository,
+	refreshTokens RefreshTokenRepository,
 	hasher PasswordHasher,
-	tokens TokenGenerator,
+	accessTokens AccessTokenIssuer,
+	refreshTokenGen RefreshTokenGenerator,
+	refreshTokenTTL time.Duration,
 ) AuthUsecase {
 	return &authUsecase{
-		uow:          uow,
-		users:        users,
-		userAccounts: userAccounts,
-		userSessions: userSessions,
-		hasher:       hasher,
-		tokens:       tokens,
+		uow: uow, users: users, userAccounts: userAccounts, refreshTokens: refreshTokens,
+		hasher: hasher, accessTokens: accessTokens, refreshTokenGen: refreshTokenGen,
+		refreshTokenTTL: refreshTokenTTL,
 	}
 }
 
@@ -144,43 +172,27 @@ func (u *authUsecase) Register(ctx context.Context, input RegisterInput) (*entit
 	var created *entity.User
 	err = u.uow.WithTransaction(ctx, func(repos AuthRepositories) error {
 		user, err := repos.User.Create(ctx, &entity.User{
-			Name:     input.Name,
-			Email:    input.Email,
-			Timezone: defaultUserTimezone,
+			Name: input.Name, Email: input.Email, Timezone: "UTC",
 		})
 		if err != nil {
 			return fmt.Errorf("creating user: %w", err)
 		}
-
-		// account_id for the 'credential' provider is just the user's
-		// own id — there's no external account identifier to store here,
-		// unlike OAuth providers (google/github).
 		if _, err := repos.UserAccount.CreateCredential(ctx, user.ID, user.ID.String(), hashedPassword); err != nil {
 			return fmt.Errorf("creating credential account: %w", err)
 		}
-
 		created = user
 		return nil
 	})
 	if err != nil {
-		// The GetByEmail check above is a nicer-error-message convenience,
-		// not the real guard against a race (two concurrent registrations
-		// with the same email) — the repository's Create translates the
-		// DB's unique constraint violation into errs.ErrEmailAlreadyExists
-		// too, so that race is still caught correctly here.
 		return nil, fmt.Errorf("registering user: %w", err)
 	}
-
 	return created, nil
 }
 
-func (u *authUsecase) Login(ctx context.Context, input LoginInput) (*LoginResult, error) {
+func (u *authUsecase) Login(ctx context.Context, input LoginInput) (*AuthTokens, error) {
 	user, err := u.users.GetByEmail(ctx, input.Email)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
-			// Deliberately the same error as a wrong password below.
-			// Distinguishing "no such email" from "wrong password" would
-			// let an attacker enumerate registered email addresses.
 			return nil, errs.ErrInvalidCredentials
 		}
 		return nil, fmt.Errorf("looking up user: %w", err)
@@ -189,12 +201,10 @@ func (u *authUsecase) Login(ctx context.Context, input LoginInput) (*LoginResult
 	account, err := u.userAccounts.GetCredentialByUserID(ctx, user.ID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
-			// A user that only has an OAuth account, no credential one.
 			return nil, errs.ErrInvalidCredentials
 		}
 		return nil, fmt.Errorf("looking up credential account: %w", err)
 	}
-
 	if account.PasswordHash == nil {
 		return nil, errs.ErrInvalidCredentials
 	}
@@ -202,52 +212,129 @@ func (u *authUsecase) Login(ctx context.Context, input LoginInput) (*LoginResult
 		return nil, errs.ErrInvalidCredentials
 	}
 
-	rawToken, err := u.tokens.GenerateSessionToken()
+	// Login selalu memulai chain baru.
+	return u.issueSession(ctx, u.refreshTokens, user, uuid.New(), input.IPAddress, input.UserAgent)
+}
+
+func (u *authUsecase) issueSession(ctx context.Context, repo RefreshTokenRepository, user *entity.User, familyID uuid.UUID, ip, ua *string) (*AuthTokens, error) {
+	accessToken, accessExpiresAt, err := u.accessTokens.Generate(user.ID)
 	if err != nil {
-		return nil, fmt.Errorf("generating session token: %w", err)
+		return nil, fmt.Errorf("generating access token: %w", err)
 	}
+	rawRefresh, err := u.refreshTokenGen.Generate()
+	if err != nil {
+		return nil, fmt.Errorf("generating refresh token: %w", err)
+	}
+	refreshExpiresAt := time.Now().Add(u.refreshTokenTTL)
 
-	expiresAt := time.Now().Add(sessionTTL)
-	if _, err := u.userSessions.Create(ctx, &entity.UserSession{
-		UserID:    user.ID,
-		TokenHash: u.tokens.HashToken(rawToken),
-		ExpiresAt: expiresAt,
-		IPAddress: input.IPAddress,
-		UserAgent: input.UserAgent,
+	if _, err := repo.Create(ctx, &entity.RefreshToken{
+		UserID: user.ID, FamilyID: familyID,
+		TokenHash: u.refreshTokenGen.Hash(rawRefresh),
+		ExpiresAt: refreshExpiresAt, IPAddress: ip, UserAgent: ua,
 	}); err != nil {
-		return nil, fmt.Errorf("creating session: %w", err)
+		return nil, fmt.Errorf("creating refresh token: %w", err)
 	}
 
-	return &LoginResult{User: user, SessionToken: rawToken, ExpiresAt: expiresAt}, nil
+	return &AuthTokens{
+		User: user, AccessToken: accessToken, AccessTokenExpiresAt: accessExpiresAt,
+		RefreshToken: rawRefresh, RefreshTokenExpiresAt: refreshExpiresAt,
+	}, nil
 }
 
-func (u *authUsecase) Logout(ctx context.Context, sessionToken string) error {
-	if err := u.userSessions.DeleteByTokenHash(ctx, u.tokens.HashToken(sessionToken)); err != nil {
-		return fmt.Errorf("deleting session: %w", err)
-	}
-	return nil
-}
+func (u *authUsecase) Refresh(ctx context.Context, input RefreshInput) (*AuthTokens, error) {
+	tokenHash := u.refreshTokenGen.Hash(input.RefreshToken)
 
-func (u *authUsecase) ValidateSession(ctx context.Context, sessionToken string) (*entity.User, error) {
-	session, err := u.userSessions.GetByTokenHash(ctx, u.tokens.HashToken(sessionToken))
+	existing, err := u.refreshTokens.GetByTokenHash(ctx, tokenHash)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return nil, errs.ErrUnauthorized
 		}
-		return nil, fmt.Errorf("looking up session: %w", err)
+		return nil, fmt.Errorf("looking up refresh token: %w", err)
 	}
 
-	if session.ExpiresAt.Before(time.Now()) {
+	// revoked_at sudah terisi berarti token ini bukan lagi ujung
+	// chain-nya — entah karena sudah dirotasi sebelumnya, atau memang
+	// sedang dipakai ulang (reuse). Dari baris saja dua kasus itu tidak
+	// bisa dibedakan, jadi diperlakukan sebagai potensi pencurian: revoke
+	// seluruh chain, paksa login ulang.
+	if existing.RevokedAt != nil {
+		if err := u.refreshTokens.RevokeFamily(ctx, existing.FamilyID); err != nil {
+			return nil, fmt.Errorf("revoking compromised token family: %w", err)
+		}
+		return nil, errs.ErrUnauthorized
+	}
+	if existing.ExpiresAt.Before(time.Now()) {
 		return nil, errs.ErrTokenExpired
 	}
 
-	user, err := u.users.GetByID(ctx, session.UserID)
+	user, err := u.users.GetByID(ctx, existing.UserID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			return nil, errs.ErrUnauthorized
 		}
-		return nil, fmt.Errorf("looking up session user: %w", err)
+		return nil, fmt.Errorf("looking up refresh token user: %w", err)
 	}
 
-	return user, nil
+	var tokens *AuthTokens
+	err = u.uow.WithTransaction(ctx, func(repos AuthRepositories) error {
+		accessToken, accessExpiresAt, err := u.accessTokens.Generate(user.ID)
+		if err != nil {
+			return fmt.Errorf("generating access token: %w", err)
+		}
+		rawRefresh, err := u.refreshTokenGen.Generate()
+		if err != nil {
+			return fmt.Errorf("generating refresh token: %w", err)
+		}
+		refreshExpiresAt := time.Now().Add(u.refreshTokenTTL)
+
+		// Insert dulu baris baru, baru rotate baris lama menunjuk ke
+		// baris baru ini — urutan ini penting karena replaced_by_id
+		// adalah FK ke refresh_tokens(id).
+		newToken, err := repos.RefreshToken.Create(ctx, &entity.RefreshToken{
+			UserID: user.ID, FamilyID: existing.FamilyID,
+			TokenHash: u.refreshTokenGen.Hash(rawRefresh),
+			ExpiresAt: refreshExpiresAt, IPAddress: input.IPAddress, UserAgent: input.UserAgent,
+		})
+		if err != nil {
+			return fmt.Errorf("creating rotated refresh token: %w", err)
+		}
+
+		if err := repos.RefreshToken.Rotate(ctx, existing.ID, newToken.ID); err != nil {
+			// errs.ErrConflict di sini berarti request Refresh lain
+			// (concurrent) sudah lebih dulu merotasi token ini — kita
+			// kalah race, seluruh transaksi (termasuk newToken di atas)
+			// di-rollback.
+			return fmt.Errorf("rotating refresh token: %w", err)
+		}
+
+		tokens = &AuthTokens{
+			User: user, AccessToken: accessToken, AccessTokenExpiresAt: accessExpiresAt,
+			RefreshToken: rawRefresh, RefreshTokenExpiresAt: refreshExpiresAt,
+		}
+		return nil
+	})
+	if err != nil {
+		if errors.Is(err, errs.ErrConflict) {
+			return nil, errs.ErrUnauthorized
+		}
+		return nil, fmt.Errorf("refreshing session: %w", err)
+	}
+	return tokens, nil
+}
+
+func (u *authUsecase) Logout(ctx context.Context, refreshToken string) error {
+	row, err := u.refreshTokens.GetByTokenHash(ctx, u.refreshTokenGen.Hash(refreshToken))
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return nil // idempotent
+		}
+		return fmt.Errorf("looking up refresh token: %w", err)
+	}
+	if row.RevokedAt != nil {
+		return nil
+	}
+	if err := u.refreshTokens.Revoke(ctx, row.ID); err != nil {
+		return fmt.Errorf("revoking refresh token: %w", err)
+	}
+	return nil
 }
