@@ -7,6 +7,7 @@ package mocks
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	mock "github.com/stretchr/testify/mock"
@@ -103,6 +104,137 @@ func (_c *MockActivityRepository_Create_Call) Return(activity1 *entity.Activity,
 }
 
 func (_c *MockActivityRepository_Create_Call) RunAndReturn(run func(ctx context.Context, activity *entity.Activity) (*entity.Activity, error)) *MockActivityRepository_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Delete provides a mock function for the type MockActivityRepository
+func (_mock *MockActivityRepository) Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+	ret := _mock.Called(ctx, id, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Delete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r0 = returnFunc(ctx, id, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockActivityRepository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type MockActivityRepository_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+//   - userID uuid.UUID
+func (_e *MockActivityRepository_Expecter) Delete(ctx any, id any, userID any) *MockActivityRepository_Delete_Call {
+	return &MockActivityRepository_Delete_Call{Call: _e.mock.On("Delete", ctx, id, userID)}
+}
+
+func (_c *MockActivityRepository_Delete_Call) Run(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID)) *MockActivityRepository_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 uuid.UUID
+		if args[2] != nil {
+			arg2 = args[2].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockActivityRepository_Delete_Call) Return(err error) *MockActivityRepository_Delete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockActivityRepository_Delete_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID) error) *MockActivityRepository_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Update provides a mock function for the type MockActivityRepository
+func (_mock *MockActivityRepository) Update(ctx context.Context, activity *entity.Activity) (*entity.Activity, error) {
+	ret := _mock.Called(ctx, activity)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 *entity.Activity
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.Activity) (*entity.Activity, error)); ok {
+		return returnFunc(ctx, activity)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.Activity) *entity.Activity); ok {
+		r0 = returnFunc(ctx, activity)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Activity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *entity.Activity) error); ok {
+		r1 = returnFunc(ctx, activity)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockActivityRepository_Update_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Update'
+type MockActivityRepository_Update_Call struct {
+	*mock.Call
+}
+
+// Update is a helper method to define mock.On call
+//   - ctx context.Context
+//   - activity *entity.Activity
+func (_e *MockActivityRepository_Expecter) Update(ctx any, activity any) *MockActivityRepository_Update_Call {
+	return &MockActivityRepository_Update_Call{Call: _e.mock.On("Update", ctx, activity)}
+}
+
+func (_c *MockActivityRepository_Update_Call) Run(run func(ctx context.Context, activity *entity.Activity)) *MockActivityRepository_Update_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *entity.Activity
+		if args[1] != nil {
+			arg1 = args[1].(*entity.Activity)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockActivityRepository_Update_Call) Return(activity1 *entity.Activity, err error) *MockActivityRepository_Update_Call {
+	_c.Call.Return(activity1, err)
+	return _c
+}
+
+func (_c *MockActivityRepository_Update_Call) RunAndReturn(run func(ctx context.Context, activity *entity.Activity) (*entity.Activity, error)) *MockActivityRepository_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

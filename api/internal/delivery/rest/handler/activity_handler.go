@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
 	"github.com/ngodingvareng/memoria/internal/errs"
@@ -73,4 +74,93 @@ func (h *ActivityHandler) CreateActivity(c fiber.Ctx) error {
 		Data:    dto.NewActivityResponse(response),
 	})
 
+}
+
+// UpdateActivity godoc
+// @Summary      Update an activity
+// @Description  Full-representation update of an activity owned by the authenticated user
+// @Tags         activities
+// @Accept       json
+// @Produce      json
+// @Param        id      path string                     true "Activity ID"
+// @Param        request body dto.UpdateActivityRequest true "Update activity request"
+// @Success      200 {object} dto.WebResponse[dto.ActivityResponse]
+// @Failure      400 {object} dto.WebResponse[any]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Failure      500 {object} dto.WebResponse[any]
+// @Router       /activities/{id} [put]
+func (h *ActivityHandler) UpdateActivity(c fiber.Ctx) error {
+	activityID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	var req dto.UpdateActivityRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	response, err := h.usecase.UpdateActivity(c, usecase.UpdateActivityInput{
+		ID:                         activityID,
+		UserID:                     userID,
+		Name:                       req.Name,
+		Description:                req.Description,
+		ColorHex:                   req.ColorHex,
+		ConfirmationTimeoutMinutes: req.ConfirmationTimeoutMinutes,
+	})
+	if err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "activity updated",
+		"activity_id", response.ID,
+		"user_id", response.UserID,
+	)
+
+	return c.JSON(dto.WebResponse[dto.ActivityResponse]{
+		Code:    fiber.StatusOK,
+		Message: "activity updated",
+		Data:    dto.NewActivityResponse(response),
+	})
+}
+
+// DeleteActivity godoc
+// @Summary      Delete an activity
+// @Description  Soft-deletes an activity owned by the authenticated user
+// @Tags         activities
+// @Param        id path string true "Activity ID"
+// @Success      204
+// @Failure      400 {object} dto.WebResponse[any]
+// @Failure      500 {object} dto.WebResponse[any]
+// @Router       /activities/{id} [delete]
+func (h *ActivityHandler) DeleteActivity(c fiber.Ctx) error {
+	activityID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	if err := h.usecase.DeleteActivity(c, activityID, userID); err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "activity deleted",
+		"activity_id", activityID,
+		"user_id", userID,
+	)
+
+	return c.SendStatus(fiber.StatusNoContent)
 }

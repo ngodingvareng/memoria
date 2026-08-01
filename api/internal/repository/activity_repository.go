@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/db"
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 )
 
@@ -31,6 +33,47 @@ func (r *activityRepository) Create(ctx context.Context, activity *entity.Activi
 		return nil, fmt.Errorf("insert activity: %w", err)
 	}
 	return toEntityActivity(row), nil
+}
+
+// Update implements [usecase.ActivityRepository].
+func (r *activityRepository) Update(ctx context.Context, activity *entity.Activity) (*entity.Activity, error) {
+	row, err := r.q.UpdateActivity(ctx, toUpdateActivityParams(activity))
+	if err != nil {
+		// Same pattern as userRepository.GetByEmail: UpdateActivity's own
+		// WHERE (id = ? AND user_id = ? AND deleted_at IS NULL) means
+		// pgx.ErrNoRows covers "doesn't exist", "belongs to someone
+		// else", and "already soft-deleted" all at once — from here
+		// they're indistinguishable, and indistinguishable is exactly
+		// what we want to expose as 404 rather than leaking which case
+		// it was.
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("update activity: %w", err)
+	}
+	return toEntityActivity(row), nil
+}
+
+// Delete implements [usecase.ActivityRepository]. Soft delete only — sets
+// deleted_at rather than removing the row, same recovery-grace-period
+// reasoning as SoftDeleteUser (see SCHEMA_REVIEW.md #9 for why a hard
+// delete here would also orphan any activity_images/activity_captures
+// still on disk).
+//
+// SoftDeleteActivity is a sqlc :exec query (no rows-affected count), so
+// — same as ActivityImageRepository.Delete, see its test
+// TestActivityImageRepository_Delete_WrongActivityID_NoOp — a WHERE
+// clause matching zero rows is a silent no-op here, not errs.ErrNotFound.
+// If callers need a real 404 on a missing/foreign activity, look it up
+// via GetActivityByID first.
+func (r *activityRepository) Delete(ctx context.Context, id, userID uuid.UUID) error {
+	if err := r.q.SoftDeleteActivity(ctx, db.SoftDeleteActivityParams{
+		ID:     id,
+		UserID: userID,
+	}); err != nil {
+		return fmt.Errorf("soft delete activity: %w", err)
+	}
+	return nil
 }
 
 // WithTransaction implements [usecase.ActivityRepository].

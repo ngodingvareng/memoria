@@ -30,3 +30,17 @@ func toCreateActivityParams(a *entity.Activity) db.CreateActivityParams {
 		ConfirmationTimeoutMinutes: ptrToPgInt4(a.ConfirmationTimeoutMinutes),
 	}
 }
+
+// toUpdateActivityParams deliberately has no IsFixedSchedule field to
+// set — UpdateActivityParams doesn't carry one either, since that flag
+// has its own dedicated query (SetActivityFixedSchedule).
+func toUpdateActivityParams(a *entity.Activity) db.UpdateActivityParams {
+	return db.UpdateActivityParams{
+		ID:                         a.ID,
+		UserID:                     a.UserID,
+		Name:                       a.Name,
+		Description:                ptrToPgText(a.Description),
+		ColorHex:                   ptrToPgText(a.ColorHex),
+		ConfirmationTimeoutMinutes: ptrToPgInt4(a.ConfirmationTimeoutMinutes),
+	}
+}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	"github.com/ngodingvareng/memoria/internal/usecase/mocks"
 	"github.com/stretchr/testify/assert"
@@ -149,4 +150,112 @@ func TestActivityUsecase_CreateActivity_ExplicitConfirmationTimeout(t *testing.T
 	if assert.NotNil(t, captured.ConfirmationTimeoutMinutes) {
 		assert.EqualValues(t, 60, *captured.ConfirmationTimeoutMinutes)
 	}
+}
+
+// --- UpdateActivity ---
+
+func TestActivityUsecase_UpdateActivity_Success(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	activityID := uuid.New()
+	userID := uuid.New()
+	expected := &entity.Activity{ID: activityID, UserID: userID, Name: "Olahraga sore"}
+
+	expectPassthroughTransaction(repo)
+	repo.EXPECT().
+		Update(mock.Anything, mock.MatchedBy(func(a *entity.Activity) bool {
+			return a.ID == activityID && a.UserID == userID && a.Name == "Olahraga sore"
+		})).
+		Return(expected, nil)
+
+	result, err := uc.UpdateActivity(context.Background(), usecase.UpdateActivityInput{
+		ID:     activityID,
+		UserID: userID,
+		Name:   "Olahraga sore",
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+}
+
+func TestActivityUsecase_UpdateActivity_NotFound(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	expectPassthroughTransaction(repo)
+	repo.EXPECT().
+		Update(mock.Anything, mock.Anything).
+		Return(nil, errs.ErrNotFound)
+
+	result, err := uc.UpdateActivity(context.Background(), usecase.UpdateActivityInput{
+		ID:     uuid.New(),
+		UserID: uuid.New(),
+		Name:   "Test",
+	})
+
+	assert.Nil(t, result)
+	assert.ErrorIs(t, err, errs.ErrNotFound)
+}
+
+func TestActivityUsecase_UpdateActivity_DefaultsAppliedLikeCreate(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	var captured *entity.Activity
+
+	expectPassthroughTransaction(repo)
+	repo.EXPECT().
+		Update(mock.Anything, mock.Anything).
+		Run(func(ctx context.Context, activity *entity.Activity) {
+			captured = activity
+		}).
+		Return(&entity.Activity{}, nil)
+
+	_, err := uc.UpdateActivity(context.Background(), usecase.UpdateActivityInput{
+		ID:     uuid.New(),
+		UserID: uuid.New(),
+		Name:   "Test",
+		// ColorHex and ConfirmationTimeoutMinutes intentionally omitted
+		// (nil) — same defaulting behavior as CreateActivity.
+	})
+
+	assert.NoError(t, err)
+	if assert.NotNil(t, captured.ConfirmationTimeoutMinutes) {
+		assert.EqualValues(t, 1440, *captured.ConfirmationTimeoutMinutes)
+	}
+	if assert.NotNil(t, captured.ColorHex) {
+		assert.Equal(t, "#374151", *captured.ColorHex)
+	}
+}
+
+// --- DeleteActivity ---
+
+func TestActivityUsecase_DeleteActivity_Success(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	activityID := uuid.New()
+	userID := uuid.New()
+
+	expectPassthroughTransaction(repo)
+	repo.EXPECT().Delete(mock.Anything, activityID, userID).Return(nil)
+
+	err := uc.DeleteActivity(context.Background(), activityID, userID)
+
+	assert.NoError(t, err)
+}
+
+func TestActivityUsecase_DeleteActivity_RepositoryError(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	wantErr := errors.New("db exploded")
+
+	expectPassthroughTransaction(repo)
+	repo.EXPECT().Delete(mock.Anything, mock.Anything, mock.Anything).Return(wantErr)
+
+	err := uc.DeleteActivity(context.Background(), uuid.New(), uuid.New())
+
+	assert.ErrorIs(t, err, wantErr)
 }

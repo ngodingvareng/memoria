@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/go-openapi/testify/v2/require"
 	"github.com/golang-migrate/migrate/v4"
@@ -14,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/repository"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	"github.com/testcontainers/testcontainers-go"
@@ -118,6 +120,98 @@ func TestActivityRepository_WithTransaction_RollsBackOnError(t *testing.T) {
 	).Scan(&count)
 	require.NoError(t, err)
 	require.Equal(t, 0, count, "insert should have been rolled back, not committed")
+}
+
+func TestActivityRepository_Update_Success(t *testing.T) {
+	pool := setupTestDB(t)
+	userID := seedTestUser(t, pool)
+	repo := repository.NewActivityRepository(pool)
+
+	created, err := repo.Create(context.Background(), &entity.Activity{
+		UserID: userID, Name: "Original name", IsFixedSchedule: true,
+	})
+	require.NoError(t, err)
+
+	newColor := "#123456"
+	updated, err := repo.Update(context.Background(), &entity.Activity{
+		ID: created.ID, UserID: userID, Name: "Updated name", ColorHex: &newColor,
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, "Updated name", updated.Name)
+	require.Equal(t, "#123456", *updated.ColorHex)
+	// is_fixed_schedule must be untouched by Update — it's not part of
+	// UpdateActivityParams.
+	require.True(t, updated.IsFixedSchedule)
+}
+
+func TestActivityRepository_Update_WrongUserID_NotFound(t *testing.T) {
+	// UserID in the WHERE clause doubles as the ownership check — a
+	// mismatched userID must behave identically to a nonexistent id.
+	pool := setupTestDB(t)
+	userID := seedTestUser(t, pool)
+	otherUserID := seedTestUser(t, pool)
+	repo := repository.NewActivityRepository(pool)
+
+	created, err := repo.Create(context.Background(), &entity.Activity{
+		UserID: userID, Name: "Mine", IsFixedSchedule: true,
+	})
+	require.NoError(t, err)
+
+	_, err = repo.Update(context.Background(), &entity.Activity{
+		ID: created.ID, UserID: otherUserID, Name: "Hijacked",
+	})
+
+	require.ErrorIs(t, err, errs.ErrNotFound)
+}
+
+func TestActivityRepository_Delete_Success(t *testing.T) {
+	pool := setupTestDB(t)
+	userID := seedTestUser(t, pool)
+	repo := repository.NewActivityRepository(pool)
+
+	created, err := repo.Create(context.Background(), &entity.Activity{
+		UserID: userID, Name: "To delete", IsFixedSchedule: true,
+	})
+	require.NoError(t, err)
+
+	err = repo.Delete(context.Background(), created.ID, userID)
+	require.NoError(t, err)
+
+	var deletedAt *time.Time
+	err = pool.QueryRow(context.Background(),
+		`SELECT deleted_at FROM activities WHERE id = $1`, created.ID,
+	).Scan(&deletedAt)
+	require.NoError(t, err)
+	require.NotNil(t, deletedAt, "deleted_at should be set after Delete")
+}
+
+func TestActivityRepository_Delete_WrongUserID_NoOp(t *testing.T) {
+	// Same silent-no-op contract as ActivityImageRepository.Delete: the
+	// underlying query is :exec, so a non-matching WHERE (wrong owner
+	// here) doesn't surface as an error — the activity must still exist
+	// and be unaffected afterwards.
+	pool := setupTestDB(t)
+	userID := seedTestUser(t, pool)
+	otherUserID := seedTestUser(t, pool)
+	repo := repository.NewActivityRepository(pool)
+
+	created, err := repo.Create(context.Background(), &entity.Activity{
+		UserID: userID, Name: "Not yours", IsFixedSchedule: true,
+	})
+	require.NoError(t, err)
+
+	err = repo.Delete(context.Background(), created.ID, otherUserID)
+	require.NoError(t, err)
+
+	var name string
+	var deletedAt *time.Time
+	err = pool.QueryRow(context.Background(),
+		`SELECT name, deleted_at FROM activities WHERE id = $1`, created.ID,
+	).Scan(&name, &deletedAt)
+	require.NoError(t, err)
+	require.Equal(t, "Not yours", name)
+	require.Nil(t, deletedAt, "delete scoped to the wrong user must not soft-delete the row")
 }
 
 func TestActivityRepository_WithTransaction_GuardsAgainstNestedTx(t *testing.T) {

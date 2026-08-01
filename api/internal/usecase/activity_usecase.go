@@ -24,6 +24,18 @@ const defaultColorHex string = "#374151"
 
 type ActivityRepository interface {
 	Create(ctx context.Context, activity *entity.Activity) (*entity.Activity, error)
+	// Update overwrites name/description/color_hex/confirmation_timeout_minutes
+	// for activity.ID, scoped to activity.UserID (the WHERE ... AND user_id = ?
+	// in UpdateActivity doubles as the ownership check — same pattern as
+	// GetActivityByID). Returns errs.ErrNotFound if no row matches (wrong
+	// owner, wrong id, or already soft-deleted).
+	Update(ctx context.Context, activity *entity.Activity) (*entity.Activity, error)
+	// Delete soft-deletes (sets deleted_at), scoped to userID as the
+	// ownership check. Mirrors ActivityImageRepository.Delete: the
+	// underlying sqlc query is :exec, so a WHERE clause matching zero
+	// rows (wrong owner/id, or already deleted) is a silent no-op here
+	// rather than surfacing errs.ErrNotFound.
+	Delete(ctx context.Context, id, userID uuid.UUID) error
 	WithTransaction(ctx context.Context, fn func(ActivityRepository) error) error
 }
 
@@ -36,8 +48,24 @@ type CreateActivityInput struct {
 	ConfirmationTimeoutMinutes *int32
 }
 
+// UpdateActivityInput deliberately has no IsFixedSchedule — flipping that
+// flag is its own endpoint (SetActivityFixedSchedule query already
+// exists, usecase/handler not implemented yet; see TODO.md) since
+// toggling it has side effects on activity_schedules that a plain field
+// update shouldn't trigger implicitly.
+type UpdateActivityInput struct {
+	ID                         uuid.UUID
+	UserID                     uuid.UUID
+	Name                       string
+	Description                *string
+	ColorHex                   *string
+	ConfirmationTimeoutMinutes *int32
+}
+
 type ActivityUsecase interface {
 	CreateActivity(ctx context.Context, input CreateActivityInput) (*entity.Activity, error)
+	UpdateActivity(ctx context.Context, input UpdateActivityInput) (*entity.Activity, error)
+	DeleteActivity(ctx context.Context, id, userID uuid.UUID) error
 }
 
 type activityUsecase struct {
@@ -80,4 +108,53 @@ func (u *activityUsecase) CreateActivity(ctx context.Context, input CreateActivi
 	}
 
 	return created, nil
+}
+
+// UpdateActivity implements [ActivityUsecase]. Same defaulting rules as
+// CreateActivity: a nil ColorHex/ConfirmationTimeoutMinutes falls back
+// to the same defaults rather than being sent through as NULL — this is
+// a full-representation update (PUT semantics), not a partial patch, so
+// every call is expected to supply the complete desired state.
+func (u *activityUsecase) UpdateActivity(ctx context.Context, input UpdateActivityInput) (*entity.Activity, error) {
+	timeout := defaultConfirmationTimeoutMinutes
+	if input.ConfirmationTimeoutMinutes != nil {
+		timeout = *input.ConfirmationTimeoutMinutes
+	}
+
+	colorHex := defaultColorHex
+	if input.ColorHex != nil {
+		colorHex = *input.ColorHex
+	}
+
+	activity := &entity.Activity{
+		ID:                         input.ID,
+		UserID:                     input.UserID,
+		Name:                       input.Name,
+		Description:                input.Description,
+		ColorHex:                   &colorHex,
+		ConfirmationTimeoutMinutes: &timeout,
+	}
+
+	var updated *entity.Activity
+	err := u.repo.WithTransaction(ctx, func(tx ActivityRepository) error {
+		var txErr error
+		updated, txErr = tx.Update(ctx, activity)
+		return txErr
+	})
+	if err != nil {
+		return nil, fmt.Errorf("updating activity: %w", err)
+	}
+
+	return updated, nil
+}
+
+// DeleteActivity implements [ActivityUsecase].
+func (u *activityUsecase) DeleteActivity(ctx context.Context, id, userID uuid.UUID) error {
+	err := u.repo.WithTransaction(ctx, func(tx ActivityRepository) error {
+		return tx.Delete(ctx, id, userID)
+	})
+	if err != nil {
+		return fmt.Errorf("deleting activity: %w", err)
+	}
+	return nil
 }
