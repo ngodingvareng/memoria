@@ -8,6 +8,50 @@
     "basePath": "/api/v1",
     "paths": {
         "/activities": {
+            "get": {
+                "description": "Search and filter the authenticated user's activities, with pagination",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Search / list activities",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by name (partial, case-insensitive)",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by fixed-schedule flag",
+                        "name": "is_fixed_schedule",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 20, max 100)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_SearchActivitiesResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new activity for the authenticated user",
                 "consumes": [
@@ -37,6 +81,131 @@
                         "schema": {
                             "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ActivityResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/activities/{id}": {
+            "get": {
+                "description": "Get a single activity belonging to the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Get an activity by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ActivityResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Full-representation update of an activity owned by the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Update an activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update activity request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateActivityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ActivityResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Soft-deletes an activity owned by the authenticated user",
+                "tags": [
+                    "activities"
+                ],
+                "summary": "Delete an activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Activity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -157,6 +326,130 @@
                     }
                 }
             }
+        },
+        "/auth/login": {
+            "post": {
+                "description": "Returns an access token in the response body and sets\nthe refresh token as an httpOnly cookie scoped to /auth.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Log in with email and password",
+                "parameters": [
+                    {
+                        "description": "Login request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_LoginResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Log out of the current session",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "description": "Reads the refresh token from the httpOnly cookie, rotates\nit, and returns a new access token plus a new refresh\ncookie. Reusing an already-rotated refresh token revokes\nits entire token family and forces a fresh login.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Exchange the refresh token cookie for a new access/refresh token pair",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_LoginResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register a new account",
+                "parameters": [
+                    {
+                        "description": "Register request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -241,6 +534,152 @@
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "budi@example.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "correct horse battery staple"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "description": "AccessToken is meant to be held in memory on the frontend (not\nlocalStorage) and sent via the Authorization: Bearer header.",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIs..."
+                },
+                "expires_in": {
+                    "description": "ExpiresIn is in seconds, so the frontend can schedule a silent\nrefresh shortly before the access token actually expires.",
+                    "type": "integer",
+                    "example": 900
+                },
+                "user": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UserResponse"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 42
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "budi@example.com"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "example": "Budi Santoso"
+                },
+                "password": {
+                    "description": "scrypt hashes the whole password with no truncation. max=256 is\njust a generous sane upper bound (prevents someone posting a\nmulti-KB \"password\" that'd waste CPU/memory on the scrypt KDF\nfor no real security benefit).",
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 8,
+                    "example": "correct horse battery staple"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SearchActivitiesResponse": {
+            "type": "object",
+            "properties": {
+                "activities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ActivityResponse"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateActivityRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "color_hex": {
+                    "type": "string",
+                    "example": "#FF5733"
+                },
+                "confirmation_timeout_minutes": {
+                    "type": "integer",
+                    "example": 1440
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "example": "Push-up dan lari tiap pagi kerja"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "example": "Olahraga pagi"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "budi@example.com"
+                },
+                "email_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Budi Santoso"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any": {
             "type": "object",
             "properties": {
@@ -302,6 +741,57 @@
                 },
                 "data": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ActivityResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_LoginResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.LoginResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_SearchActivitiesResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SearchActivitiesResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_UserResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UserResponse"
                 },
                 "errors": {},
                 "message": {

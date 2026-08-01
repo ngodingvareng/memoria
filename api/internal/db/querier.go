@@ -18,6 +18,9 @@ type Querier interface {
 	// a moment (content/color). "WHERE status = 'awaiting'" avoids a race
 	// against the timeout job flipping the same row at the same time.
 	ConfirmActivityCapture(ctx context.Context, arg ConfirmActivityCaptureParams) (ActivityCapture, error)
+	// Total matching row count for SearchActivities, ignoring
+	// page_limit/page_offset — used to compute pagination metadata.
+	CountSearchActivities(ctx context.Context, arg CountSearchActivitiesParams) (int64, error)
 	CreateActivity(ctx context.Context, arg CreateActivityParams) (Activity, error)
 	CreateActivitySchedule(ctx context.Context, arg CreateActivityScheduleParams) (ActivitySchedule, error)
 	// Archive a schedule's values before it's changed or retired.
@@ -120,6 +123,12 @@ type Querier interface {
 	// menang; yang kalah affected rows-nya 0 dan seluruh transaksinya
 	// di-rollback usecase.
 	RotateRefreshToken(ctx context.Context, arg RotateRefreshTokenParams) (int64, error)
+	// Search & filter activities for the authenticated user's activity list.
+	// All filters are optional (NULL = "don't filter on this"):
+	//   - name: case-insensitive partial match (ILIKE) against activities.name
+	//   - is_fixed_schedule: exact boolean match
+	// Ordered newest-first; paginated via page_limit / page_offset.
+	SearchActivities(ctx context.Context, arg SearchActivitiesParams) ([]Activity, error)
 	// Toggling this does NOT itself touch activity_schedules — if flipping
 	// to false, the app should separately retire/archive existing schedules
 	// (see activity_schedules.sql) so the generator job actually stops.

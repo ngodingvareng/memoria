@@ -22,6 +22,20 @@ const defaultConfirmationTimeoutMinutes int32 = 1440
 // source so it matches  seamlessly with the frontend.
 const defaultColorHex string = "#374151"
 
+const (
+	defaultPage     int32 = 1
+	defaultPageSize int32 = 20
+	maxPageSize     int32 = 100
+)
+
+type SearchActivitiesParams struct {
+	UserID          uuid.UUID
+	Name            *string
+	IsFixedSchedule *bool
+	Limit           int32
+	Offset          int32
+}
+
 type ActivityRepository interface {
 	Create(ctx context.Context, activity *entity.Activity) (*entity.Activity, error)
 	// Update overwrites name/description/color_hex/confirmation_timeout_minutes
@@ -36,6 +50,8 @@ type ActivityRepository interface {
 	// rows (wrong owner/id, or already deleted) is a silent no-op here
 	// rather than surfacing errs.ErrNotFound.
 	SoftDelete(ctx context.Context, id, userID uuid.UUID) error
+	Search(ctx context.Context, params SearchActivitiesParams) ([]*entity.Activity, int64, error)
+	GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error)
 	WithTransaction(ctx context.Context, fn func(ActivityRepository) error) error
 }
 
@@ -62,10 +78,27 @@ type UpdateActivityInput struct {
 	ConfirmationTimeoutMinutes *int32
 }
 
+type SearchActivitiesInput struct {
+	UserID          uuid.UUID
+	Name            *string
+	IsFixedSchedule *bool
+	Page            int32
+	PageSize        int32
+}
+
+type SearchActivitiesResult struct {
+	Activities []*entity.Activity
+	Total      int64
+	Page       int32
+	PageSize   int32
+}
+
 type ActivityUsecase interface {
 	CreateActivity(ctx context.Context, input CreateActivityInput) (*entity.Activity, error)
 	UpdateActivity(ctx context.Context, input UpdateActivityInput) (*entity.Activity, error)
 	SoftDeleteActivity(ctx context.Context, id, userID uuid.UUID) error
+	GetActivity(ctx context.Context, userID, activityID uuid.UUID) (*entity.Activity, error)
+	SearchActivities(ctx context.Context, input SearchActivitiesInput) (*SearchActivitiesResult, error)
 }
 
 type activityUsecase struct {
@@ -157,4 +190,48 @@ func (u *activityUsecase) SoftDeleteActivity(ctx context.Context, id, userID uui
 		return fmt.Errorf("soft-deleting activity: %w", err)
 	}
 	return nil
+}
+
+// GetActivity implements [ActivityUsecase]. Ownership is enforced at the
+// repository/query level (activities.user_id in the WHERE clause), so a
+// mismatched userID simply surfaces as errs.ErrNotFound.
+func (u *activityUsecase) GetActivity(ctx context.Context, userID, activityID uuid.UUID) (*entity.Activity, error) {
+	activity, err := u.repo.GetByID(ctx, activityID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("getting activity: %w", err)
+	}
+	return activity, nil
+}
+
+// SearchActivities implements [ActivityUsecase].
+func (u *activityUsecase) SearchActivities(ctx context.Context, input SearchActivitiesInput) (*SearchActivitiesResult, error) {
+	page := input.Page
+	if page < 1 {
+		page = defaultPage
+	}
+	pageSize := input.PageSize
+	if pageSize < 1 {
+		pageSize = defaultPageSize
+	}
+	if pageSize > maxPageSize {
+		pageSize = maxPageSize
+	}
+
+	activities, total, err := u.repo.Search(ctx, SearchActivitiesParams{
+		UserID:          input.UserID,
+		Name:            input.Name,
+		IsFixedSchedule: input.IsFixedSchedule,
+		Limit:           pageSize,
+		Offset:          (page - 1) * pageSize,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("searching activities: %w", err)
+	}
+
+	return &SearchActivitiesResult{
+		Activities: activities,
+		Total:      total,
+		Page:       page,
+		PageSize:   pageSize,
+	}, nil
 }

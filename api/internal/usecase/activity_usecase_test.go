@@ -259,3 +259,158 @@ func TestActivityUsecase_SoftDeleteActivity_RepositoryError(t *testing.T) {
 
 	assert.ErrorIs(t, err, wantErr)
 }
+
+// --- GetActivity ---
+
+func TestActivityUsecase_GetActivity_Success(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	userID := uuid.New()
+	activityID := uuid.New()
+	expected := &entity.Activity{ID: activityID, UserID: userID, Name: "Morning run"}
+
+	repo.EXPECT().GetByID(mock.Anything, activityID, userID).Return(expected, nil)
+
+	result, err := uc.GetActivity(context.Background(), userID, activityID)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
+}
+
+func TestActivityUsecase_GetActivity_NotFound(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	userID, activityID := uuid.New(), uuid.New()
+	repo.EXPECT().GetByID(mock.Anything, activityID, userID).Return(nil, errs.ErrNotFound)
+
+	result, err := uc.GetActivity(context.Background(), userID, activityID)
+
+	assert.Nil(t, result)
+	assert.ErrorIs(t, err, errs.ErrNotFound)
+}
+
+// --- SearchActivities ---
+
+func TestActivityUsecase_SearchActivities_DefaultsPageAndPageSize(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	var captured usecase.SearchActivitiesParams
+	repo.EXPECT().
+		Search(mock.Anything, mock.Anything).
+		Run(func(ctx context.Context, params usecase.SearchActivitiesParams) {
+			captured = params
+		}).
+		Return([]*entity.Activity{}, int64(0), nil)
+
+	result, err := uc.SearchActivities(context.Background(), usecase.SearchActivitiesInput{
+		UserID: uuid.New(),
+		// Page and PageSize intentionally omitted (zero value) to verify
+		// the usecase applies its own defaults (page=1, page_size=20).
+	})
+
+	assert.NoError(t, err)
+	assert.EqualValues(t, 1, result.Page)
+	assert.EqualValues(t, 20, result.PageSize)
+	assert.EqualValues(t, 0, captured.Offset)
+	assert.EqualValues(t, 20, captured.Limit)
+}
+
+func TestActivityUsecase_SearchActivities_PageSizeCappedAtMax(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	var captured usecase.SearchActivitiesParams
+	repo.EXPECT().
+		Search(mock.Anything, mock.Anything).
+		Run(func(ctx context.Context, params usecase.SearchActivitiesParams) {
+			captured = params
+		}).
+		Return([]*entity.Activity{}, int64(0), nil)
+
+	result, err := uc.SearchActivities(context.Background(), usecase.SearchActivitiesInput{
+		UserID:   uuid.New(),
+		PageSize: 500, // way above the 100 cap
+	})
+
+	assert.NoError(t, err)
+	assert.EqualValues(t, 100, result.PageSize)
+	assert.EqualValues(t, 100, captured.Limit)
+}
+
+func TestActivityUsecase_SearchActivities_ComputesOffsetFromPage(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	var captured usecase.SearchActivitiesParams
+	repo.EXPECT().
+		Search(mock.Anything, mock.Anything).
+		Run(func(ctx context.Context, params usecase.SearchActivitiesParams) {
+			captured = params
+		}).
+		Return([]*entity.Activity{}, int64(0), nil)
+
+	_, err := uc.SearchActivities(context.Background(), usecase.SearchActivitiesInput{
+		UserID:   uuid.New(),
+		Page:     3,
+		PageSize: 10,
+	})
+
+	assert.NoError(t, err)
+	assert.EqualValues(t, 20, captured.Offset) // (page-1) * pageSize = 2*10
+	assert.EqualValues(t, 10, captured.Limit)
+}
+
+func TestActivityUsecase_SearchActivities_PassesFiltersThrough(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	userID := uuid.New()
+	name := "run"
+	fixed := true
+
+	repo.EXPECT().
+		Search(mock.Anything, mock.MatchedBy(func(p usecase.SearchActivitiesParams) bool {
+			return p.UserID == userID &&
+				p.Name != nil && *p.Name == name &&
+				p.IsFixedSchedule != nil && *p.IsFixedSchedule == fixed
+		})).
+		Return([]*entity.Activity{}, int64(0), nil)
+
+	_, err := uc.SearchActivities(context.Background(), usecase.SearchActivitiesInput{
+		UserID:          userID,
+		Name:            &name,
+		IsFixedSchedule: &fixed,
+	})
+
+	assert.NoError(t, err)
+}
+
+func TestActivityUsecase_SearchActivities_RepositoryError(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	wantErr := errors.New("db exploded")
+	repo.EXPECT().Search(mock.Anything, mock.Anything).Return(nil, int64(0), wantErr)
+
+	result, err := uc.SearchActivities(context.Background(), usecase.SearchActivitiesInput{UserID: uuid.New()})
+
+	assert.Nil(t, result)
+	assert.ErrorIs(t, err, wantErr)
+}
+
+func TestActivityUsecase_SearchActivities_ReturnsTotalAndResults(t *testing.T) {
+	repo := mocks.NewMockActivityRepository(t)
+	uc := usecase.NewActivityUsecase(repo)
+
+	activities := []*entity.Activity{{ID: uuid.New(), Name: "A"}, {ID: uuid.New(), Name: "B"}}
+	repo.EXPECT().Search(mock.Anything, mock.Anything).Return(activities, int64(42), nil)
+
+	result, err := uc.SearchActivities(context.Background(), usecase.SearchActivitiesInput{UserID: uuid.New()})
+
+	assert.NoError(t, err)
+	assert.Len(t, result.Activities, 2)
+	assert.EqualValues(t, 42, result.Total)
+}

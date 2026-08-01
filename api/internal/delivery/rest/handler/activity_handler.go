@@ -164,3 +164,90 @@ func (h *ActivityHandler) DeleteActivity(c fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
+
+// GetActivity godoc
+// @Summary      Get an activity by ID
+// @Description  Get a single activity belonging to the authenticated user
+// @Tags         activities
+// @Produce      json
+// @Param        id path string true "Activity ID"
+// @Success      200 {object} dto.WebResponse[dto.ActivityResponse]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Router       /activities/{id} [get]
+func (h *ActivityHandler) GetActivity(c fiber.Ctx) error {
+	activityID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	activity, err := h.usecase.GetActivity(c, userID, activityID)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[dto.ActivityResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    dto.NewActivityResponse(activity),
+	})
+}
+
+// SearchActivities godoc
+// @Summary      Search / list activities
+// @Description  Search and filter the authenticated user's activities, with pagination
+// @Tags         activities
+// @Produce      json
+// @Param        name              query string false "Filter by name (partial, case-insensitive)"
+// @Param        is_fixed_schedule query bool   false "Filter by fixed-schedule flag"
+// @Param        page              query int    false "Page number (default 1)"
+// @Param        page_size         query int    false "Items per page (default 20, max 100)"
+// @Success      200 {object} dto.WebResponse[dto.SearchActivitiesResponse]
+// @Router       /activities [get]
+func (h *ActivityHandler) SearchActivities(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	var query dto.SearchActivitiesQuery
+	if err := c.Bind().Query(&query); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(query); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	result, err := h.usecase.SearchActivities(c, usecase.SearchActivitiesInput{
+		UserID:          userID,
+		Name:            query.Name,
+		IsFixedSchedule: query.IsFixedSchedule,
+		Page:            query.Page,
+		PageSize:        query.PageSize,
+	})
+	if err != nil {
+		return err
+	}
+
+	responses := make([]dto.ActivityResponse, len(result.Activities))
+	for i, a := range result.Activities {
+		responses[i] = dto.NewActivityResponse(a)
+	}
+
+	return c.JSON(dto.WebResponse[dto.SearchActivitiesResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data: dto.SearchActivitiesResponse{
+			Activities: responses,
+			Pagination: dto.PaginationResponse{
+				Page:     result.Page,
+				PageSize: result.PageSize,
+				Total:    result.Total,
+			},
+		},
+	})
+}

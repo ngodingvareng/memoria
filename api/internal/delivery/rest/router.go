@@ -36,6 +36,8 @@ func SetupRoutes(app *fiber.App, h Handlers) {
 	activities.Post("/", h.Activity.CreateActivity)
 	activities.Put("/:id", h.Activity.UpdateActivity)
 	activities.Delete("/:id", h.Activity.DeleteActivity)
+	activities.Get("/", h.Activity.SearchActivities)
+	activities.Get("/:id", h.Activity.GetActivity)
 
 	activities.Post("/:id/images", h.ActivityImage.UploadActivityImage)
 	activities.Get("/:id/images", h.ActivityImage.ListActivityImages)

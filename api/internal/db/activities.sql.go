@@ -12,6 +12,36 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countSearchActivities = `-- name: CountSearchActivities :one
+SELECT COUNT(*)
+FROM activities
+WHERE user_id = $1
+    AND deleted_at IS NULL
+    AND (
+        $2::text IS NULL
+        OR name ILIKE '%' || $2::text || '%'
+    )
+    AND (
+        $3::bool IS NULL
+        OR is_fixed_schedule = $3::bool
+    )
+`
+
+type CountSearchActivitiesParams struct {
+	UserID          uuid.UUID
+	Name            pgtype.Text
+	IsFixedSchedule pgtype.Bool
+}
+
+// Total matching row count for SearchActivities, ignoring
+// page_limit/page_offset — used to compute pagination metadata.
+func (q *Queries) CountSearchActivities(ctx context.Context, arg CountSearchActivitiesParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countSearchActivities, arg.UserID, arg.Name, arg.IsFixedSchedule)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createActivity = `-- name: CreateActivity :one
 INSERT INTO activities(
     user_id, name, description, is_fixed_schedule,
@@ -159,6 +189,75 @@ type RestoreActivityParams struct {
 func (q *Queries) RestoreActivity(ctx context.Context, arg RestoreActivityParams) error {
 	_, err := q.db.Exec(ctx, restoreActivity, arg.ID, arg.UserID)
 	return err
+}
+
+const searchActivities = `-- name: SearchActivities :many
+SELECT id, user_id, name, description, is_fixed_schedule, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+FROM activities
+WHERE user_id = $1
+    AND deleted_at IS NULL
+    AND (
+        $2::text IS NULL
+        OR name ILIKE '%' || $2::text || '%'
+    )
+    AND (
+        $3::bool IS NULL
+        OR is_fixed_schedule = $3::bool
+    )
+ORDER BY created_at DESC
+LIMIT $5
+OFFSET $4
+`
+
+type SearchActivitiesParams struct {
+	UserID          uuid.UUID
+	Name            pgtype.Text
+	IsFixedSchedule pgtype.Bool
+	PageOffset      int32
+	PageLimit       int32
+}
+
+// Search & filter activities for the authenticated user's activity list.
+// All filters are optional (NULL = "don't filter on this"):
+//   - name: case-insensitive partial match (ILIKE) against activities.name
+//   - is_fixed_schedule: exact boolean match
+//
+// Ordered newest-first; paginated via page_limit / page_offset.
+func (q *Queries) SearchActivities(ctx context.Context, arg SearchActivitiesParams) ([]Activity, error) {
+	rows, err := q.db.Query(ctx, searchActivities,
+		arg.UserID,
+		arg.Name,
+		arg.IsFixedSchedule,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Activity{}
+	for rows.Next() {
+		var i Activity
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.Description,
+			&i.IsFixedSchedule,
+			&i.ColorHex,
+			&i.ConfirmationTimeoutMinutes,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setActivityFixedSchedule = `-- name: SetActivityFixedSchedule :exec

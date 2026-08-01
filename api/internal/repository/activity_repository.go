@@ -76,6 +76,47 @@ func (r *activityRepository) SoftDelete(ctx context.Context, id, userID uuid.UUI
 	return nil
 }
 
+// GetByID implements [usecase.ActivityRepository].
+func (r *activityRepository) GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error) {
+	row, err := r.q.GetActivityByID(ctx, db.GetActivityByIDParams{ID: id, UserID: userID})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("get activity by id: %w", err)
+	}
+	return toEntityActivity(row), nil
+}
+
+// Search implements [usecase.ActivityRepository].
+func (r *activityRepository) Search(ctx context.Context, params usecase.SearchActivitiesParams) ([]*entity.Activity, int64, error) {
+	rows, err := r.q.SearchActivities(ctx, db.SearchActivitiesParams{
+		UserID:          params.UserID,
+		Name:            ptrToPgText(params.Name),
+		IsFixedSchedule: ptrToPgBool(params.IsFixedSchedule),
+		PageOffset:      params.Offset,
+		PageLimit:       params.Limit,
+	})
+	if err != nil {
+		return nil, 0, fmt.Errorf("search activities: %w", err)
+	}
+
+	total, err := r.q.CountSearchActivities(ctx, db.CountSearchActivitiesParams{
+		UserID:          params.UserID,
+		Name:            ptrToPgText(params.Name),
+		IsFixedSchedule: ptrToPgBool(params.IsFixedSchedule),
+	})
+	if err != nil {
+		return nil, 0, fmt.Errorf("count search activities: %w", err)
+	}
+
+	activities := make([]*entity.Activity, len(rows))
+	for i, row := range rows {
+		activities[i] = toEntityActivity(row)
+	}
+	return activities, total, nil
+}
+
 // WithTransaction implements [usecase.ActivityRepository].
 func (r *activityRepository) WithTransaction(ctx context.Context, fn func(usecase.ActivityRepository) error) error {
 	if r.pool == nil {

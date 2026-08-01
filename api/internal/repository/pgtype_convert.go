@@ -54,3 +54,17 @@ func ptrToPgTimestamptz(t *time.Time) pgtype.Timestamptz {
 	}
 	return pgtype.Timestamptz{Time: *t, Valid: true}
 }
+
+func pgBoolToPtr(b pgtype.Bool) *bool {
+	if !b.Valid {
+		return nil
+	}
+	return new(b.Bool)
+}
+
+func ptrToPgBool(b *bool) pgtype.Bool {
+	if b == nil {
+		return pgtype.Bool{}
+	}
+	return pgtype.Bool{Bool: *b, Valid: true}
+}

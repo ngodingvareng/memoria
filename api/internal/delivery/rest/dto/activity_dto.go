@@ -23,6 +23,13 @@ type UpdateActivityRequest struct {
 	ConfirmationTimeoutMinutes *int32  `json:"confirmation_timeout_minutes,omitempty" validate:"omitempty,gt=0" example:"1440"`
 }
 
+type SearchActivitiesQuery struct {
+	Name            *string `query:"name" validate:"omitempty,max=255"`
+	IsFixedSchedule *bool   `query:"is_fixed_schedule"`
+	Page            int32   `query:"page" validate:"omitempty,gt=0"`
+	PageSize        int32   `query:"page_size" validate:"omitempty,gt=0,lte=100"`
+}
+
 type ActivityResponse struct {
 	ID                         string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	UserID                     string  `json:"user_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
@@ -33,6 +40,17 @@ type ActivityResponse struct {
 	ConfirmationTimeoutMinutes *int32  `json:"confirmation_timeout_minutes,omitempty"`
 	CreatedAt                  string  `json:"created_at" example:"2026-07-20T10:00:00Z"`
 	UpdatedAt                  string  `json:"updated_at" example:"2026-07-20T10:00:00Z"`
+}
+
+type PaginationResponse struct {
+	Page     int32 `json:"page" example:"1"`
+	PageSize int32 `json:"page_size" example:"20"`
+	Total    int64 `json:"total" example:"42"`
+}
+
+type SearchActivitiesResponse struct {
+	Activities []ActivityResponse `json:"activities"`
+	Pagination PaginationResponse `json:"pagination"`
 }
 
 func NewActivityResponse(e *entity.Activity) ActivityResponse {
