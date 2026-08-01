@@ -40,6 +40,7 @@ Install both of the API and the WEB application.
 (cd api && cp .env.example .env)
 (cd api && go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest)
 (cd api && go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest)
+(cd api && go install github.com/swaggo/swag/cmd/swag@latest)
 (cd api && go install github.com/vektra/mockery/v3@v3.7.2)
 (cd api && go mod tidy)
 (cd web && bun install)
