@@ -17,3 +17,5 @@ packages:
       UserRepository:
       UserAccountRepository:
       RefreshTokenRepository:
+
+      ActivityAccessChecker:

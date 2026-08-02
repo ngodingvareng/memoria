@@ -17,6 +17,17 @@ type ActivityImageRepository interface {
 	Delete(ctx context.Context, activityID, imageID uuid.UUID) error
 }
 
+// ActivityAccessChecker is the minimal capability this usecase needs
+// from the activity domain: confirming an activity actually belongs to
+// the requesting user before letting them touch its images. Deliberately
+// separate from the full ActivityRepository interface in
+// activity_usecase.go — this usecase has no business with
+// Create/WithTransaction. activityRepository satisfies both interfaces
+// structurally without any extra wiring.
+type ActivityAccessChecker interface {
+	GetActivityByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error)
+}
+
 type Storage interface {
 	Put(ctx context.Context, key string, body io.Reader, size int64, contentType string) error
 	PresignGet(ctx context.Context, key string, expiresIn time.Duration) (string, error)
@@ -27,6 +38,7 @@ const presignedURLTTL = 15 * time.Minute
 
 type UploadActivityImageInput struct {
 	ActivityID  uuid.UUID
+	UserID      uuid.UUID
 	FileName    string // client-supplied, used only for its extension — see usecase, never used as the storage key directly
 	ContentType string
 	Size        int64
@@ -43,26 +55,27 @@ type ActivityImageWithURL struct {
 
 type ActivityImageUsecase interface {
 	UploadActivityImage(ctx context.Context, input UploadActivityImageInput) (*ActivityImageWithURL, error)
-	ListActivityImages(ctx context.Context, activityID uuid.UUID) ([]ActivityImageWithURL, error)
-	DeleteActivityImage(ctx context.Context, activityID, imageID uuid.UUID) error
+	ListActivityImages(ctx context.Context, activityID, userID uuid.UUID) ([]ActivityImageWithURL, error)
+	DeleteActivityImage(ctx context.Context, activityID, imageID, userID uuid.UUID) error
 }
 
 type activityImageUsecase struct {
-	repo    ActivityImageRepository
-	storage Storage
+	repo       ActivityImageRepository
+	storage    Storage
+	activities ActivityAccessChecker
 }
 
-func NewActivityImageUsecase(repo ActivityImageRepository, storage Storage) ActivityImageUsecase {
-	return &activityImageUsecase{repo: repo, storage: storage}
+func NewActivityImageUsecase(repo ActivityImageRepository, storage Storage, activities ActivityAccessChecker) ActivityImageUsecase {
+	return &activityImageUsecase{repo: repo, storage: storage, activities: activities}
 }
 
 // UploadActivityImage implements [ActivityImageUsecase].
 func (u *activityImageUsecase) UploadActivityImage(ctx context.Context, input UploadActivityImageInput) (*ActivityImageWithURL, error) {
-	key := buildImageKey(input.ActivityID, input.FileName)
-
-	if err := u.storage.Put(ctx, key, input.Body, input.Size, input.ContentType); err != nil {
-		return nil, fmt.Errorf("uploading image: %w", err)
+	if _, err := u.activities.GetActivityByID(ctx, input.ActivityID, input.UserID); err != nil {
+		return nil, fmt.Errorf("checking activity ownership: %w", err)
 	}
+
+	key := buildImageKey(input.ActivityID, input.FileName)
 
 	image, err := u.repo.Create(ctx, &entity.ActivityImage{
 		ActivityID: input.ActivityID,
@@ -92,7 +105,11 @@ func (u *activityImageUsecase) UploadActivityImage(ctx context.Context, input Up
 }
 
 // ListActivityImages implements [ActivityImageUsecase].
-func (u *activityImageUsecase) ListActivityImages(ctx context.Context, activityID uuid.UUID) ([]ActivityImageWithURL, error) {
+func (u *activityImageUsecase) ListActivityImages(ctx context.Context, activityID, userID uuid.UUID) ([]ActivityImageWithURL, error) {
+	if _, err := u.activities.GetActivityByID(ctx, activityID, userID); err != nil {
+		return nil, fmt.Errorf("checking activity ownership: %w", err)
+	}
+
 	images, err := u.repo.ListByActivityID(ctx, activityID)
 	if err != nil {
 		return nil, fmt.Errorf("listing activity images: %w", err)
@@ -111,7 +128,11 @@ func (u *activityImageUsecase) ListActivityImages(ctx context.Context, activityI
 }
 
 // DeleteActivityImage implements [ActivityImageUsecase].
-func (u *activityImageUsecase) DeleteActivityImage(ctx context.Context, activityID uuid.UUID, imageID uuid.UUID) error {
+func (u *activityImageUsecase) DeleteActivityImage(ctx context.Context, activityID, imageID, userID uuid.UUID) error {
+	if _, err := u.activities.GetActivityByID(ctx, activityID, userID); err != nil {
+		return fmt.Errorf("checking activity ownership: %w", err)
+	}
+
 	// Deliberately delete the DB record first, storage object second.
 	// If storage deletion then fails, the result is an orphaned object
 	// (same open issue as above) rather than a dangling DB record

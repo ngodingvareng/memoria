@@ -151,3 +151,14 @@ func (r *activityRepository) WithTransaction(ctx context.Context, fn func(usecas
 	return tx.Commit(ctx)
 
 }
+
+func (r *activityRepository) GetActivityByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error) {
+	row, err := r.q.GetActivityByID(ctx, db.GetActivityByIDParams{ID: id, UserID: userID})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("get activity by id: %w", err)
+	}
+	return toEntityActivity(row), nil
+}

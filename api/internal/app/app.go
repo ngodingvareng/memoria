@@ -70,7 +70,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	activityHandler := handler.NewActivityHandler(activityUsecase)
 
 	activityImageRepo := repository.NewActivityImageRepository(conn)
-	activityImageUsecase := usecase.NewActivityImageUsecase(activityImageRepo, objectStorage)
+	activityImageUsecase := usecase.NewActivityImageUsecase(activityImageRepo, objectStorage, activityRepo)
 	activityImageHandler := handler.NewActivityImageHandler(activityImageUsecase)
 
 	// 4. Fiber app + global middleware.

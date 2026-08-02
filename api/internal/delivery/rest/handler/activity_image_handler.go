@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
+	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
 	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 )
@@ -40,18 +41,18 @@ func (h *ActivityImageHandler) UploadActivityImage(c fiber.Ctx) error {
 		return errs.ErrInvalidInput
 	}
 
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
 	fileHeader, err := c.FormFile("image")
 	if err != nil {
 		return errs.New(fiber.StatusBadRequest, "image file is required")
 	}
-
 	if fileHeader.Size > maxImageUploadSize {
 		return errs.New(fiber.StatusBadRequest, "image exceeds the 10MB size limit")
 	}
-
-	// TODO: validate fileHeader's actual content (magic bytes), not just
-	// the client-supplied Content-Type header, before trusting it's
-	// really an image.
 
 	file, err := fileHeader.Open()
 	if err != nil {
@@ -61,6 +62,7 @@ func (h *ActivityImageHandler) UploadActivityImage(c fiber.Ctx) error {
 
 	image, err := h.usecase.UploadActivityImage(c, usecase.UploadActivityImageInput{
 		ActivityID:  activityID,
+		UserID:      userID,
 		FileName:    fileHeader.Filename,
 		ContentType: fileHeader.Header.Get("Content-Type"),
 		Size:        fileHeader.Size,
@@ -70,10 +72,7 @@ func (h *ActivityImageHandler) UploadActivityImage(c fiber.Ctx) error {
 		return err
 	}
 
-	slog.InfoContext(c, "activity image uploaded",
-		"activity_id", activityID,
-		"image_id", image.ID,
-	)
+	slog.InfoContext(c, "activity image uploaded", "activity_id", activityID, "image_id", image.ID)
 
 	return c.Status(fiber.StatusCreated).JSON(dto.WebResponse[dto.ActivityImageResponse]{
 		Code:    fiber.StatusCreated,
@@ -95,7 +94,12 @@ func (h *ActivityImageHandler) ListActivityImages(c fiber.Ctx) error {
 		return errs.ErrInvalidInput
 	}
 
-	images, err := h.usecase.ListActivityImages(c, activityID)
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	images, err := h.usecase.ListActivityImages(c, activityID, userID)
 	if err != nil {
 		return err
 	}
@@ -129,7 +133,12 @@ func (h *ActivityImageHandler) DeleteActivityImage(c fiber.Ctx) error {
 		return errs.ErrInvalidInput
 	}
 
-	if err := h.usecase.DeleteActivityImage(c, activityID, imageID); err != nil {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	if err := h.usecase.DeleteActivityImage(c, activityID, imageID, userID); err != nil {
 		return err
 	}
 
