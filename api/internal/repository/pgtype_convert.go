@@ -3,6 +3,7 @@ package repository
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -48,23 +49,17 @@ func pgTimestamptzToPtr(t pgtype.Timestamptz) *time.Time {
 	return new(t.Time)
 }
 
-func ptrToPgTimestamptz(t *time.Time) pgtype.Timestamptz {
-	if t == nil {
-		return pgtype.Timestamptz{}
-	}
-	return pgtype.Timestamptz{Time: *t, Valid: true}
-}
-
-func pgBoolToPtr(b pgtype.Bool) *bool {
-	if !b.Valid {
-		return nil
-	}
-	return new(b.Bool)
-}
-
 func ptrToPgBool(b *bool) pgtype.Bool {
 	if b == nil {
 		return pgtype.Bool{}
 	}
 	return pgtype.Bool{Bool: *b, Valid: true}
+}
+
+func pgUUIDToPtr(u pgtype.UUID) *uuid.UUID {
+	if !u.Valid {
+		return nil
+	}
+	id := uuid.UUID(u.Bytes)
+	return &id
 }

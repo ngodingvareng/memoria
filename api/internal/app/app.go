@@ -94,7 +94,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	fiberApp.Use(recover.New())
 
 	// 5. Router
-	rest.SetupRoutes(fiberApp, rest.Handlers{
+	rest.SetupRoutes(fiberApp, accessTokenIssuer, rest.Handlers{
 		Auth:          authHandler,
 		Activity:      activityHandler,
 		ActivityImage: activityImageHandler,
