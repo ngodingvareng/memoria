@@ -77,6 +77,10 @@ func (u *activityImageUsecase) UploadActivityImage(ctx context.Context, input Up
 
 	key := buildImageKey(input.ActivityID, input.FileName)
 
+	if err := u.storage.Put(ctx, key, input.Body, input.Size, input.ContentType); err != nil {
+		return nil, fmt.Errorf("uploading image %s: %w", key, err)
+	}
+
 	image, err := u.repo.Create(ctx, &entity.ActivityImage{
 		ActivityID: input.ActivityID,
 		ImagePath:  key,
