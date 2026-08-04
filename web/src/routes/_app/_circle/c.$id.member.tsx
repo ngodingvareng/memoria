@@ -24,7 +24,7 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_app/_group/g/$id/member')({
+export const Route = createFileRoute('/_app/_circle/c/$id/member')({
   component: RouteComponent,
 });
 

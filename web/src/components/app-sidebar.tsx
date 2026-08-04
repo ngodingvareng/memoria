@@ -12,9 +12,9 @@ import {
 import {
   Activity01Icon,
   Album01Icon,
-  BookOpen01Icon,
   Home05Icon,
   PlusSignSquareIcon,
+  TwentyFourHoursClockIcon
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link, useRouterState } from '@tanstack/react-router';
@@ -29,14 +29,14 @@ const data = {
       url: '/',
     },
     {
-      title: 'Stories',
-      icon: BookOpen01Icon,
-      url: '/story',
-    },
-    {
       title: 'Activities',
       icon: Activity01Icon,
       url: '/activity',
+    },
+    {
+      title: 'Schedules',
+      icon: TwentyFourHoursClockIcon,
+      url: '/schedule',
     },
     {
       title: 'Album',
@@ -45,27 +45,12 @@ const data = {
     },
   ],
 
-  group: [
+  circle: [
     {
       name: 'NgodingVareng',
       imageSrc: 'https://github.com/shadcn.png',
       imageAlt: 'hello',
       url: '/g/1',
-    },
-  ],
-
-  followed: [
-    {
-      name: 'ShadCN',
-      imageSrc: 'https://github.com/shadcn.png',
-      imageAlt: 'hello',
-      url: '/@shadcn',
-    },
-    {
-      name: 'Who Are You',
-      imageSrc: 'https://github.com/shadcn.png',
-      imageAlt: 'hello',
-      url: '/@shadcn',
     },
   ],
 
@@ -127,9 +112,9 @@ export default function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Group</SidebarGroupLabel>
+          <SidebarGroupLabel>Circles</SidebarGroupLabel>
           <SidebarMenu>
-            {data.group.map((item) => (
+            {data.circle.map((item) => (
               <SidebarMenuItem key={item.name}>
                 <SidebarMenuButton
                   render={
@@ -151,38 +136,13 @@ export default function AppSidebar({
             <SidebarMenuItem>
               <SidebarMenuButton
                 render={
-                  <Link to="/group/new" className="[&_svg]:size-6">
+                  <Link to="/circle/new" className="[&_svg]:size-6">
                     <HugeiconsIcon icon={PlusSignSquareIcon} />
-                    <span className="min-w-0 truncate">Create new group</span>
+                    <span className="min-w-0 truncate">Create new circle</span>
                   </Link>
                 }
               />
             </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Followed</SidebarGroupLabel>
-          <SidebarMenu>
-            {data.followed.map((item) => (
-              <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton
-                  render={
-                    <Link to={item.url}>
-                      <Avatar size="sm">
-                        <AvatarImage
-                          src={item.imageSrc}
-                          alt={item.imageAlt}
-                          className="grayscale"
-                        />
-                        <AvatarFallback>CN</AvatarFallback>
-                      </Avatar>
-                      <span className="min-w-0 truncate">{item.name}</span>
-                    </Link>
-                  }
-                />
-              </SidebarMenuItem>
-            ))}
           </SidebarMenu>
         </SidebarGroup>
 

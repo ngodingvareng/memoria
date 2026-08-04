@@ -8,7 +8,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_app/_group')({
+export const Route = createFileRoute('/_app/_circle')({
   component: RouteComponent,
 });
 

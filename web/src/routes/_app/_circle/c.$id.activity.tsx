@@ -18,7 +18,7 @@ import { ArrowDown01Icon, StarIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_app/_group/g/$id/activity')({
+export const Route = createFileRoute('/_app/_circle/c/$id/activity')({
   component: RouteComponent,
 });
 

@@ -25,19 +25,12 @@ import {
   type CaptureCardParam,
 } from '@/features/activities';
 
-import { getNoteColorClass } from '@/lib/colors';
-import { dummyStories } from '@/lib/dummies';
-import { cn } from '@/lib/utils';
 import {
   ArrowDown01Icon,
-  ArrowRight02Icon,
-  Comment02Icon,
-  FavouriteIcon,
-  LinkForwardIcon,
-  MoreVerticalIcon,
+  ArrowRight02Icon
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 
 const music = [
   {
@@ -327,7 +320,7 @@ function Index() {
             </div>
             <div className="flex flex-col gap-4">
               <div className="flex items-center">
-                <h2 className="text-xl font-semibold">Story Today</h2>
+                <h2 className="text-xl font-semibold">Capture Today</h2>
 
                 <div className="grow flex justify-end">
                   <Button variant="ghost">
@@ -341,7 +334,7 @@ function Index() {
               />
             </div>
             <div className="flex flex-col gap-4">
-              <h2 className="text-xl font-semibold">Last Stories</h2>
+              <h2 className="text-xl font-semibold">Last Captures</h2>
 
               <CaptureList captures={dummyActivityStories} withStoryLayout />
             </div>

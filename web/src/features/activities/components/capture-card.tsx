@@ -31,6 +31,7 @@ import {
   MoreVerticalIcon,
   PaintBoardIcon,
   Share01Icon,
+  SmilePlusIcon,
   StarIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -249,17 +250,12 @@ export function CaptureCard({
             </ItemContent>
             {isPublished && (
               <ItemFooter className="flex gap-1 -ml-3 justify-start">
-                <Button size="sm" variant="ghost" className="[&_svg]:size-5!">
-                  <HugeiconsIcon strokeWidth={2} icon={FavouriteIcon} />
-                  {stats.likes} Likes
+                <Button size="icon" variant="ghost" className="[&_svg]:size-5!">
+                  <HugeiconsIcon strokeWidth={2} icon={SmilePlusIcon} />
                 </Button>
                 <Button size="sm" variant="ghost" className="[&_svg]:size-5!">
                   <HugeiconsIcon strokeWidth={2} icon={Comment02Icon} />
-                  {stats.comments} Comments
-                </Button>
-                <Button size="sm" variant="ghost" className="[&_svg]:size-5!">
-                  <HugeiconsIcon strokeWidth={2} icon={LinkForwardIcon} />
-                  {stats.shares} Share
+                  {stats.comments}
                 </Button>
               </ItemFooter>
             )}

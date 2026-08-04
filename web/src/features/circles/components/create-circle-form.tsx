@@ -25,7 +25,7 @@ const formSchema = z.object({
     .max(100, 'Description must be at most 100 characters.'),
 });
 
-export function CreateGroupForm() {
+export function CreateCircleForm() {
   const form = useForm({
     defaultValues: {
       title: '',

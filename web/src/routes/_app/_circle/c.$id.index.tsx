@@ -53,7 +53,7 @@ const music = [
     duration: '3:30',
   },
 ];
-export const Route = createFileRoute('/_app/_group/g/$id/')({
+export const Route = createFileRoute('/_app/_circle/c/$id/')({
   component: RouteComponent,
 });
 
@@ -204,26 +204,26 @@ function RouteComponent() {
       <div className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold">Last Stories</h2>
 
-        {[dummyStories[0]].map((story) => (
+        {[dummyStories[0]].map((capture) => (
           <Item variant="outline">
             <ItemContent className="flex flex-col gap-4">
               <div className="flex items-center gap-4">
                 <Link
                   to="/$username"
-                  params={{ username: story.user.username }}
+                  params={{ username: capture.user.username }}
                   className="flex gap-2 items-center"
                 >
                   <Avatar size="lg">
                     <AvatarImage
-                      src={story.user.imageSrc}
-                      alt={story.user.imageAlt}
+                      src={capture.user.imageSrc}
+                      alt={capture.user.imageAlt}
                     />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-base/4">{story.user.name}</p>
+                    <p className="font-medium text-base/4">{capture.user.name}</p>
                     <p className="text-base/5 text-muted-foreground">
-                      {story.user.username}
+                      {capture.user.username}
                     </p>
                   </div>
                 </Link>
@@ -242,9 +242,9 @@ function RouteComponent() {
                     </Badge>
                   </div>
                   <div className="flex gap-1 items-center">
-                    <p className="font-bold">{story.date}</p>
+                    <p className="font-bold">{capture.date}</p>
                     <p className="text-primary/60 text-lg font-semibold">/</p>
-                    <p className="font-medium">{story.time}</p>
+                    <p className="font-medium">{capture.time}</p>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger
@@ -272,16 +272,16 @@ function RouteComponent() {
                 <Item
                   className={cn(
                     'max-w-2xs flex flex-col w-full overflow-hidden',
-                    story.color
-                      ? getNoteColorClass(story.color)
+                    capture.color
+                      ? getNoteColorClass(capture.color)
                       : getNoteColorClass('zinc')
                   )}
                 />
                 <Item className="grow">
                   <ItemContent className="typeset max-w-none">
-                    {story.content}
+                    {capture.content}
                     <div className="flex flex-wrap gap-x-2">
-                      {story.tags
+                      {capture.tags
                         .map((tag) => `#${tag}`)
                         .map((tag) => (
                           <p>
