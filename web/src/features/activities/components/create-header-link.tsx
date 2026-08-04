@@ -3,14 +3,14 @@ import { PlusSignIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
 
-export function CreateActivityHeaderLink() {
+export function CreateHeaderLink() {
   return (
     <div className="flex gap-2">
       <Button
         size="lg"
         render={
           <Link to="/activity/new">
-            <HugeiconsIcon icon={PlusSignIcon} /> New Activity
+            <HugeiconsIcon icon={PlusSignIcon} /> New
           </Link>
         }
       />

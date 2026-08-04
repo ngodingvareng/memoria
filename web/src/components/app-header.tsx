@@ -1,4 +1,4 @@
-import { CreateActivityHeaderLink } from '@/features/activities';
+import { CreateHeaderLink } from '@/features/activities';
 import { NotificationHeaderLink } from '@/features/notifications';
 import { UserHeaderMenu } from '@/features/users';
 import AppHeaderTitle from './app-header-title';
@@ -15,7 +15,7 @@ export default function AppHeader() {
 
       <div className="flex items-center gap-3 pr-2 justify-end grow">
         <SearchAnythingInput />
-        <CreateActivityHeaderLink />
+        <CreateHeaderLink />
         <NotificationHeaderLink />
         <UserHeaderMenu />
       </div>

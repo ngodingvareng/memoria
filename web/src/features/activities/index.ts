@@ -5,5 +5,5 @@ export { ActivityGraph } from './components/activity-graph';
 export { ActivityHeader } from './components/activity-header';
 export { ActivityHero } from './components/activity-hero';
 export { CreateActivityForm } from './components/create-activity-form';
-export { CreateActivityHeaderLink } from './components/create-activity-header-link';
+export { CreateHeaderLink } from './components/create-header-link';
 export type { CaptureCardParam } from './components/capture-card';
