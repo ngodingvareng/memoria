@@ -4,9 +4,9 @@ import { Search01Icon } from '@hugeicons/core-free-icons';
 
 export default function SearchAnythingInput() {
   return (
-    <InputGroup className="max-w-xl w-full h-10 [&_svg]:size-5!">
+    <InputGroup className="max-w-2xl w-full h-10 [&_svg]:size-5!">
       <InputGroupInput
-        placeholder="Search for stories and activities..."
+        placeholder="Search anything..."
         type="search"
         className="text-base!"
       />

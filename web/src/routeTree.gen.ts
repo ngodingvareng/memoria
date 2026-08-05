@@ -19,16 +19,19 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppUsernameRouteImport } from './routes/_app/$username'
 import { Route as AppCircleRouteImport } from './routes/_app/_circle'
-import { Route as AppFollowedRouteImport } from './routes/_app/followed'
+import { Route as AppMentionsRouteImport } from './routes/_app/mentions'
 import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
 import { Route as AppScheduleRouteImport } from './routes/_app/schedule'
+import { Route as AppSearchRouteImport } from './routes/_app/search'
 import { Route as AuthSigninRouteImport } from './routes/_auth/signin'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AppActivityIndexRouteImport } from './routes/_app/activity.index'
 import { Route as AppActivityNewRouteImport } from './routes/_app/activity.new'
 import { Route as AppAlbumIndexRouteImport } from './routes/_app/album.index'
+import { Route as AppCaptureNewRouteImport } from './routes/_app/capture.new'
 import { Route as AppCircleIndexRouteImport } from './routes/_app/circle.index'
 import { Route as AppCircleNewRouteImport } from './routes/_app/circle.new'
+import { Route as AppRecapPeriodRouteImport } from './routes/_app/recap.$period'
 import { Route as UserUserIndexRouteImport } from './routes/_user/user.index'
 import { Route as UserUserAccountRouteImport } from './routes/_user/user.account'
 import { Route as UserUserActivityRouteImport } from './routes/_user/user.activity'
@@ -38,8 +41,12 @@ import { Route as AppActivityIdIndexRouteImport } from './routes/_app/activity.$
 import { Route as AppActivityIdInfoRouteImport } from './routes/_app/activity.$id.info'
 import { Route as AppCircleCIdIndexRouteImport } from './routes/_app/_circle/c.$id.index'
 import { Route as AppCircleCIdActivityRouteImport } from './routes/_app/_circle/c.$id.activity'
+import { Route as AppCircleCIdAlbumRouteImport } from './routes/_app/_circle/c.$id.album'
+import { Route as AppCircleCIdInviteRouteImport } from './routes/_app/_circle/c.$id.invite'
 import { Route as AppCircleCIdMemberRouteImport } from './routes/_app/_circle/c.$id.member'
 import { Route as AppCircleCIdSettingsRouteImport } from './routes/_app/_circle/c.$id.settings'
+import { Route as AppActivityIdCapturesCaptureIdRouteImport } from './routes/_app/activity.$id.captures.$captureId'
+import { Route as AppCircleCIdJoinCodeRouteImport } from './routes/_app/_circle/c.$id.join.$code'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -87,9 +94,9 @@ const AppCircleRoute = AppCircleRouteImport.update({
   id: '/_circle',
   getParentRoute: () => AppRoute,
 } as any)
-const AppFollowedRoute = AppFollowedRouteImport.update({
-  id: '/followed',
-  path: '/followed',
+const AppMentionsRoute = AppMentionsRouteImport.update({
+  id: '/mentions',
+  path: '/mentions',
   getParentRoute: () => AppRoute,
 } as any)
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
@@ -100,6 +107,11 @@ const AppNotificationsRoute = AppNotificationsRouteImport.update({
 const AppScheduleRoute = AppScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSearchRoute = AppSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => AppRoute,
 } as any)
 const AuthSigninRoute = AuthSigninRouteImport.update({
@@ -127,6 +139,11 @@ const AppAlbumIndexRoute = AppAlbumIndexRouteImport.update({
   path: '/album/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCaptureNewRoute = AppCaptureNewRouteImport.update({
+  id: '/capture/new',
+  path: '/capture/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCircleIndexRoute = AppCircleIndexRouteImport.update({
   id: '/circle/',
   path: '/circle/',
@@ -135,6 +152,11 @@ const AppCircleIndexRoute = AppCircleIndexRouteImport.update({
 const AppCircleNewRoute = AppCircleNewRouteImport.update({
   id: '/circle/new',
   path: '/circle/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRecapPeriodRoute = AppRecapPeriodRouteImport.update({
+  id: '/recap/$period',
+  path: '/recap/$period',
   getParentRoute: () => AppRoute,
 } as any)
 const UserUserIndexRoute = UserUserIndexRouteImport.update({
@@ -182,6 +204,16 @@ const AppCircleCIdActivityRoute = AppCircleCIdActivityRouteImport.update({
   path: '/c/$id/activity',
   getParentRoute: () => AppCircleRoute,
 } as any)
+const AppCircleCIdAlbumRoute = AppCircleCIdAlbumRouteImport.update({
+  id: '/c/$id/album',
+  path: '/c/$id/album',
+  getParentRoute: () => AppCircleRoute,
+} as any)
+const AppCircleCIdInviteRoute = AppCircleCIdInviteRouteImport.update({
+  id: '/c/$id/invite',
+  path: '/c/$id/invite',
+  getParentRoute: () => AppCircleRoute,
+} as any)
 const AppCircleCIdMemberRoute = AppCircleCIdMemberRouteImport.update({
   id: '/c/$id/member',
   path: '/c/$id/member',
@@ -192,6 +224,17 @@ const AppCircleCIdSettingsRoute = AppCircleCIdSettingsRouteImport.update({
   path: '/c/$id/settings',
   getParentRoute: () => AppCircleRoute,
 } as any)
+const AppActivityIdCapturesCaptureIdRoute =
+  AppActivityIdCapturesCaptureIdRouteImport.update({
+    id: '/activity/$id/captures/$captureId',
+    path: '/activity/$id/captures/$captureId',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppCircleCIdJoinCodeRoute = AppCircleCIdJoinCodeRouteImport.update({
+  id: '/c/$id/join/$code',
+  path: '/c/$id/join/$code',
+  getParentRoute: () => AppCircleRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -200,13 +243,16 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/$username': typeof AppUsernameRoute
-  '/followed': typeof AppFollowedRoute
+  '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
   '/schedule': typeof AppScheduleRoute
+  '/search': typeof AppSearchRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
   '/activity/new': typeof AppActivityNewRoute
+  '/capture/new': typeof AppCaptureNewRoute
   '/circle/new': typeof AppCircleNewRoute
+  '/recap/$period': typeof AppRecapPeriodRoute
   '/user/account': typeof UserUserAccountRoute
   '/user/activity': typeof UserUserActivityRoute
   '/user/notification': typeof UserUserNotificationRoute
@@ -218,9 +264,13 @@ export interface FileRoutesByFullPath {
   '/activity/$id/info': typeof AppActivityIdInfoRoute
   '/activity/$id/': typeof AppActivityIdIndexRoute
   '/c/$id/activity': typeof AppCircleCIdActivityRoute
+  '/c/$id/album': typeof AppCircleCIdAlbumRoute
+  '/c/$id/invite': typeof AppCircleCIdInviteRoute
   '/c/$id/member': typeof AppCircleCIdMemberRoute
   '/c/$id/settings': typeof AppCircleCIdSettingsRoute
+  '/activity/$id/captures/$captureId': typeof AppActivityIdCapturesCaptureIdRoute
   '/c/$id/': typeof AppCircleCIdIndexRoute
+  '/c/$id/join/$code': typeof AppCircleCIdJoinCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
@@ -229,13 +279,16 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/$username': typeof AppUsernameRoute
-  '/followed': typeof AppFollowedRoute
+  '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
   '/schedule': typeof AppScheduleRoute
+  '/search': typeof AppSearchRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
   '/activity/new': typeof AppActivityNewRoute
+  '/capture/new': typeof AppCaptureNewRoute
   '/circle/new': typeof AppCircleNewRoute
+  '/recap/$period': typeof AppRecapPeriodRoute
   '/user/account': typeof UserUserAccountRoute
   '/user/activity': typeof UserUserActivityRoute
   '/user/notification': typeof UserUserNotificationRoute
@@ -247,9 +300,13 @@ export interface FileRoutesByTo {
   '/activity/$id/info': typeof AppActivityIdInfoRoute
   '/activity/$id': typeof AppActivityIdIndexRoute
   '/c/$id/activity': typeof AppCircleCIdActivityRoute
+  '/c/$id/album': typeof AppCircleCIdAlbumRoute
+  '/c/$id/invite': typeof AppCircleCIdInviteRoute
   '/c/$id/member': typeof AppCircleCIdMemberRoute
   '/c/$id/settings': typeof AppCircleCIdSettingsRoute
+  '/activity/$id/captures/$captureId': typeof AppActivityIdCapturesCaptureIdRoute
   '/c/$id': typeof AppCircleCIdIndexRoute
+  '/c/$id/join/$code': typeof AppCircleCIdJoinCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -262,14 +319,17 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_app/$username': typeof AppUsernameRoute
   '/_app/_circle': typeof AppCircleRouteWithChildren
-  '/_app/followed': typeof AppFollowedRoute
+  '/_app/mentions': typeof AppMentionsRoute
   '/_app/notifications': typeof AppNotificationsRoute
   '/_app/schedule': typeof AppScheduleRoute
+  '/_app/search': typeof AppSearchRoute
   '/_auth/signin': typeof AuthSigninRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/_app/': typeof AppIndexRoute
   '/_app/activity/new': typeof AppActivityNewRoute
+  '/_app/capture/new': typeof AppCaptureNewRoute
   '/_app/circle/new': typeof AppCircleNewRoute
+  '/_app/recap/$period': typeof AppRecapPeriodRoute
   '/_user/user/account': typeof UserUserAccountRoute
   '/_user/user/activity': typeof UserUserActivityRoute
   '/_user/user/notification': typeof UserUserNotificationRoute
@@ -281,9 +341,13 @@ export interface FileRoutesById {
   '/_app/activity/$id/info': typeof AppActivityIdInfoRoute
   '/_app/activity/$id/': typeof AppActivityIdIndexRoute
   '/_app/_circle/c/$id/activity': typeof AppCircleCIdActivityRoute
+  '/_app/_circle/c/$id/album': typeof AppCircleCIdAlbumRoute
+  '/_app/_circle/c/$id/invite': typeof AppCircleCIdInviteRoute
   '/_app/_circle/c/$id/member': typeof AppCircleCIdMemberRoute
   '/_app/_circle/c/$id/settings': typeof AppCircleCIdSettingsRoute
+  '/_app/activity/$id/captures/$captureId': typeof AppActivityIdCapturesCaptureIdRoute
   '/_app/_circle/c/$id/': typeof AppCircleCIdIndexRoute
+  '/_app/_circle/c/$id/join/$code': typeof AppCircleCIdJoinCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -294,13 +358,16 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/$username'
-    | '/followed'
+    | '/mentions'
     | '/notifications'
     | '/schedule'
+    | '/search'
     | '/signin'
     | '/signup'
     | '/activity/new'
+    | '/capture/new'
     | '/circle/new'
+    | '/recap/$period'
     | '/user/account'
     | '/user/activity'
     | '/user/notification'
@@ -312,9 +379,13 @@ export interface FileRouteTypes {
     | '/activity/$id/info'
     | '/activity/$id/'
     | '/c/$id/activity'
+    | '/c/$id/album'
+    | '/c/$id/invite'
     | '/c/$id/member'
     | '/c/$id/settings'
+    | '/activity/$id/captures/$captureId'
     | '/c/$id/'
+    | '/c/$id/join/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -323,13 +394,16 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/$username'
-    | '/followed'
+    | '/mentions'
     | '/notifications'
     | '/schedule'
+    | '/search'
     | '/signin'
     | '/signup'
     | '/activity/new'
+    | '/capture/new'
     | '/circle/new'
+    | '/recap/$period'
     | '/user/account'
     | '/user/activity'
     | '/user/notification'
@@ -341,9 +415,13 @@ export interface FileRouteTypes {
     | '/activity/$id/info'
     | '/activity/$id'
     | '/c/$id/activity'
+    | '/c/$id/album'
+    | '/c/$id/invite'
     | '/c/$id/member'
     | '/c/$id/settings'
+    | '/activity/$id/captures/$captureId'
     | '/c/$id'
+    | '/c/$id/join/$code'
   id:
     | '__root__'
     | '/_app'
@@ -355,14 +433,17 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_app/$username'
     | '/_app/_circle'
-    | '/_app/followed'
+    | '/_app/mentions'
     | '/_app/notifications'
     | '/_app/schedule'
+    | '/_app/search'
     | '/_auth/signin'
     | '/_auth/signup'
     | '/_app/'
     | '/_app/activity/new'
+    | '/_app/capture/new'
     | '/_app/circle/new'
+    | '/_app/recap/$period'
     | '/_user/user/account'
     | '/_user/user/activity'
     | '/_user/user/notification'
@@ -374,9 +455,13 @@ export interface FileRouteTypes {
     | '/_app/activity/$id/info'
     | '/_app/activity/$id/'
     | '/_app/_circle/c/$id/activity'
+    | '/_app/_circle/c/$id/album'
+    | '/_app/_circle/c/$id/invite'
     | '/_app/_circle/c/$id/member'
     | '/_app/_circle/c/$id/settings'
+    | '/_app/activity/$id/captures/$captureId'
     | '/_app/_circle/c/$id/'
+    | '/_app/_circle/c/$id/join/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -461,11 +546,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCircleRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/followed': {
-      id: '/_app/followed'
-      path: '/followed'
-      fullPath: '/followed'
-      preLoaderRoute: typeof AppFollowedRouteImport
+    '/_app/mentions': {
+      id: '/_app/mentions'
+      path: '/mentions'
+      fullPath: '/mentions'
+      preLoaderRoute: typeof AppMentionsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/notifications': {
@@ -480,6 +565,13 @@ declare module '@tanstack/react-router' {
       path: '/schedule'
       fullPath: '/schedule'
       preLoaderRoute: typeof AppScheduleRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/search': {
+      id: '/_app/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AppSearchRouteImport
       parentRoute: typeof AppRoute
     }
     '/_auth/signin': {
@@ -517,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAlbumIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/capture/new': {
+      id: '/_app/capture/new'
+      path: '/capture/new'
+      fullPath: '/capture/new'
+      preLoaderRoute: typeof AppCaptureNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/circle/': {
       id: '/_app/circle/'
       path: '/circle'
@@ -529,6 +628,13 @@ declare module '@tanstack/react-router' {
       path: '/circle/new'
       fullPath: '/circle/new'
       preLoaderRoute: typeof AppCircleNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/recap/$period': {
+      id: '/_app/recap/$period'
+      path: '/recap/$period'
+      fullPath: '/recap/$period'
+      preLoaderRoute: typeof AppRecapPeriodRouteImport
       parentRoute: typeof AppRoute
     }
     '/_user/user/': {
@@ -594,6 +700,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCircleCIdActivityRouteImport
       parentRoute: typeof AppCircleRoute
     }
+    '/_app/_circle/c/$id/album': {
+      id: '/_app/_circle/c/$id/album'
+      path: '/c/$id/album'
+      fullPath: '/c/$id/album'
+      preLoaderRoute: typeof AppCircleCIdAlbumRouteImport
+      parentRoute: typeof AppCircleRoute
+    }
+    '/_app/_circle/c/$id/invite': {
+      id: '/_app/_circle/c/$id/invite'
+      path: '/c/$id/invite'
+      fullPath: '/c/$id/invite'
+      preLoaderRoute: typeof AppCircleCIdInviteRouteImport
+      parentRoute: typeof AppCircleRoute
+    }
     '/_app/_circle/c/$id/member': {
       id: '/_app/_circle/c/$id/member'
       path: '/c/$id/member'
@@ -608,21 +728,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCircleCIdSettingsRouteImport
       parentRoute: typeof AppCircleRoute
     }
+    '/_app/activity/$id/captures/$captureId': {
+      id: '/_app/activity/$id/captures/$captureId'
+      path: '/activity/$id/captures/$captureId'
+      fullPath: '/activity/$id/captures/$captureId'
+      preLoaderRoute: typeof AppActivityIdCapturesCaptureIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/_circle/c/$id/join/$code': {
+      id: '/_app/_circle/c/$id/join/$code'
+      path: '/c/$id/join/$code'
+      fullPath: '/c/$id/join/$code'
+      preLoaderRoute: typeof AppCircleCIdJoinCodeRouteImport
+      parentRoute: typeof AppCircleRoute
+    }
   }
 }
 
 interface AppCircleRouteChildren {
   AppCircleCIdActivityRoute: typeof AppCircleCIdActivityRoute
+  AppCircleCIdAlbumRoute: typeof AppCircleCIdAlbumRoute
+  AppCircleCIdInviteRoute: typeof AppCircleCIdInviteRoute
   AppCircleCIdMemberRoute: typeof AppCircleCIdMemberRoute
   AppCircleCIdSettingsRoute: typeof AppCircleCIdSettingsRoute
   AppCircleCIdIndexRoute: typeof AppCircleCIdIndexRoute
+  AppCircleCIdJoinCodeRoute: typeof AppCircleCIdJoinCodeRoute
 }
 
 const AppCircleRouteChildren: AppCircleRouteChildren = {
   AppCircleCIdActivityRoute: AppCircleCIdActivityRoute,
+  AppCircleCIdAlbumRoute: AppCircleCIdAlbumRoute,
+  AppCircleCIdInviteRoute: AppCircleCIdInviteRoute,
   AppCircleCIdMemberRoute: AppCircleCIdMemberRoute,
   AppCircleCIdSettingsRoute: AppCircleCIdSettingsRoute,
   AppCircleCIdIndexRoute: AppCircleCIdIndexRoute,
+  AppCircleCIdJoinCodeRoute: AppCircleCIdJoinCodeRoute,
 }
 
 const AppCircleRouteWithChildren = AppCircleRoute._addFileChildren(
@@ -632,33 +772,41 @@ const AppCircleRouteWithChildren = AppCircleRoute._addFileChildren(
 interface AppRouteChildren {
   AppUsernameRoute: typeof AppUsernameRoute
   AppCircleRoute: typeof AppCircleRouteWithChildren
-  AppFollowedRoute: typeof AppFollowedRoute
+  AppMentionsRoute: typeof AppMentionsRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppScheduleRoute: typeof AppScheduleRoute
+  AppSearchRoute: typeof AppSearchRoute
   AppIndexRoute: typeof AppIndexRoute
   AppActivityNewRoute: typeof AppActivityNewRoute
+  AppCaptureNewRoute: typeof AppCaptureNewRoute
   AppCircleNewRoute: typeof AppCircleNewRoute
+  AppRecapPeriodRoute: typeof AppRecapPeriodRoute
   AppActivityIndexRoute: typeof AppActivityIndexRoute
   AppAlbumIndexRoute: typeof AppAlbumIndexRoute
   AppCircleIndexRoute: typeof AppCircleIndexRoute
   AppActivityIdInfoRoute: typeof AppActivityIdInfoRoute
   AppActivityIdIndexRoute: typeof AppActivityIdIndexRoute
+  AppActivityIdCapturesCaptureIdRoute: typeof AppActivityIdCapturesCaptureIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppUsernameRoute: AppUsernameRoute,
   AppCircleRoute: AppCircleRouteWithChildren,
-  AppFollowedRoute: AppFollowedRoute,
+  AppMentionsRoute: AppMentionsRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppScheduleRoute: AppScheduleRoute,
+  AppSearchRoute: AppSearchRoute,
   AppIndexRoute: AppIndexRoute,
   AppActivityNewRoute: AppActivityNewRoute,
+  AppCaptureNewRoute: AppCaptureNewRoute,
   AppCircleNewRoute: AppCircleNewRoute,
+  AppRecapPeriodRoute: AppRecapPeriodRoute,
   AppActivityIndexRoute: AppActivityIndexRoute,
   AppAlbumIndexRoute: AppAlbumIndexRoute,
   AppCircleIndexRoute: AppCircleIndexRoute,
   AppActivityIdInfoRoute: AppActivityIdInfoRoute,
   AppActivityIdIndexRoute: AppActivityIdIndexRoute,
+  AppActivityIdCapturesCaptureIdRoute: AppActivityIdCapturesCaptureIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

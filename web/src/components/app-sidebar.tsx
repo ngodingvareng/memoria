@@ -12,9 +12,10 @@ import {
 import {
   Activity01Icon,
   Album01Icon,
+  AtIcon,
+  CircleIcon,
   Home05Icon,
-  PlusSignSquareIcon,
-  TwentyFourHoursClockIcon
+  TwentyFourHoursClockIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link, useRouterState } from '@tanstack/react-router';
@@ -34,9 +35,19 @@ const data = {
       url: '/activity',
     },
     {
+      title: 'Circles',
+      icon: CircleIcon,
+      url: '/circle',
+    },
+    {
       title: 'Schedules',
       icon: TwentyFourHoursClockIcon,
       url: '/schedule',
+    },
+    {
+      title: 'Mentions',
+      icon: AtIcon,
+      url: '/mentions',
     },
     {
       title: 'Album',
@@ -133,16 +144,6 @@ export default function AppSidebar({
                 />
               </SidebarMenuItem>
             ))}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                render={
-                  <Link to="/circle/new" className="[&_svg]:size-6">
-                    <HugeiconsIcon icon={PlusSignSquareIcon} />
-                    <span className="min-w-0 truncate">Create new circle</span>
-                  </Link>
-                }
-              />
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 

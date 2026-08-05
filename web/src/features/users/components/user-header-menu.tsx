@@ -5,6 +5,7 @@ import {
   Logout01Icon,
   Settings02Icon,
   Sun01Icon,
+  Tick02Icon,
   UserCircleIcon,
 } from '@hugeicons/core-free-icons';
 import {
@@ -133,7 +134,7 @@ export function UserHeaderMenu() {
                           >
                             {subitem.title}
                             {subitem.value === theme && (
-                              <span className="text-xs">✓</span>
+                              <HugeiconsIcon icon={Tick02Icon} />
                             )}
                           </DropdownMenuItem>
                         ))}
