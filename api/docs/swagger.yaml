@@ -26,7 +26,7 @@ definitions:
       is_fixed_schedule:
         type: boolean
       name:
-        example: Olahraga pagi
+        example: Morning workout
         type: string
       updated_at:
         example: "2026-07-20T10:00:00Z"
@@ -44,14 +44,14 @@ definitions:
         example: 1440
         type: integer
       description:
-        example: Push-up dan lari tiap pagi kerja
+        example: Push-ups and a run every weekday morning
         maxLength: 2000
         type: string
       is_fixed_schedule:
         example: true
         type: boolean
       name:
-        example: Olahraga pagi
+        example: Morning workout
         maxLength: 255
         minLength: 1
         type: string
@@ -143,11 +143,11 @@ definitions:
         example: 1440
         type: integer
       description:
-        example: Push-up dan lari tiap pagi kerja
+        example: Push-ups and a run every weekday morning
         maxLength: 2000
         type: string
       name:
-        example: Olahraga pagi
+        example: Morning workout
         maxLength: 255
         minLength: 1
         type: string

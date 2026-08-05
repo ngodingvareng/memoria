@@ -15,7 +15,7 @@ class NostalgiaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal, // Warna yang memberikan kesan tenang/jurnal
+          seedColor: Colors.teal, // A color that evokes calm/journaling
           brightness: Brightness.light,
         ),
         useMaterial3: true,

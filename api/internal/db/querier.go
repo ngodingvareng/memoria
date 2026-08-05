@@ -117,11 +117,11 @@ type Querier interface {
 	RevokeAllRefreshTokensByUserID(ctx context.Context, userID uuid.UUID) error
 	RevokeRefreshToken(ctx context.Context, id uuid.UUID) error
 	RevokeRefreshTokenFamily(ctx context.Context, familyID uuid.UUID) error
-	// Rotate itu compare-and-swap: cuma berhasil kalau baris masih aktif
-	// (revoked_at IS NULL) di saat statement ini jalan. Kalau dua request
-	// Refresh bersamaan lomba pakai token yang sama, hanya satu yang bisa
-	// menang; yang kalah affected rows-nya 0 dan seluruh transaksinya
-	// di-rollback usecase.
+	// Rotate is a compare-and-swap: it only succeeds if the row is still
+	// active (revoked_at IS NULL) when this statement runs. If two
+	// concurrent Refresh requests race on the same token, only one can
+	// win; the loser gets 0 affected rows and the usecase rolls back its
+	// whole transaction.
 	RotateRefreshToken(ctx context.Context, arg RotateRefreshTokenParams) (int64, error)
 	// Search & filter activities for the authenticated user's activity list.
 	// All filters are optional (NULL = "don't filter on this"):

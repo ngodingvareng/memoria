@@ -8,7 +8,15 @@
 
 ## What is this dawg?
 
-Basically, this is a full-stack application built with Golang and React (using TanStack Router). It is inspired by Instagram (for the social media side) and GitHub's commit activity (for tracking daily activities like work, traveling, etc.). What does that mean? I can't tell you just yet!
+Memoria is a full-stack activity-tracking app built with Golang and React (using TanStack Router), built around a simple philosophy: capture your moments and history today so you can look back and reminisce later. It's inspired by Instagram (for the social side) and GitHub's contribution graph (for visualizing daily activity over time).
+
+The core entity is the **Activity** — e.g. "Work," "Morning Run," "Reading." Each Activity can have many **Activity Items**, its individual occurrences (one Activity to many Items). An Activity can either follow a **fixed schedule** (e.g. "Work" recurs every weekday) or have items added manually whenever the user wants.
+
+When an Activity has a fixed schedule, Memoria automatically generates its Items as they become due. Each Item starts as "awaiting confirmation" until the user checks it off as done or not done, optionally attaching a note (text + multiple photos) about what happened. If an Item isn't confirmed within a configurable timeout (with a sensible default) after it appears, it automatically flips to "not done."
+
+Every Item also carries its own scheduled datetime and can be given a color, letting Activities and Items be told apart visually. On top of that, Memoria includes a statistics view: a GitHub-style contribution heatmap of your activity history, plus a chart showing the confirmation delay for fixed-schedule items — how long it typically takes between an Item appearing and you actually confirming it.
+
+See [`FEATURES.md`](./FEATURES.md) for the full feature breakdown, including Circles (private social groups), Captures, mentions, notifications, albums, and recaps.
 
 ## Get started
 

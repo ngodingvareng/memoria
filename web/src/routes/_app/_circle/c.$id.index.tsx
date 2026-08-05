@@ -107,7 +107,7 @@ function RouteComponent() {
               <ItemGroup>
                 <Item size="xs">
                   <ItemContent>
-                    <ItemTitle>Kemana aja?</ItemTitle>
+                    <ItemTitle>Where'd you go?</ItemTitle>
                     <ItemDescription className="flex gap-1 items-center">
                       <span>10:30 until 11:00</span>
                       <Badge className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
@@ -122,7 +122,7 @@ function RouteComponent() {
                 <ItemSeparator />
                 <Item size="xs">
                   <ItemContent>
-                    <ItemTitle>Apa si</ItemTitle>
+                    <ItemTitle>What is this</ItemTitle>
                     <ItemDescription className="flex gap-1 items-center">
                       <span>23:00</span>
                       <Badge className="bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300">
@@ -137,7 +137,7 @@ function RouteComponent() {
                 <ItemSeparator />
                 <Item size="xs">
                   <ItemContent>
-                    <ItemTitle>Ntah kenapa sepertinya</ItemTitle>
+                    <ItemTitle>Not sure why but it seems</ItemTitle>
                     <ItemDescription className="flex gap-1 items-center">
                       <span>23:00</span>
                       <Badge variant="outline">Upcoming</Badge>

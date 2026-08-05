@@ -499,7 +499,7 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "example": "Olahraga pagi"
+                    "example": "Morning workout"
                 },
                 "updated_at": {
                     "type": "string",
@@ -528,7 +528,7 @@ const docTemplate = `{
                 "description": {
                     "type": "string",
                     "maxLength": 2000,
-                    "example": "Push-up dan lari tiap pagi kerja"
+                    "example": "Push-ups and a run every weekday morning"
                 },
                 "is_fixed_schedule": {
                     "type": "boolean",
@@ -538,7 +538,7 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 1,
-                    "example": "Olahraga pagi"
+                    "example": "Morning workout"
                 }
             }
         },
@@ -653,13 +653,13 @@ const docTemplate = `{
                 "description": {
                     "type": "string",
                     "maxLength": 2000,
-                    "example": "Push-up dan lari tiap pagi kerja"
+                    "example": "Push-ups and a run every weekday morning"
                 },
                 "name": {
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 1,
-                    "example": "Olahraga pagi"
+                    "example": "Morning workout"
                 }
             }
         },

@@ -20,9 +20,9 @@ type refreshTokenRepository struct {
 	q *db.Queries
 }
 
-// NewRefreshTokenRepository terima db.DBTX (bukan *pgxpool.Pool secara
-// langsung) supaya bisa dipakai baik di luar transaksi (pool) maupun
-// di-bind ke transaksi (pgx.Tx) oleh AuthUnitOfWork.
+// NewRefreshTokenRepository takes a db.DBTX (not *pgxpool.Pool directly)
+// so it can be used both outside a transaction (pool) and bound to a
+// transaction (pgx.Tx) by AuthUnitOfWork.
 func NewRefreshTokenRepository(dbtx db.DBTX) *refreshTokenRepository {
 	return &refreshTokenRepository{q: db.New(dbtx)}
 }

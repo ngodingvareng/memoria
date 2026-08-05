@@ -59,17 +59,17 @@ export const dummyActivityStories: CaptureCardParam[] = [
       name: 'Budi Santoso',
       username: '@budisans',
       imageSrc: 'https://randomuser.me/api/portraits/men/32.jpg',
-      imageAlt: 'Foto profil Budi Santoso',
+      imageAlt: 'Profile photo of Budi Santoso',
     },
     activity: {
-      name: 'Lari Pagi 5KM',
+      name: '5KM Morning Run',
     },
-    color: 'orange', // Oranye
+    color: 'orange',
     content: (
       <div>
         <p>
-          Memulai hari dengan lari sejauh 5km di sekitar kawasan GBK. Cuaca hari
-          ini sangat cerah dan udaranya segar! 🏃‍♂️☀️
+          Started the day with a 5km run around the GBK area. The weather
+          today is bright and the air feels so fresh! 🏃‍♂️☀️
         </p>
       </div>
     ),
@@ -87,26 +87,27 @@ export const dummyActivityStories: CaptureCardParam[] = [
       name: 'Siti Aminah',
       username: '@sitiamin',
       imageSrc: 'https://randomuser.me/api/portraits/women/44.jpg',
-      imageAlt: 'Foto profil Siti Aminah',
+      imageAlt: 'Profile photo of Siti Aminah',
     },
     activity: {
-      name: 'Eksplorasi Kuliner',
+      name: 'Food Exploring',
     },
-    color: 'yellow', // Kuning
+    color: 'yellow',
     content: (
       <div>
         <p>
-          Mencoba kedai kopi baru yang lagi viral di Jakarta Selatan. Kopinya
-          enak dan suasananya sangat <i>cozy</i> untuk nugas atau WFC. ☕🥐
+          Tried a new coffee shop that's going viral in South Jakarta. The
+          coffee is great and the vibe is so <i>cozy</i> for working or
+          just hanging out. ☕🥐
         </p>
         <img
           src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
-          alt="Kopi dan Croissant"
+          alt="Coffee and croissant"
           style={{ width: '100%', borderRadius: '8px', marginTop: '10px' }}
         />
       </div>
     ),
-    tags: ['kuliner', 'coffee', 'weekend', 'jaksel'],
+    tags: ['food', 'coffee', 'weekend', 'jaksel'],
     createdAt: new Date('2026-07-25T15:45:00'),
     capturedAt: new Date('2026-07-25T15:45:00'),
     stats: {
@@ -120,17 +121,17 @@ export const dummyActivityStories: CaptureCardParam[] = [
       name: 'Reza Rahadian',
       username: '@rezadev',
       imageSrc: 'https://randomuser.me/api/portraits/men/75.jpg',
-      imageAlt: 'Foto profil Reza Rahadian',
+      imageAlt: 'Profile photo of Reza Rahadian',
     },
     activity: {
       name: 'Live Coding',
     },
-    color: 'blue', // Biru
+    color: 'blue',
     content: (
       <div>
         <p>
-          Akhirnya berhasil menyelesaikan *bug* yang sudah mengganggu selama 3
-          hari. <b>React hooks</b> memang luar biasa tapi kadang bikin pusing!
+          Finally fixed the *bug* that's been bothering me for 3 days.{' '}
+          <b>React hooks</b> are amazing but sometimes give me a headache!
           💻🚀
         </p>
       </div>
@@ -220,7 +221,7 @@ function Index() {
                     <ItemGroup>
                       <Item size="xs">
                         <ItemContent>
-                          <ItemTitle>Kemana aja?</ItemTitle>
+                          <ItemTitle>Where'd you go?</ItemTitle>
                           <ItemDescription className="flex gap-1 items-center">
                             <span>10:30 until 11:00</span>
                             <Badge className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
@@ -235,7 +236,7 @@ function Index() {
                       <ItemSeparator />
                       <Item size="xs">
                         <ItemContent>
-                          <ItemTitle>Apa si</ItemTitle>
+                          <ItemTitle>What is this</ItemTitle>
                           <ItemDescription className="flex gap-1 items-center">
                             <span>23:00</span>
                             <Badge className="bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300">
@@ -250,7 +251,7 @@ function Index() {
                       <ItemSeparator />
                       <Item size="xs">
                         <ItemContent>
-                          <ItemTitle>Ntah kenapa sepertinya</ItemTitle>
+                          <ItemTitle>Not sure why but it seems</ItemTitle>
                           <ItemDescription className="flex gap-1 items-center">
                             <span>23:00</span>
                             <Badge variant="outline">Upcoming</Badge>

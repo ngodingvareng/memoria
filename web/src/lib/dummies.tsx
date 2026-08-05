@@ -3,7 +3,7 @@ import type { Story } from '@/types/story';
 export const dummyNotes = [
   {
     id: 1,
-    date: '12 Agustus 2036',
+    date: 'August 12, 2036',
     time: '10:00',
     published: true,
     tags: ['science', 'food'],
@@ -25,7 +25,7 @@ export const dummyNotes = [
   },
   {
     id: 2,
-    date: '10 Agustus 2036',
+    date: 'August 10, 2036',
     time: '14:30',
     color: 'rose',
     published: true,
@@ -49,7 +49,7 @@ export const dummyNotes = [
   },
   {
     id: 3,
-    date: '8 Agustus 2036',
+    date: 'August 8, 2036',
     time: '09:15',
     published: false,
     tags: ['programming', 'rust', 'learning'],
@@ -75,7 +75,7 @@ export const dummyNotes = [
   },
   {
     id: 4,
-    date: '5 Agustus 2036',
+    date: 'August 5, 2036',
     time: '16:45',
     color: 'amber',
     published: true,
@@ -103,7 +103,7 @@ export const dummyNotes = [
   },
   {
     id: 5,
-    date: '3 Agustus 2036',
+    date: 'August 3, 2036',
     time: '11:20',
     color: 'emerald',
     published: true,
@@ -131,7 +131,7 @@ export const dummyNotes = [
   },
   {
     id: 6,
-    date: '1 Agustus 2036',
+    date: 'August 1, 2036',
     time: '08:00',
     published: false,
     tags: ['personal', 'reflection'],
@@ -152,7 +152,7 @@ export const dummyNotes = [
   },
   {
     id: 7,
-    date: '28 Juli 2036',
+    date: 'July 28, 2036',
     time: '19:30',
     published: true,
     tags: ['book', 'review', 'self-improvement'],
@@ -178,19 +178,19 @@ export const dummyNotes = [
   },
   {
     id: 8,
-    date: '25 Juli 2036',
+    date: 'July 25, 2036',
     time: '13:00',
     published: false,
     tags: [],
     content: (
       <>
-        <p>Apa si</p>
+        <p>What is this</p>
       </>
     ),
   },
   {
     id: 9,
-    date: '22 Juli 2036',
+    date: 'July 22, 2036',
     time: '17:45',
     color: 'sky',
     published: true,
@@ -220,7 +220,7 @@ export const dummyNotes = [
   },
   {
     id: 10,
-    date: '20 Juli 2036',
+    date: 'July 20, 2036',
     time: '10:30',
     published: false,
     tags: ['ideas', 'app', 'brainstorm'],
@@ -255,7 +255,7 @@ export const dummyStories: Story[] = [
       imageAlt: '@shadcn',
     },
     id: 10,
-    date: '20 Juli 2036',
+    date: 'July 20, 2036',
     time: '10:30',
     tags: ['ideas', 'app', 'brainstorm'],
     content: (
@@ -286,7 +286,7 @@ export const dummyStories: Story[] = [
       imageAlt: '@shadcn',
     },
     id: 9,
-    date: '22 Juli 2036',
+    date: 'July 22, 2036',
     time: '17:45',
     color: 'sky',
     tags: ['debugging', 'programming', 'websocket'],

@@ -67,7 +67,7 @@ const data = {
 
   recent: [
     {
-      title: 'Apa si ini?',
+      title: 'What is this?',
       url: '/activity/1',
     },
     {

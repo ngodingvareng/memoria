@@ -64,9 +64,10 @@ type PasswordHasher interface {
 }
 
 // AccessTokenIssuer mints/verifies the stateless JWT access token.
-// Middleware bergantung langsung ke interface ini (bukan lewat
-// AuthUsecase) karena verifikasi access token tidak butuh apa pun dari
-// alur auth lain — cuma butuh parse & validasi signature/exp.
+// Middleware depends directly on this interface (not through
+// AuthUsecase) because verifying an access token doesn't need anything
+// from the rest of the auth flow — it just needs to parse & validate
+// the signature/exp.
 type AccessTokenIssuer interface {
 	Generate(userID uuid.UUID) (token string, expiresAt time.Time, err error)
 	Parse(token string) (uuid.UUID, error)
@@ -98,9 +99,9 @@ type RefreshInput struct {
 	UserAgent    *string
 }
 
-// AuthTokens dikembalikan Login & Refresh — dua-duanya mencetak
-// pasangan access/refresh baru. RefreshToken di sini raw — satu-
-// satunya tempat nilai mentahnya keluar; yang disimpan cuma hash-nya.
+// AuthTokens is returned by Login & Refresh — both mint a new
+// access/refresh pair. RefreshToken here is the raw value — the only
+// place the raw value ever leaves; only its hash gets stored.
 type AuthTokens struct {
 	User                  *entity.User
 	AccessToken           string
@@ -252,11 +253,11 @@ func (u *authUsecase) Refresh(ctx context.Context, input RefreshInput) (*AuthTok
 		return nil, fmt.Errorf("looking up refresh token: %w", err)
 	}
 
-	// revoked_at sudah terisi berarti token ini bukan lagi ujung
-	// chain-nya — entah karena sudah dirotasi sebelumnya, atau memang
-	// sedang dipakai ulang (reuse). Dari baris saja dua kasus itu tidak
-	// bisa dibedakan, jadi diperlakukan sebagai potensi pencurian: revoke
-	// seluruh chain, paksa login ulang.
+	// revoked_at already set means this token is no longer the tip
+	// of its chain, either because it was already rotated, or
+	// because it's being reused. The row alone can't tell those two
+	// cases apart, so treat it as potential theft: revoke the whole
+	// chain and force a fresh login.
 	if existing.RevokedAt != nil {
 		if err := u.refreshTokens.RevokeFamily(ctx, existing.FamilyID); err != nil {
 			return nil, fmt.Errorf("revoking compromised token family: %w", err)
@@ -287,9 +288,9 @@ func (u *authUsecase) Refresh(ctx context.Context, input RefreshInput) (*AuthTok
 		}
 		refreshExpiresAt := time.Now().Add(u.refreshTokenTTL)
 
-		// Insert dulu baris baru, baru rotate baris lama menunjuk ke
-		// baris baru ini — urutan ini penting karena replaced_by_id
-		// adalah FK ke refresh_tokens(id).
+		// Insert the new row first, then rotate the old row to point at
+		// this new one — the order matters because replaced_by_id is a
+		// FK into refresh_tokens(id).
 		newToken, err := repos.RefreshToken.Create(ctx, &entity.RefreshToken{
 			UserID: user.ID, FamilyID: existing.FamilyID,
 			TokenHash: u.refreshTokenGen.Hash(rawRefresh),
@@ -300,10 +301,10 @@ func (u *authUsecase) Refresh(ctx context.Context, input RefreshInput) (*AuthTok
 		}
 
 		if err := repos.RefreshToken.Rotate(ctx, existing.ID, newToken.ID); err != nil {
-			// errs.ErrConflict di sini berarti request Refresh lain
-			// (concurrent) sudah lebih dulu merotasi token ini — kita
-			// kalah race, seluruh transaksi (termasuk newToken di atas)
-			// di-rollback.
+			// errs.ErrConflict here means another (concurrent) Refresh
+			// request already rotated this token first, we lost the
+			// race, and the whole transaction (including newToken
+			// above) gets rolled back.
 			return fmt.Errorf("rotating refresh token: %w", err)
 		}
 

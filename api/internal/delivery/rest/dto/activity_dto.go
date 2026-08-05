@@ -7,8 +7,8 @@ import (
 )
 
 type CreateActivityRequest struct {
-	Name                       string  `json:"name" validate:"required,min=1,max=255" example:"Olahraga pagi"`
-	Description                *string `json:"description,omitempty" validate:"omitempty,max=2000" example:"Push-up dan lari tiap pagi kerja"`
+	Name                       string  `json:"name" validate:"required,min=1,max=255" example:"Morning workout"`
+	Description                *string `json:"description,omitempty" validate:"omitempty,max=2000" example:"Push-ups and a run every weekday morning"`
 	IsFixedSchedule            bool    `json:"is_fixed_schedule" example:"true"`
 	ColorHex                   *string `json:"color_hex,omitempty" validate:"omitempty,hexcolor" example:"#FF5733"`
 	ConfirmationTimeoutMinutes *int32  `json:"confirmation_timeout_minutes,omitempty" validate:"omitempty,gt=0" example:"1440"`
@@ -17,8 +17,8 @@ type CreateActivityRequest struct {
 // UpdateActivityRequest has no is_fixed_schedule — see the comment on
 // usecase.UpdateActivityInput for why that's a separate endpoint.
 type UpdateActivityRequest struct {
-	Name                       string  `json:"name" validate:"required,min=1,max=255" example:"Olahraga pagi"`
-	Description                *string `json:"description,omitempty" validate:"omitempty,max=2000" example:"Push-up dan lari tiap pagi kerja"`
+	Name                       string  `json:"name" validate:"required,min=1,max=255" example:"Morning workout"`
+	Description                *string `json:"description,omitempty" validate:"omitempty,max=2000" example:"Push-ups and a run every weekday morning"`
 	ColorHex                   *string `json:"color_hex,omitempty" validate:"omitempty,hexcolor" example:"#FF5733"`
 	ConfirmationTimeoutMinutes *int32  `json:"confirmation_timeout_minutes,omitempty" validate:"omitempty,gt=0" example:"1440"`
 }
@@ -33,7 +33,7 @@ type SearchActivitiesQuery struct {
 type ActivityResponse struct {
 	ID                         string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	UserID                     string  `json:"user_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	Name                       string  `json:"name" example:"Olahraga pagi"`
+	Name                       string  `json:"name" example:"Morning workout"`
 	Description                *string `json:"description,omitempty"`
 	IsFixedSchedule            bool    `json:"is_fixed_schedule"`
 	ColorHex                   *string `json:"color_hex,omitempty"`

@@ -9,24 +9,24 @@ class CaptureMomentScreen extends StatefulWidget {
 }
 
 class _CaptureMomentScreenState extends State<CaptureMomentScreen> {
-  bool _isCompleted = true; // Apakah aktivitas dilakukan atau di-skip?
+  bool _isCompleted = true; // Was the activity done, or skipped?
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Konfirmasi: ${widget.activityName}'),
+        title: Text('Confirm: ${widget.activityName}'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Toggle Dilakukan / Tidak Dilakukan
+            // Toggle Done / Not done
             SegmentedButton<bool>(
               segments: const [
-                ButtonSegment(value: true, label: Text('Dilaksanakan'), icon: Icon(Icons.check_circle)),
-                ButtonSegment(value: false, label: Text('Dilewatkan'), icon: Icon(Icons.cancel)),
+                ButtonSegment(value: true, label: Text('Done'), icon: Icon(Icons.check_circle)),
+                ButtonSegment(value: false, label: Text('Skipped'), icon: Icon(Icons.cancel)),
               ],
               selected: {_isCompleted},
               onSelectionChanged: (Set<bool> newSelection) {
@@ -36,16 +36,16 @@ class _CaptureMomentScreenState extends State<CaptureMomentScreen> {
               },
             ),
             const SizedBox(height: 24),
-            
-            // Jurnal / Textarea
-            const Text('Catat momennya (Opsional)', style: TextStyle(fontWeight: FontWeight.bold)),
+
+            // Journal / Textarea
+            const Text('Log the moment (Optional)', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             TextField(
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: _isCompleted 
-                    ? 'Apa yang berkesan dari aktivitas ini?' 
-                    : 'Kenapa aktivitas ini terlewatkan?',
+                hintText: _isCompleted
+                    ? 'What stood out about this activity?'
+                    : 'Why was this activity missed?',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
                 fillColor: Colors.grey.shade50,
@@ -53,12 +53,12 @@ class _CaptureMomentScreenState extends State<CaptureMomentScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Upload Gambar
-            const Text('Dokumentasi Foto', style: TextStyle(fontWeight: FontWeight.bold)),
+            // Photo upload
+            const Text('Photo Documentation', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             InkWell(
               onTap: () {
-                // Logika pick image multiple
+                // Multiple image picker logic
               },
               child: Container(
                 height: 100,
@@ -73,7 +73,7 @@ class _CaptureMomentScreenState extends State<CaptureMomentScreen> {
                   children: [
                     Icon(Icons.add_a_photo, color: Colors.grey),
                     SizedBox(height: 8),
-                    Text('Tambah Foto (Bisa lebih dari 1)', style: TextStyle(color: Colors.grey)),
+                    Text('Add Photo (Multiple allowed)', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
               ),
@@ -85,14 +85,14 @@ class _CaptureMomentScreenState extends State<CaptureMomentScreen> {
         padding: const EdgeInsets.all(16.0),
         child: FilledButton(
           onPressed: () {
-            // Save data ke database dan kembali ke Home
+            // Save data to the database and return to Home
             Navigator.pop(context);
           },
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          child: const Text('Simpan Momen', style: TextStyle(fontSize: 16)),
+          child: const Text('Save Moment', style: TextStyle(fontSize: 16)),
         ),
       ),
     );

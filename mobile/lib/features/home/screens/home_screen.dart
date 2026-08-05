@@ -28,24 +28,24 @@ class HomeScreen extends StatelessWidget {
           _buildGreetingCard(context),
           const SizedBox(height: 24),
           const Text(
-            'Menunggu Konfirmasi',
+            'Awaiting Confirmation',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          // Dummy data untuk aktivitas hari ini
+          // Dummy data for today's activities
           _buildActivityItemCard(
             context: context,
-            activityName: 'Bekerja',
+            activityName: 'Work',
             time: '09:00 WIB',
             paletteColor: Colors.blue.shade100,
             isOverdue: false,
           ),
           _buildActivityItemCard(
             context: context,
-            activityName: 'Olahraga Sore',
+            activityName: 'Evening Workout',
             time: '16:00 WIB',
             paletteColor: Colors.orange.shade100,
-            isOverdue: true, // Contoh jika hampir lewat batas waktu
+            isOverdue: true, // Example of an item close to its deadline
           ),
         ],
       ),
@@ -62,9 +62,9 @@ class HomeScreen extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Halo, Kenang momenmu!', style: TextStyle(fontSize: 16)),
+          Text('Hi, cherish your moments!', style: TextStyle(fontSize: 16)),
           SizedBox(height: 8),
-          Text('Ada 2 aktivitas yang butuh konfirmasimu hari ini.',
+          Text('You have 2 activities that need your confirmation today.',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ],
       ),
@@ -87,13 +87,13 @@ class HomeScreen extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         title: Text(activityName, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(
-          isOverdue ? 'Muncul sejak: $time (Segera konfirmasi)' : 'Muncul sejak: $time',
+          isOverdue ? 'Appeared since: $time (Confirm soon)' : 'Appeared since: $time',
           style: TextStyle(color: isOverdue ? Colors.red.shade800 : Colors.black54),
         ),
         trailing: Checkbox(
           value: false,
           onChanged: (val) {
-            // Membuka halaman "Capture Moment" sebelum benar-benar check
+            // Opens the "Capture Moment" screen before actually checking it off
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => CaptureMomentScreen(activityName: activityName)),
