@@ -53,7 +53,7 @@ var (
 )
 
 type ValidationError struct {
-	Errors []*validate.ErrorResponse // assuming this is your util return type
+	Errors []*validate.ErrorResponse
 }
 
 func (e *ValidationError) Error() string {

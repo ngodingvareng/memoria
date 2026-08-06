@@ -110,15 +110,6 @@ type AuthTokens struct {
 	RefreshTokenExpiresAt time.Time
 }
 
-// LoginResult carries the raw session token — the only place it exists
-// outside the client's cookie. It's never persisted; only its hash
-// (TokenGenerator.HashToken) is, via UserSessionRepository.Create.
-type LoginResult struct {
-	User         *entity.User
-	SessionToken string
-	ExpiresAt    time.Time
-}
-
 // --- Usecase ---
 
 type AuthUsecase interface {
@@ -213,7 +204,7 @@ func (u *authUsecase) Login(ctx context.Context, input LoginInput) (*AuthTokens,
 		return nil, errs.ErrInvalidCredentials
 	}
 
-	// Login selalu memulai chain baru.
+	// Login always starts a fresh chain.
 	return u.issueSession(ctx, u.refreshTokens, user, uuid.New(), input.IPAddress, input.UserAgent)
 }
 

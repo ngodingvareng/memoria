@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/spf13/viper"
@@ -35,11 +37,17 @@ func LoadConfig() (*Config, error) {
 	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
 
-	// Load defaults if you like
 	viper.SetDefault("SERVER_PORT", "3000")
 
 	if err := viper.ReadInConfig(); err != nil {
-		// Log if needed, or ignore if using env vars
+		// A missing .env is fine — env vars alone are a valid config
+		// source in production. Anything else (e.g. a malformed file)
+		// should stay visible rather than silently falling back to
+		// zero-value config fields.
+		var notFoundErr viper.ConfigFileNotFoundError
+		if !errors.As(err, &notFoundErr) {
+			slog.Warn("failed to read .env config file", "error", err)
+		}
 	}
 
 	var cfg Config

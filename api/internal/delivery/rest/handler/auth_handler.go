@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"log/slog"
 	"time"
 
@@ -164,9 +163,12 @@ func (h *AuthHandler) Refresh(c fiber.Ctx) error {
 // @Success      204
 // @Router       /auth/logout [post]
 func (h *AuthHandler) Logout(c fiber.Ctx) error {
+	// usecase.Logout is idempotent — a missing/already-revoked token
+	// resolves to a nil error there, so there's nothing to distinguish
+	// here beyond "did it fail".
 	token := c.Cookies(middleware.RefreshCookieName)
 	if token != "" {
-		if err := h.usecase.Logout(c, token); err != nil && !errors.Is(err, errs.ErrNotFound) {
+		if err := h.usecase.Logout(c, token); err != nil {
 			return err
 		}
 	}

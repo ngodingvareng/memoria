@@ -7,12 +7,6 @@ import (
 )
 
 // ErrorResponse describes a single field-level validation failure.
-//
-// NOTE: pkg/errs.ValidationError already references `util.ErrorResponse`
-// with a comment "assuming this is your util return type" — meaning it
-// wasn't finalized on your end either. If a real ErrorResponse type
-// already exists elsewhere in pkg/util, delete this struct and keep only
-// FormatValidationErrors below, adjusting field names to match it.
 type ErrorResponse struct {
 	Field   string `json:"field" example:"name"`
 	Tag     string `json:"tag" example:"required"`
