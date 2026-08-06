@@ -15,7 +15,7 @@ import (
 const createCredentialUserAccount = `-- name: CreateCredentialUserAccount :one
 INSERT INTO user_accounts(user_id, account_id, provider_id, password_hash)
 VALUES ($1, $2, 'credential', $3)
-RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at, failed_login_attempts, locked_until
+RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 `
 
 type CreateCredentialUserAccountParams struct {
@@ -39,10 +39,10 @@ func (q *Queries) CreateCredentialUserAccount(ctx context.Context, arg CreateCre
 		&i.Scope,
 		&i.IDToken,
 		&i.PasswordHash,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.FailedLoginAttempts,
 		&i.LockedUntil,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -59,7 +59,7 @@ INSERT INTO user_accounts(
     $6, $7,
     $8, $9
 )
-RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at, failed_login_attempts, locked_until
+RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 `
 
 type CreateOAuthUserAccountParams struct {
@@ -99,10 +99,10 @@ func (q *Queries) CreateOAuthUserAccount(ctx context.Context, arg CreateOAuthUse
 		&i.Scope,
 		&i.IDToken,
 		&i.PasswordHash,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.FailedLoginAttempts,
 		&i.LockedUntil,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -126,7 +126,7 @@ func (q *Queries) DeleteUserAccount(ctx context.Context, arg DeleteUserAccountPa
 }
 
 const getCredentialUserAccountByUserID = `-- name: GetCredentialUserAccountByUserID :one
-SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at, failed_login_attempts, locked_until
+SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 FROM user_accounts
 WHERE user_id = $1
     AND provider_id = 'credential'
@@ -147,16 +147,16 @@ func (q *Queries) GetCredentialUserAccountByUserID(ctx context.Context, userID u
 		&i.Scope,
 		&i.IDToken,
 		&i.PasswordHash,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.FailedLoginAttempts,
 		&i.LockedUntil,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getUserAccountByProvider = `-- name: GetUserAccountByProvider :one
-SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at, failed_login_attempts, locked_until
+SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 FROM user_accounts
 WHERE provider_id = $1
     AND account_id = $2
@@ -185,10 +185,10 @@ func (q *Queries) GetUserAccountByProvider(ctx context.Context, arg GetUserAccou
 		&i.Scope,
 		&i.IDToken,
 		&i.PasswordHash,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.FailedLoginAttempts,
 		&i.LockedUntil,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -199,7 +199,7 @@ SET failed_login_attempts = failed_login_attempts + 1,
     updated_at = NOW()
 WHERE user_id = $1
     AND provider_id = 'credential'
-RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at, failed_login_attempts, locked_until
+RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 `
 
 // Called after a wrong password. The usecase decides whether the
@@ -220,16 +220,16 @@ func (q *Queries) IncrementFailedLoginAttempts(ctx context.Context, userID uuid.
 		&i.Scope,
 		&i.IDToken,
 		&i.PasswordHash,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.FailedLoginAttempts,
 		&i.LockedUntil,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const listUserAccountsByUserID = `-- name: ListUserAccountsByUserID :many
-SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at, failed_login_attempts, locked_until
+SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 FROM user_accounts
 WHERE user_id = $1
 ORDER BY created_at
@@ -257,10 +257,10 @@ func (q *Queries) ListUserAccountsByUserID(ctx context.Context, userID uuid.UUID
 			&i.Scope,
 			&i.IDToken,
 			&i.PasswordHash,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.FailedLoginAttempts,
 			&i.LockedUntil,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

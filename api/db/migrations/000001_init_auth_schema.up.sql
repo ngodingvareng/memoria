@@ -60,6 +60,15 @@ CREATE TABLE user_accounts(
     scope TEXT,
     id_token TEXT,
     password_hash TEXT,
+
+    -- Per-account login lockout: after too many consecutive failed
+    -- password attempts, a credential account is locked for a cooldown
+    -- period regardless of which IP is attempting it. Complements
+    -- IP-based rate limiting, which alone can't stop a distributed
+    -- brute force against a single account.
+    failed_login_attempts INT NOT NULL DEFAULT 0,
+    locked_until TIMESTAMPTZ,
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 

@@ -198,10 +198,10 @@ type UserAccount struct {
 	Scope                 pgtype.Text
 	IDToken               pgtype.Text
 	PasswordHash          pgtype.Text
-	CreatedAt             pgtype.Timestamptz
-	UpdatedAt             pgtype.Timestamptz
 	FailedLoginAttempts   int32
 	LockedUntil           pgtype.Timestamptz
+	CreatedAt             pgtype.Timestamptz
+	UpdatedAt             pgtype.Timestamptz
 }
 
 type UserVerification struct {
