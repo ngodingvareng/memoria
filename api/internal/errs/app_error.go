@@ -1,7 +1,6 @@
 package errs
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/ngodingvareng/memoria/internal/validate"
@@ -20,13 +19,6 @@ func New(code int, message string) *AppError {
 	return &AppError{
 		Code:    code,
 		Message: message,
-	}
-}
-
-func NewResourceNotFoundError(resource string, id any) *AppError {
-	return &AppError{
-		Code:    http.StatusNotFound,
-		Message: fmt.Sprintf("%s with ID %v not found", resource, id),
 	}
 }
 
