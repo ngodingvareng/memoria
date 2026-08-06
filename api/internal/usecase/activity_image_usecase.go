@@ -22,10 +22,13 @@ type ActivityImageRepository interface {
 // the requesting user before letting them touch its images. Deliberately
 // separate from the full ActivityRepository interface in
 // activity_usecase.go — this usecase has no business with
-// Create/WithTransaction. activityRepository satisfies both interfaces
-// structurally without any extra wiring.
+// Create/WithTransaction. The method name is kept identical to
+// ActivityRepository.GetByID on purpose: Go satisfies interfaces
+// structurally by method name + signature, so activityRepository's single
+// GetByID implementation satisfies both interfaces with no extra method
+// or wrapper needed.
 type ActivityAccessChecker interface {
-	GetActivityByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error)
+	GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error)
 }
 
 type Storage interface {
@@ -71,7 +74,7 @@ func NewActivityImageUsecase(repo ActivityImageRepository, storage Storage, acti
 
 // UploadActivityImage implements [ActivityImageUsecase].
 func (u *activityImageUsecase) UploadActivityImage(ctx context.Context, input UploadActivityImageInput) (*ActivityImageWithURL, error) {
-	if _, err := u.activities.GetActivityByID(ctx, input.ActivityID, input.UserID); err != nil {
+	if _, err := u.activities.GetByID(ctx, input.ActivityID, input.UserID); err != nil {
 		return nil, fmt.Errorf("checking activity ownership: %w", err)
 	}
 
@@ -110,7 +113,7 @@ func (u *activityImageUsecase) UploadActivityImage(ctx context.Context, input Up
 
 // ListActivityImages implements [ActivityImageUsecase].
 func (u *activityImageUsecase) ListActivityImages(ctx context.Context, activityID, userID uuid.UUID) ([]ActivityImageWithURL, error) {
-	if _, err := u.activities.GetActivityByID(ctx, activityID, userID); err != nil {
+	if _, err := u.activities.GetByID(ctx, activityID, userID); err != nil {
 		return nil, fmt.Errorf("checking activity ownership: %w", err)
 	}
 
@@ -133,7 +136,7 @@ func (u *activityImageUsecase) ListActivityImages(ctx context.Context, activityI
 
 // DeleteActivityImage implements [ActivityImageUsecase].
 func (u *activityImageUsecase) DeleteActivityImage(ctx context.Context, activityID, imageID, userID uuid.UUID) error {
-	if _, err := u.activities.GetActivityByID(ctx, activityID, userID); err != nil {
+	if _, err := u.activities.GetByID(ctx, activityID, userID); err != nil {
 		return fmt.Errorf("checking activity ownership: %w", err)
 	}
 

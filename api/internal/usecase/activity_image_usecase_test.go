@@ -30,7 +30,7 @@ func TestActivityImageUsecase_UploadActivityImage_Success(t *testing.T) {
 	userID := uuid.New()
 	body := bytes.NewReader([]byte("fake image bytes"))
 
-	activities.EXPECT().GetActivityByID(mock.Anything, activityID, userID).
+	activities.EXPECT().GetByID(mock.Anything, activityID, userID).
 		Return(&entity.Activity{ID: activityID, UserID: userID}, nil)
 
 	store.EXPECT().
@@ -73,7 +73,7 @@ func TestActivityImageUsecase_UploadActivityImage_NotOwner_Rejected(t *testing.T
 	activities := mocks.NewMockActivityAccessChecker(t)
 	uc := usecase.NewActivityImageUsecase(repo, store, activities)
 
-	activities.EXPECT().GetActivityByID(mock.Anything, mock.Anything, mock.Anything).
+	activities.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, errs.ErrNotFound)
 	// store.Put and repo.Create deliberately never stubbed — if the
 	// usecase somehow reached storage/DB after a failed ownership check,
@@ -96,7 +96,7 @@ func TestActivityImageUsecase_UploadActivityImage_StorageUploadFails(t *testing.
 	activities := mocks.NewMockActivityAccessChecker(t)
 	uc := usecase.NewActivityImageUsecase(repo, store, activities)
 
-	activities.EXPECT().GetActivityByID(mock.Anything, mock.Anything, mock.Anything).
+	activities.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).
 		Return(&entity.Activity{}, nil)
 
 	wantErr := errors.New("storage unreachable")
@@ -119,7 +119,7 @@ func TestActivityImageUsecase_UploadActivityImage_DBInsertFails_CleansUpStorage(
 	activities := mocks.NewMockActivityAccessChecker(t)
 	uc := usecase.NewActivityImageUsecase(repo, store, activities)
 
-	activities.EXPECT().GetActivityByID(mock.Anything, mock.Anything, mock.Anything).
+	activities.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).
 		Return(&entity.Activity{}, nil)
 
 	dbErr := errors.New("unique constraint violated")
@@ -154,7 +154,7 @@ func TestActivityImageUsecase_UploadActivityImage_DBInsertFails_CleanupAlsoFails
 	activities := mocks.NewMockActivityAccessChecker(t)
 	uc := usecase.NewActivityImageUsecase(repo, store, activities)
 
-	activities.EXPECT().GetActivityByID(mock.Anything, mock.Anything, mock.Anything).
+	activities.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).
 		Return(&entity.Activity{}, nil)
 
 	dbErr := errors.New("unique constraint violated")
@@ -186,7 +186,7 @@ func TestActivityImageUsecase_ListActivityImages_Success(t *testing.T) {
 	img1 := &entity.ActivityImage{ID: uuid.New(), ActivityID: activityID, ImagePath: "activities/x/a.jpg"}
 	img2 := &entity.ActivityImage{ID: uuid.New(), ActivityID: activityID, ImagePath: "activities/x/b.jpg"}
 
-	activities.EXPECT().GetActivityByID(mock.Anything, activityID, userID).
+	activities.EXPECT().GetByID(mock.Anything, activityID, userID).
 		Return(&entity.Activity{ID: activityID, UserID: userID}, nil)
 	repo.EXPECT().ListByActivityID(mock.Anything, activityID).Return([]*entity.ActivityImage{img1, img2}, nil)
 	store.EXPECT().PresignGet(mock.Anything, "activities/x/a.jpg", mock.Anything).Return("url-a", nil)
@@ -206,7 +206,7 @@ func TestActivityImageUsecase_ListActivityImages_NotOwner_Rejected(t *testing.T)
 	activities := mocks.NewMockActivityAccessChecker(t)
 	uc := usecase.NewActivityImageUsecase(repo, store, activities)
 
-	activities.EXPECT().GetActivityByID(mock.Anything, mock.Anything, mock.Anything).
+	activities.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, errs.ErrNotFound)
 	// repo.ListByActivityID deliberately not stubbed.
 
@@ -227,7 +227,7 @@ func TestActivityImageUsecase_ListActivityImages_PresignFails(t *testing.T) {
 	img := &entity.ActivityImage{ID: uuid.New(), ActivityID: activityID, ImagePath: "activities/x/a.jpg"}
 	presignErr := errors.New("presign failed")
 
-	activities.EXPECT().GetActivityByID(mock.Anything, activityID, userID).Return(&entity.Activity{}, nil)
+	activities.EXPECT().GetByID(mock.Anything, activityID, userID).Return(&entity.Activity{}, nil)
 	repo.EXPECT().ListByActivityID(mock.Anything, activityID).Return([]*entity.ActivityImage{img}, nil)
 	store.EXPECT().PresignGet(mock.Anything, mock.Anything, mock.Anything).Return("", presignErr)
 
@@ -244,7 +244,7 @@ func TestActivityImageUsecase_DeleteActivityImage_Success(t *testing.T) {
 	uc := usecase.NewActivityImageUsecase(repo, store, activities)
 
 	activityID, imageID, userID := uuid.New(), uuid.New(), uuid.New()
-	activities.EXPECT().GetActivityByID(mock.Anything, activityID, userID).Return(&entity.Activity{}, nil)
+	activities.EXPECT().GetByID(mock.Anything, activityID, userID).Return(&entity.Activity{}, nil)
 	repo.EXPECT().Delete(mock.Anything, activityID, imageID).Return(nil)
 
 	err := uc.DeleteActivityImage(context.Background(), activityID, imageID, userID)
@@ -258,7 +258,7 @@ func TestActivityImageUsecase_DeleteActivityImage_NotOwner_Rejected(t *testing.T
 	activities := mocks.NewMockActivityAccessChecker(t)
 	uc := usecase.NewActivityImageUsecase(repo, store, activities)
 
-	activities.EXPECT().GetActivityByID(mock.Anything, mock.Anything, mock.Anything).
+	activities.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, errs.ErrNotFound)
 	// repo.Delete deliberately not stubbed.
 
@@ -274,7 +274,7 @@ func TestActivityImageUsecase_DeleteActivityImage_RepoError(t *testing.T) {
 	uc := usecase.NewActivityImageUsecase(repo, store, activities)
 
 	wantErr := errors.New("not found")
-	activities.EXPECT().GetActivityByID(mock.Anything, mock.Anything, mock.Anything).Return(&entity.Activity{}, nil)
+	activities.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).Return(&entity.Activity{}, nil)
 	repo.EXPECT().Delete(mock.Anything, mock.Anything, mock.Anything).Return(wantErr)
 
 	err := uc.DeleteActivityImage(context.Background(), uuid.New(), uuid.New(), uuid.New())
