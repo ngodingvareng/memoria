@@ -2,7 +2,7 @@
 
 ## Activity
 
-The main entity that defines an activity, hobby, or routine. It acts as a container for its Captures (see below). An Activity can be personal (owned by a single user) or collaborative, owned by a Circle (see the Circle section). It can optionally follow a fixed, recurring schedule — see Activity Schedule below — or have its Captures added manually whenever the user wants.
+The main entity that defines an activity, hobby, or routine. It acts as a container for its Captures (see below). An Activity can be personal (owned by a single user) or collaborative, owned by a Circle (see the Circle section). By default, its Captures are added manually whenever the user wants; it can optionally opt into a fixed, recurring schedule instead — see Activity Schedule below.
 
 > My Activities:
 >
@@ -14,8 +14,8 @@ The main entity that defines an activity, hobby, or routine. It acts as a contai
 
 A single occurrence of an Activity. This is the core of Memoria. A Capture comes into existence one of two ways:
 
-- **Automatically**, when its Activity has a fixed schedule (see Activity Schedule). The system generates the Capture the moment it's due, starting in an **awaiting confirmation** state.
-- **Manually**, added by the user at any time, for Activities without a fixed schedule.
+- **Manually** — the user adds it themselves, whenever they want. This is Memoria's primary, simplest way to capture a moment, and the one that most directly reflects the app's philosophy: log life as it happens, on your own terms, with nothing scheduled or owed.
+- **Automatically** — for Activities that opt into a fixed schedule (see Activity Schedule), the system generates the Capture the moment it's due, starting in an **awaiting confirmation** state. This is an advanced, supplementary mode on top of the core experience — useful for routines you want reminders and accountability for, but it comes with stricter mechanics (a confirmation window, a "missed" state) that pull slightly away from Memoria's looser, capture-whenever philosophy. Manual Captures can still be added freely alongside a fixed schedule at any time.
 
 Every Capture has a status:
 
