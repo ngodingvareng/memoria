@@ -142,5 +142,7 @@ func (h *ActivityImageHandler) DeleteActivityImage(c fiber.Ctx) error {
 		return err
 	}
 
+	slog.InfoContext(c, "activity image deleted", "activity_id", activityID, "image_id", imageID)
+
 	return c.SendStatus(fiber.StatusNoContent)
 }
