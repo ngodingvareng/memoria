@@ -39,12 +39,12 @@ func (_m *MockActivityAccessChecker) EXPECT() *MockActivityAccessChecker_Expecte
 	return &MockActivityAccessChecker_Expecter{mock: &_m.Mock}
 }
 
-// GetActivityByID provides a mock function for the type MockActivityAccessChecker
-func (_mock *MockActivityAccessChecker) GetActivityByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*entity.Activity, error) {
+// GetByID provides a mock function for the type MockActivityAccessChecker
+func (_mock *MockActivityAccessChecker) GetByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*entity.Activity, error) {
 	ret := _mock.Called(ctx, id, userID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetActivityByID")
+		panic("no return value specified for GetByID")
 	}
 
 	var r0 *entity.Activity
@@ -67,20 +67,20 @@ func (_mock *MockActivityAccessChecker) GetActivityByID(ctx context.Context, id 
 	return r0, r1
 }
 
-// MockActivityAccessChecker_GetActivityByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetActivityByID'
-type MockActivityAccessChecker_GetActivityByID_Call struct {
+// MockActivityAccessChecker_GetByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByID'
+type MockActivityAccessChecker_GetByID_Call struct {
 	*mock.Call
 }
 
-// GetActivityByID is a helper method to define mock.On call
+// GetByID is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id uuid.UUID
 //   - userID uuid.UUID
-func (_e *MockActivityAccessChecker_Expecter) GetActivityByID(ctx any, id any, userID any) *MockActivityAccessChecker_GetActivityByID_Call {
-	return &MockActivityAccessChecker_GetActivityByID_Call{Call: _e.mock.On("GetActivityByID", ctx, id, userID)}
+func (_e *MockActivityAccessChecker_Expecter) GetByID(ctx any, id any, userID any) *MockActivityAccessChecker_GetByID_Call {
+	return &MockActivityAccessChecker_GetByID_Call{Call: _e.mock.On("GetByID", ctx, id, userID)}
 }
 
-func (_c *MockActivityAccessChecker_GetActivityByID_Call) Run(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID)) *MockActivityAccessChecker_GetActivityByID_Call {
+func (_c *MockActivityAccessChecker_GetByID_Call) Run(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID)) *MockActivityAccessChecker_GetByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -103,12 +103,12 @@ func (_c *MockActivityAccessChecker_GetActivityByID_Call) Run(run func(ctx conte
 	return _c
 }
 
-func (_c *MockActivityAccessChecker_GetActivityByID_Call) Return(activity *entity.Activity, err error) *MockActivityAccessChecker_GetActivityByID_Call {
+func (_c *MockActivityAccessChecker_GetByID_Call) Return(activity *entity.Activity, err error) *MockActivityAccessChecker_GetByID_Call {
 	_c.Call.Return(activity, err)
 	return _c
 }
 
-func (_c *MockActivityAccessChecker_GetActivityByID_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*entity.Activity, error)) *MockActivityAccessChecker_GetActivityByID_Call {
+func (_c *MockActivityAccessChecker_GetByID_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*entity.Activity, error)) *MockActivityAccessChecker_GetByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

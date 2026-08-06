@@ -16,6 +16,7 @@ import (
 )
 
 var _ usecase.ActivityRepository = (*activityRepository)(nil)
+var _ usecase.ActivityAccessChecker = (*activityRepository)(nil)
 
 type activityRepository struct {
 	pool *pgxpool.Pool
@@ -65,7 +66,7 @@ func (r *activityRepository) Update(ctx context.Context, activity *entity.Activi
 // TestActivityImageRepository_Delete_WrongActivityID_NoOp — a WHERE
 // clause matching zero rows is a silent no-op here, not errs.ErrNotFound.
 // If callers need a real 404 on a missing/foreign activity, look it up
-// via GetActivityByID first.
+// via GetByID first.
 func (r *activityRepository) SoftDelete(ctx context.Context, id, userID uuid.UUID) error {
 	if err := r.q.SoftDeleteActivity(ctx, db.SoftDeleteActivityParams{
 		ID:     id,
@@ -76,7 +77,9 @@ func (r *activityRepository) SoftDelete(ctx context.Context, id, userID uuid.UUI
 	return nil
 }
 
-// GetByID implements [usecase.ActivityRepository].
+// GetByID implements [usecase.ActivityRepository] and [usecase.ActivityAccessChecker] —
+// both interfaces declare this method with an identical name and signature,
+// so this single implementation satisfies both without a second method.
 func (r *activityRepository) GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error) {
 	row, err := r.q.GetActivityByID(ctx, db.GetActivityByIDParams{ID: id, UserID: userID})
 	if err != nil {
@@ -150,15 +153,4 @@ func (r *activityRepository) WithTransaction(ctx context.Context, fn func(usecas
 	}
 	return tx.Commit(ctx)
 
-}
-
-func (r *activityRepository) GetActivityByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error) {
-	row, err := r.q.GetActivityByID(ctx, db.GetActivityByIDParams{ID: id, UserID: userID})
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errs.ErrNotFound
-		}
-		return nil, fmt.Errorf("get activity by id: %w", err)
-	}
-	return toEntityActivity(row), nil
 }
