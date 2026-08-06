@@ -83,6 +83,10 @@ type Querier interface {
 	// Actually cascades into user_accounts/user_sessions/activities/... Only
 	// call this from the purge job, on rows already past their grace period.
 	HardDeleteUser(ctx context.Context, id uuid.UUID) error
+	// Called after a wrong password. The usecase decides whether the
+	// returned failed_login_attempts count crosses the configured
+	// lockout threshold and, if so, calls LockCredentialUserAccount.
+	IncrementFailedLoginAttempts(ctx context.Context, userID uuid.UUID) (UserAccount, error)
 	// Can return more than one row: an activity may have multiple
 	// concurrently active schedules (e.g. "pagi" and "sore").
 	ListActiveSchedulesByActivityID(ctx context.Context, activityID uuid.UUID) ([]ActivitySchedule, error)
@@ -107,10 +111,13 @@ type Querier interface {
 	// For a purge job: pass purge_before = NOW() - INTERVAL '30 days' (or
 	// whatever grace period is chosen) from the application.
 	ListUsersPendingPurge(ctx context.Context, purgeBefore pgtype.Timestamptz) ([]User, error)
+	LockCredentialUserAccount(ctx context.Context, arg LockCredentialUserAccountParams) error
 	// The timeout job itself: bulk-flip every 'awaiting' item whose deadline
 	// (scheduled_at + activities.confirmation_timeout_minutes) has passed.
 	// Run this on a schedule (e.g. every minute).
 	MarkOverdueItemsAsMissed(ctx context.Context) (int64, error)
+	// Called after a successful login to clear any accumulated failures.
+	ResetFailedLoginAttempts(ctx context.Context, userID uuid.UUID) error
 	RestoreActivity(ctx context.Context, arg RestoreActivityParams) error
 	RestoreActivityCapture(ctx context.Context, id uuid.UUID) error
 	RestoreUser(ctx context.Context, id uuid.UUID) error

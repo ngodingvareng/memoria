@@ -15,7 +15,7 @@ import (
 const createCredentialUserAccount = `-- name: CreateCredentialUserAccount :one
 INSERT INTO user_accounts(user_id, account_id, provider_id, password_hash)
 VALUES ($1, $2, 'credential', $3)
-RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at
+RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 `
 
 type CreateCredentialUserAccountParams struct {
@@ -39,6 +39,8 @@ func (q *Queries) CreateCredentialUserAccount(ctx context.Context, arg CreateCre
 		&i.Scope,
 		&i.IDToken,
 		&i.PasswordHash,
+		&i.FailedLoginAttempts,
+		&i.LockedUntil,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -57,7 +59,7 @@ INSERT INTO user_accounts(
     $6, $7,
     $8, $9
 )
-RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at
+RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 `
 
 type CreateOAuthUserAccountParams struct {
@@ -97,6 +99,8 @@ func (q *Queries) CreateOAuthUserAccount(ctx context.Context, arg CreateOAuthUse
 		&i.Scope,
 		&i.IDToken,
 		&i.PasswordHash,
+		&i.FailedLoginAttempts,
+		&i.LockedUntil,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -122,7 +126,7 @@ func (q *Queries) DeleteUserAccount(ctx context.Context, arg DeleteUserAccountPa
 }
 
 const getCredentialUserAccountByUserID = `-- name: GetCredentialUserAccountByUserID :one
-SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at
+SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 FROM user_accounts
 WHERE user_id = $1
     AND provider_id = 'credential'
@@ -143,6 +147,8 @@ func (q *Queries) GetCredentialUserAccountByUserID(ctx context.Context, userID u
 		&i.Scope,
 		&i.IDToken,
 		&i.PasswordHash,
+		&i.FailedLoginAttempts,
+		&i.LockedUntil,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -150,7 +156,7 @@ func (q *Queries) GetCredentialUserAccountByUserID(ctx context.Context, userID u
 }
 
 const getUserAccountByProvider = `-- name: GetUserAccountByProvider :one
-SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at
+SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 FROM user_accounts
 WHERE provider_id = $1
     AND account_id = $2
@@ -179,6 +185,43 @@ func (q *Queries) GetUserAccountByProvider(ctx context.Context, arg GetUserAccou
 		&i.Scope,
 		&i.IDToken,
 		&i.PasswordHash,
+		&i.FailedLoginAttempts,
+		&i.LockedUntil,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const incrementFailedLoginAttempts = `-- name: IncrementFailedLoginAttempts :one
+UPDATE user_accounts
+SET failed_login_attempts = failed_login_attempts + 1,
+    updated_at = NOW()
+WHERE user_id = $1
+    AND provider_id = 'credential'
+RETURNING id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
+`
+
+// Called after a wrong password. The usecase decides whether the
+// returned failed_login_attempts count crosses the configured
+// lockout threshold and, if so, calls LockCredentialUserAccount.
+func (q *Queries) IncrementFailedLoginAttempts(ctx context.Context, userID uuid.UUID) (UserAccount, error) {
+	row := q.db.QueryRow(ctx, incrementFailedLoginAttempts, userID)
+	var i UserAccount
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.AccountID,
+		&i.ProviderID,
+		&i.AccessToken,
+		&i.RefreshToken,
+		&i.AccessTokenExpiresAt,
+		&i.RefreshTokenExpiresAt,
+		&i.Scope,
+		&i.IDToken,
+		&i.PasswordHash,
+		&i.FailedLoginAttempts,
+		&i.LockedUntil,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -186,7 +229,7 @@ func (q *Queries) GetUserAccountByProvider(ctx context.Context, arg GetUserAccou
 }
 
 const listUserAccountsByUserID = `-- name: ListUserAccountsByUserID :many
-SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, created_at, updated_at
+SELECT id, user_id, account_id, provider_id, access_token, refresh_token, access_token_expires_at, refresh_token_expires_at, scope, id_token, password_hash, failed_login_attempts, locked_until, created_at, updated_at
 FROM user_accounts
 WHERE user_id = $1
 ORDER BY created_at
@@ -214,6 +257,8 @@ func (q *Queries) ListUserAccountsByUserID(ctx context.Context, userID uuid.UUID
 			&i.Scope,
 			&i.IDToken,
 			&i.PasswordHash,
+			&i.FailedLoginAttempts,
+			&i.LockedUntil,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -225,6 +270,39 @@ func (q *Queries) ListUserAccountsByUserID(ctx context.Context, userID uuid.UUID
 		return nil, err
 	}
 	return items, nil
+}
+
+const lockCredentialUserAccount = `-- name: LockCredentialUserAccount :exec
+UPDATE user_accounts
+SET locked_until = $1,
+    updated_at = NOW()
+WHERE user_id = $2
+    AND provider_id = 'credential'
+`
+
+type LockCredentialUserAccountParams struct {
+	LockedUntil pgtype.Timestamptz
+	UserID      uuid.UUID
+}
+
+func (q *Queries) LockCredentialUserAccount(ctx context.Context, arg LockCredentialUserAccountParams) error {
+	_, err := q.db.Exec(ctx, lockCredentialUserAccount, arg.LockedUntil, arg.UserID)
+	return err
+}
+
+const resetFailedLoginAttempts = `-- name: ResetFailedLoginAttempts :exec
+UPDATE user_accounts
+SET failed_login_attempts = 0,
+    locked_until = NULL,
+    updated_at = NOW()
+WHERE user_id = $1
+    AND provider_id = 'credential'
+`
+
+// Called after a successful login to clear any accumulated failures.
+func (q *Queries) ResetFailedLoginAttempts(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, resetFailedLoginAttempts, userID)
+	return err
 }
 
 const updateOAuthUserAccountTokens = `-- name: UpdateOAuthUserAccountTokens :exec

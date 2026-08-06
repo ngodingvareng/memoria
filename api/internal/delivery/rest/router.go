@@ -17,7 +17,12 @@ type Handlers struct {
 	ActivityImage *handler.ActivityImageHandler
 }
 
-func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, h Handlers) {
+// SetupRoutes wires every route. authRateLimiter is built in app.go
+// (where the LOGIN_RATE_LIMIT_* config lives) and applied only to the
+// unauthenticated auth endpoints that are actually brute-forceable —
+// /refresh and /logout require a valid cookie/session already, so they
+// aren't password-guessing targets the way /login and /register are.
+func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimiter fiber.Handler, h Handlers) {
 	app.Get("/docs/*", swaggo.New(swaggo.Config{Title: "Book API"}))
 
 	app.Get("/swagger", func(c fiber.Ctx) error {
@@ -29,8 +34,8 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, h Handlers) {
 	})
 
 	auth := app.Group("/auth")
-	auth.Post("/register", h.Auth.Register)
-	auth.Post("/login", h.Auth.Login)
+	auth.Post("/register", authRateLimiter, h.Auth.Register)
+	auth.Post("/login", authRateLimiter, h.Auth.Login)
 	auth.Post("/refresh", h.Auth.Refresh)
 	auth.Post("/logout", h.Auth.Logout)
 

@@ -2,12 +2,6 @@
 
 Remaining work, ordered by priority (security-critical first, product-blocking next, then completeness, ops, open design decisions, and low-urgency housekeeping last).
 
-## Tier 1 — Security
-
-- [ ] Content-type validation on image uploads is header-only right now (`fileHeader.Header.Get("Content-Type")`, client-supplied and spoofable) — validate actual file content (magic bytes) before trusting it's really an image. Flagged inline in `activity_image_handler.go`.
-- [ ] Rate limiting / lockout on `Login` — nothing currently stops repeated failed-password attempts against one account or IP.
-- [ ] CORS — no middleware configured yet; will block `web/` from calling the API cross-origin once it starts doing so.
-
 ## Tier 2 — Core product features not started
 
 - [ ] **Scheduler worker** — a job that evaluates cron expressions from `activity_schedules` and auto-generates `activity_captures`. The `ListActiveSchedulesForGeneration` query exists, but there's no worker actually parsing cron and calling `CreateScheduledActivityCapture`.
@@ -37,6 +31,7 @@ Remaining work, ordered by priority (security-critical first, product-blocking n
 - [ ] Image files (`activity_images`/`activity_capture_images`) become orphaned after a hard delete — no cleanup job yet.
 - [ ] Soft-deleting a user doesn't revoke their refresh tokens — moot until a `SoftDeleteUser` usecase actually exists (currently only the sqlc query does); wire in a `RevokeAllByUserID` call when that flow gets built.
 - [ ] `user_verifications` is vulnerable to replay (no `consumed_at` / row-lock during validation) — relevant once email verification (Tier 3) is actually implemented.
+- [ ] Login lockout (`IncrementFailedLoginAttempts` / `LockCredentialUserAccount`) isn't atomic against concurrent requests — a burst of parallel wrong-password attempts can overshoot `LOGIN_MAX_FAILED_ATTEMPTS` before the lock takes effect. Same class of race already accepted for schedule edits above; worth a single `UPDATE ... RETURNING` if it becomes a problem in practice.
 
 ## Tier 6 — Code tidiness (not urgent yet, watch for these thresholds)
 
