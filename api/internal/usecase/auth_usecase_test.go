@@ -27,6 +27,13 @@ import (
 // nanoseconds after time.Now() is read here).
 const testRefreshTokenTTL = 30 * 24 * time.Hour
 
+// testMaxFailedLoginAttempts/testLoginLockoutDuration are the lockout
+// parameters every test usecase instance is built with.
+const (
+	testMaxFailedLoginAttempts = 5
+	testLoginLockoutDuration   = 15 * time.Minute
+)
+
 func newAuthUsecase(t *testing.T) (
 	usecase.AuthUsecase,
 	*mocks.MockUserRepository,
@@ -45,7 +52,7 @@ func newAuthUsecase(t *testing.T) (
 	accessTokens := mocks.NewMockAccessTokenIssuer(t)
 	refreshTokenGen := mocks.NewMockRefreshTokenGenerator(t)
 
-	uc := usecase.NewAuthUsecase(uow, users, userAccounts, refreshTokens, hasher, accessTokens, refreshTokenGen, testRefreshTokenTTL)
+	uc := usecase.NewAuthUsecase(uow, users, userAccounts, refreshTokens, hasher, accessTokens, refreshTokenGen, testRefreshTokenTTL, testMaxFailedLoginAttempts, testLoginLockoutDuration)
 	return uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen
 }
 
@@ -218,10 +225,74 @@ func TestAuthUsecase_Login_WrongPassword(t *testing.T) {
 	userAccounts.EXPECT().GetCredentialByUserID(mock.Anything, user.ID).
 		Return(&entity.UserAccount{PasswordHash: &hash}, nil)
 	hasher.EXPECT().Compare(hash, "wrong-password").Return(errors.New("mismatch"))
+	// Below the lockout threshold — only the counter increments, no lock.
+	userAccounts.EXPECT().IncrementFailedLoginAttempts(mock.Anything, user.ID).
+		Return(&entity.UserAccount{FailedLoginAttempts: 1}, nil)
 
 	_, err := uc.Login(context.Background(), usecase.LoginInput{Email: "x@example.com", Password: "wrong-password"})
 
 	assert.ErrorIs(t, err, errs.ErrInvalidCredentials)
+}
+
+func TestAuthUsecase_Login_WrongPassword_LocksAccountAtThreshold(t *testing.T) {
+	uc, users, userAccounts, _, _, hasher, _, _ := newAuthUsecase(t)
+
+	user := &entity.User{ID: uuid.New()}
+	hash := "some-hash"
+	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(user, nil)
+	userAccounts.EXPECT().GetCredentialByUserID(mock.Anything, user.ID).
+		Return(&entity.UserAccount{PasswordHash: &hash}, nil)
+	hasher.EXPECT().Compare(hash, "wrong-password").Return(errors.New("mismatch"))
+	userAccounts.EXPECT().IncrementFailedLoginAttempts(mock.Anything, user.ID).
+		Return(&entity.UserAccount{FailedLoginAttempts: testMaxFailedLoginAttempts}, nil)
+	userAccounts.EXPECT().
+		LockCredentialAccount(mock.Anything, user.ID, mock.MatchedBy(func(until time.Time) bool {
+			return until.After(time.Now())
+		})).
+		Return(nil)
+
+	_, err := uc.Login(context.Background(), usecase.LoginInput{Email: "x@example.com", Password: "wrong-password"})
+
+	assert.ErrorIs(t, err, errs.ErrInvalidCredentials)
+}
+
+func TestAuthUsecase_Login_AccountLocked_RejectsBeforePasswordCheck(t *testing.T) {
+	uc, users, userAccounts, _, _, hasher, _, _ := newAuthUsecase(t)
+
+	user := &entity.User{ID: uuid.New()}
+	hash := "some-hash"
+	lockedUntil := time.Now().Add(5 * time.Minute)
+	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(user, nil)
+	userAccounts.EXPECT().GetCredentialByUserID(mock.Anything, user.ID).
+		Return(&entity.UserAccount{PasswordHash: &hash, LockedUntil: &lockedUntil}, nil)
+	// hasher.Compare deliberately not stubbed — a locked account must be
+	// rejected before ever touching the password.
+	_ = hasher
+
+	_, err := uc.Login(context.Background(), usecase.LoginInput{Email: "x@example.com", Password: "whatever"})
+
+	assert.ErrorIs(t, err, errs.ErrAccountLocked)
+}
+
+func TestAuthUsecase_Login_LockExpired_AllowsPasswordCheck(t *testing.T) {
+	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen := newAuthUsecase(t)
+
+	user := &entity.User{ID: uuid.New()}
+	passwordHash := "scrypt-hash"
+	expiredLock := time.Now().Add(-time.Minute)
+	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(user, nil)
+	userAccounts.EXPECT().GetCredentialByUserID(mock.Anything, user.ID).
+		Return(&entity.UserAccount{PasswordHash: &passwordHash, FailedLoginAttempts: testMaxFailedLoginAttempts, LockedUntil: &expiredLock}, nil)
+	hasher.EXPECT().Compare(passwordHash, "correct-password").Return(nil)
+	userAccounts.EXPECT().ResetFailedLoginAttempts(mock.Anything, user.ID).Return(nil)
+	accessTokens.EXPECT().Generate(user.ID).Return("access-token", time.Now().Add(15*time.Minute), nil)
+	refreshTokenGen.EXPECT().Generate().Return("raw-refresh-token", nil)
+	refreshTokenGen.EXPECT().Hash("raw-refresh-token").Return("hashed-refresh-token")
+	refreshTokens.EXPECT().Create(mock.Anything, mock.Anything).Return(&entity.RefreshToken{ID: uuid.New()}, nil)
+
+	_, err := uc.Login(context.Background(), usecase.LoginInput{Email: "x@example.com", Password: "correct-password"})
+
+	assert.NoError(t, err)
 }
 
 func TestAuthUsecase_Login_NilPasswordHash_OAuthOnlyAccount(t *testing.T) {

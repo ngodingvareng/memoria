@@ -200,6 +200,8 @@ type UserAccount struct {
 	PasswordHash          pgtype.Text
 	CreatedAt             pgtype.Timestamptz
 	UpdatedAt             pgtype.Timestamptz
+	FailedLoginAttempts   int32
+	LockedUntil           pgtype.Timestamptz
 }
 
 type UserVerification struct {

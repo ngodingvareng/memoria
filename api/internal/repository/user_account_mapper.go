@@ -8,12 +8,14 @@ import (
 
 func toEntityUserAccount(row db.UserAccount) *entity.UserAccount {
 	return &entity.UserAccount{
-		ID:           row.ID,
-		UserID:       row.UserID,
-		AccountID:    row.AccountID,
-		ProviderID:   enum.AuthProvider(row.ProviderID),
-		PasswordHash: pgTextToPtr(row.PasswordHash),
-		CreatedAt:    row.CreatedAt.Time,
-		UpdatedAt:    row.UpdatedAt.Time,
+		ID:                  row.ID,
+		UserID:              row.UserID,
+		AccountID:           row.AccountID,
+		ProviderID:          enum.AuthProvider(row.ProviderID),
+		PasswordHash:        pgTextToPtr(row.PasswordHash),
+		FailedLoginAttempts: row.FailedLoginAttempts,
+		LockedUntil:         pgTimestamptzToPtr(row.LockedUntil),
+		CreatedAt:           row.CreatedAt.Time,
+		UpdatedAt:           row.UpdatedAt.Time,
 	}
 }
