@@ -68,7 +68,28 @@ Rules:
   for the reasoning.
 - A domain with sub-resources (e.g. `activity` → `activity_image`) gets
   its own full file set per sub-resource, not folded into the parent's
-  files.
+  files. What that sub-resource is *called* is a separate question —
+  see §3.1.
+- **Packages stay flat.** `internal/entity/` is one package with one
+  file per domain; no sub-packages per domain or per aggregate. This
+  holds while the type count is small enough to scan.
+
+Grouping entities into per-aggregate sub-packages (`entity/thread/`,
+`entity/moment/`, making the package name the namespace and shortening
+`entity.MomentImage` to `moment.Image`) is the intended escape hatch
+once `internal/entity/` stops being scannable — roughly 25–30 types, or
+whenever finding the right file starts costing time. It is deliberately
+not done now: at ~10 entities it buys nothing and costs a refactor.
+Two things to know before reaching for it:
+
+- It changes the naming rules in §3.1, since the package name absorbs
+  the prefix. Choosing bare names now makes that move cheaper, not more
+  expensive.
+- Aggregates must reference each other **by ID only**
+  (`ThreadID uuid.UUID`, never `*thread.Thread`). Cross-aggregate
+  pointers create Go import cycles, which is the same constraint DDD
+  arrives at independently — if a pointer feels necessary, the
+  aggregate boundary is drawn in the wrong place.
 
 ## 3. Naming Conventions
 
@@ -85,6 +106,72 @@ Rules:
 | DTO response | `<Name>Response` | `ActivityResponse` |
 | DTO response constructor | `New<Name>Response` | `dto.NewActivityResponse(e *entity.Activity) ActivityResponse` |
 | Error sentinel | `Err<Reason>`, package-level `var` | `errs.ErrNotFound`, `errs.ErrEmailAlreadyExists` |
+
+### 3.1 Entity Naming: When to Prefix With the Parent
+
+A child entity's name is not where "belongs to a parent" gets
+expressed — the foreign key already does that, and doing it twice means
+two places that can disagree.
+
+> **The foreign key expresses ownership. The name expresses identity.**
+
+Prefix a child entity with its parent **only** when at least one of
+these holds:
+
+1. **The bare noun is semantically empty.** `Image`, `History`,
+   `Token`, `Item`, `Entry`, `Detail`, `Status`, `Config` mean nothing
+   standing alone and need a parent to be readable at all.
+2. **The bare noun is already taken** — by the language, the stdlib, a
+   dependency, or another domain concept here. `Session`, `Type`,
+   `Error`, `Context`, `Time` are all taken in a Go web backend.
+3. **Sibling variants exist that must be told apart.** When two
+   entities under different parents share a noun, both get prefixed,
+   because the bare noun can't say which one it is.
+
+If none applies, use the bare noun.
+
+The fastest check is to say it in a sentence a domain expert would
+actually use. Nobody says "add an activity-capture to the Work
+activity" — they say "add a capture." When the parent doesn't appear in
+the spoken form, it doesn't belong in the type name. (`OrderLine` in
+other codebases is not a counterexample: people really do say "order
+line," because "line" alone means nothing. That's rule 1 doing the
+work, not ownership.)
+
+Applied to the entities in this codebase today:
+
+| Entity | Verdict | Why |
+|---|---|---|
+| `Activity` | bare | Root; nothing to prefix with. |
+| `ActivityCapture` | **should be bare** | "Capture" carries its own meaning — no rule applies. Resolved by the pending rename (below). |
+| `ActivitySchedule` | **should be bare** | Same. |
+| `ActivityImage` | prefixed | Rules 1 + 3 — "Image" is empty, and a sibling image entity exists. |
+| `ActivityCaptureImage` | prefixed | Rules 1 + 3, but three nouns deep — see the compounding cost below. |
+| `ActivityScheduleHistory` | prefixed | Rule 1 — "History" is empty. |
+| `RefreshToken` | prefixed | Rules 1 + 3 — "Token" is empty; `AccessToken` is its sibling. |
+| `User` | bare | Root. |
+| `UserAccount` | prefixed | Rule 2 — "Account" is ambiguous (billing? tenant?). |
+| `UserVerification` | prefixed | Rule 1 — "Verification" is too vague alone. |
+
+Two costs of prefixing when no rule calls for it:
+
+- **Prefixes compound down the tree.** Every level inherits all of its
+  ancestors. `ActivityCaptureImage` is already three nouns, and a
+  fourth level would be unreadable. Under the vocabulary in
+  `FEATURES.md` this becomes `MomentImage`, not `ThreadMomentImage`,
+  precisely to stop the accumulation.
+- **A name that encodes a relation becomes a lie when the relation
+  loosens.** Renaming a Go type is cheap; renaming a table, its
+  columns, its queries, its mappers, and every DTO mirroring it is not.
+  Relations loosen far more often than they tighten — a `Moment`
+  created by photo backfill exists before it has any parent at all,
+  which alone rules out `ThreadMoment`.
+
+Note that entity names track `FEATURES.md`'s `Vocabulary` section, which
+is the authoritative product vocabulary. The rename it specifies
+(`Activity` → `Thread`, `ActivityCapture` → `Moment`,
+`ActivitySchedule` → `Commitment`) is not yet applied to `api/`; the
+rules above are what it follows when it is.
 
 ## 4. Function Signature Conventions
 
@@ -496,6 +583,9 @@ func NewDomainResponse(e *entity.Domain) DomainResponse {
 - [ ] No unused exported function/type — `grep` its name across the repo
       before committing; if it has zero call sites, delete it rather
       than leaving it "for later."
+- [ ] Any new child entity is named bare unless rule 1, 2, or 3 of §3.1
+      applies — a parent prefix added only to express "belongs to"
+      duplicates what the foreign key already says.
 - [ ] No leftover scaffold/draft comments ("if you like", "assuming
       this is...", a NOTE phrased as an instruction to a future dev)
       (§8).
