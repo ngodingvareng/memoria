@@ -1,11 +1,11 @@
 -- ---------------------------------------------------------
--- Activity schema
+-- Thread schema
 -- ---------------------------------------------------------
-DROP TABLE IF EXISTS activity_capture_images;
-DROP TABLE IF EXISTS activity_captures;
-DROP TABLE IF EXISTS activity_schedule_histories;
-DROP TABLE IF EXISTS activity_schedules;
-DROP TABLE IF EXISTS activity_images;
-DROP TABLE IF EXISTS activities;
+DROP TABLE IF EXISTS moment_images;
+DROP TABLE IF EXISTS moments;
+DROP TABLE IF EXISTS commitment_histories;
+DROP TABLE IF EXISTS commitments;
+DROP TABLE IF EXISTS thread_images;
+DROP TABLE IF EXISTS threads;
 
-DROP TYPE IF EXISTS activity_capture_status;
+DROP TYPE IF EXISTS moment_status;

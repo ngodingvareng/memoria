@@ -25,11 +25,11 @@ Remaining work, ordered by priority (security-critical first, product-blocking n
 
 ## Tier 5 — Open design decisions (full detail in `SCHEMA_REVIEW.md`)
 
-### Schema/spec gaps opened by the vocabulary rename
+### Schema/spec gaps against FEATURES.md
 
-Migration `000003` renamed the schema to the `FEATURES.md` vocabulary but
-deliberately changed no semantics. These are the three places where the schema
-and the spec now disagree, and each needs a model change rather than a rename:
+The schema already uses the `FEATURES.md` vocabulary (Thread/Moment/
+Commitment), but three places still disagree on semantics, and each
+needs a model change:
 
 - [ ] **`moments.status` is `NOT NULL`**, so a manually captured Moment is forced to carry a state it shouldn't have — `FEATURES.md` is explicit that only Commitment-generated Moments have one ("a manually captured Moment has no state"). Either make the column nullable, or take Open Decision 5 in `FEATURES.md` and move Commitment outcomes into their own table, which would make the Commitment Firewall structural instead of a rule handlers have to remember.
 - [ ] **`confirmation_timeout_minutes` lives on `threads`**, but `FEATURES.md` puts the confirmation window and strictness on each Commitment — two Commitments under one Thread (a strict morning run, a gentle evening walk) currently cannot differ. Move the column to `commitments` and add `strictness`.
