@@ -63,3 +63,30 @@ WHERE user_id = sqlc.arg(user_id)
 DELETE FROM user_accounts
 WHERE id = sqlc.arg(id)
     AND user_id = sqlc.arg(user_id);
+
+-- name: IncrementFailedLoginAttempts :one
+-- Called after a wrong password. The usecase decides whether the
+-- returned failed_login_attempts count crosses the configured
+-- lockout threshold and, if so, calls LockCredentialUserAccount.
+UPDATE user_accounts
+SET failed_login_attempts = failed_login_attempts + 1,
+    updated_at = NOW()
+WHERE user_id = sqlc.arg(user_id)
+    AND provider_id = 'credential'
+RETURNING *;
+
+-- name: LockCredentialUserAccount :exec
+UPDATE user_accounts
+SET locked_until = sqlc.arg(locked_until),
+    updated_at = NOW()
+WHERE user_id = sqlc.arg(user_id)
+    AND provider_id = 'credential';
+
+-- name: ResetFailedLoginAttempts :exec
+-- Called after a successful login to clear any accumulated failures.
+UPDATE user_accounts
+SET failed_login_attempts = 0,
+    locked_until = NULL,
+    updated_at = NOW()
+WHERE user_id = sqlc.arg(user_id)
+    AND provider_id = 'credential';

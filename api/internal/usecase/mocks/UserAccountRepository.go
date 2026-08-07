@@ -6,6 +6,7 @@ package mocks
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
@@ -183,6 +184,194 @@ func (_c *MockUserAccountRepository_GetCredentialByUserID_Call) Return(userAccou
 }
 
 func (_c *MockUserAccountRepository_GetCredentialByUserID_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error)) *MockUserAccountRepository_GetCredentialByUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// IncrementFailedLoginAttempts provides a mock function for the type MockUserAccountRepository
+func (_mock *MockUserAccountRepository) IncrementFailedLoginAttempts(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IncrementFailedLoginAttempts")
+	}
+
+	var r0 *entity.UserAccount
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*entity.UserAccount, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) *entity.UserAccount); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.UserAccount)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUserAccountRepository_IncrementFailedLoginAttempts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IncrementFailedLoginAttempts'
+type MockUserAccountRepository_IncrementFailedLoginAttempts_Call struct {
+	*mock.Call
+}
+
+// IncrementFailedLoginAttempts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+func (_e *MockUserAccountRepository_Expecter) IncrementFailedLoginAttempts(ctx any, userID any) *MockUserAccountRepository_IncrementFailedLoginAttempts_Call {
+	return &MockUserAccountRepository_IncrementFailedLoginAttempts_Call{Call: _e.mock.On("IncrementFailedLoginAttempts", ctx, userID)}
+}
+
+func (_c *MockUserAccountRepository_IncrementFailedLoginAttempts_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockUserAccountRepository_IncrementFailedLoginAttempts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserAccountRepository_IncrementFailedLoginAttempts_Call) Return(userAccount *entity.UserAccount, err error) *MockUserAccountRepository_IncrementFailedLoginAttempts_Call {
+	_c.Call.Return(userAccount, err)
+	return _c
+}
+
+func (_c *MockUserAccountRepository_IncrementFailedLoginAttempts_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error)) *MockUserAccountRepository_IncrementFailedLoginAttempts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// LockCredentialAccount provides a mock function for the type MockUserAccountRepository
+func (_mock *MockUserAccountRepository) LockCredentialAccount(ctx context.Context, userID uuid.UUID, until time.Time) error {
+	ret := _mock.Called(ctx, userID, until)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LockCredentialAccount")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, time.Time) error); ok {
+		r0 = returnFunc(ctx, userID, until)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUserAccountRepository_LockCredentialAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LockCredentialAccount'
+type MockUserAccountRepository_LockCredentialAccount_Call struct {
+	*mock.Call
+}
+
+// LockCredentialAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+//   - until time.Time
+func (_e *MockUserAccountRepository_Expecter) LockCredentialAccount(ctx any, userID any, until any) *MockUserAccountRepository_LockCredentialAccount_Call {
+	return &MockUserAccountRepository_LockCredentialAccount_Call{Call: _e.mock.On("LockCredentialAccount", ctx, userID, until)}
+}
+
+func (_c *MockUserAccountRepository_LockCredentialAccount_Call) Run(run func(ctx context.Context, userID uuid.UUID, until time.Time)) *MockUserAccountRepository_LockCredentialAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 time.Time
+		if args[2] != nil {
+			arg2 = args[2].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserAccountRepository_LockCredentialAccount_Call) Return(err error) *MockUserAccountRepository_LockCredentialAccount_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUserAccountRepository_LockCredentialAccount_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID, until time.Time) error) *MockUserAccountRepository_LockCredentialAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ResetFailedLoginAttempts provides a mock function for the type MockUserAccountRepository
+func (_mock *MockUserAccountRepository) ResetFailedLoginAttempts(ctx context.Context, userID uuid.UUID) error {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResetFailedLoginAttempts")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUserAccountRepository_ResetFailedLoginAttempts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResetFailedLoginAttempts'
+type MockUserAccountRepository_ResetFailedLoginAttempts_Call struct {
+	*mock.Call
+}
+
+// ResetFailedLoginAttempts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+func (_e *MockUserAccountRepository_Expecter) ResetFailedLoginAttempts(ctx any, userID any) *MockUserAccountRepository_ResetFailedLoginAttempts_Call {
+	return &MockUserAccountRepository_ResetFailedLoginAttempts_Call{Call: _e.mock.On("ResetFailedLoginAttempts", ctx, userID)}
+}
+
+func (_c *MockUserAccountRepository_ResetFailedLoginAttempts_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockUserAccountRepository_ResetFailedLoginAttempts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserAccountRepository_ResetFailedLoginAttempts_Call) Return(err error) *MockUserAccountRepository_ResetFailedLoginAttempts_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUserAccountRepository_ResetFailedLoginAttempts_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID) error) *MockUserAccountRepository_ResetFailedLoginAttempts_Call {
 	_c.Call.Return(run)
 	return _c
 }

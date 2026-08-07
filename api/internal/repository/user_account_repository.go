@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -50,4 +51,35 @@ func (r *userAccountRepository) GetCredentialByUserID(ctx context.Context, userI
 	}
 	return toEntityUserAccount(row), nil
 
+}
+
+// IncrementFailedLoginAttempts implements [usecase.UserAccountRepository].
+func (r *userAccountRepository) IncrementFailedLoginAttempts(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error) {
+	row, err := r.q.IncrementFailedLoginAttempts(ctx, userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("increment failed login attempts: %w", err)
+	}
+	return toEntityUserAccount(row), nil
+}
+
+// LockCredentialAccount implements [usecase.UserAccountRepository].
+func (r *userAccountRepository) LockCredentialAccount(ctx context.Context, userID uuid.UUID, until time.Time) error {
+	if err := r.q.LockCredentialUserAccount(ctx, db.LockCredentialUserAccountParams{
+		UserID:      userID,
+		LockedUntil: timeToPgTimestamptz(until),
+	}); err != nil {
+		return fmt.Errorf("lock credential account: %w", err)
+	}
+	return nil
+}
+
+// ResetFailedLoginAttempts implements [usecase.UserAccountRepository].
+func (r *userAccountRepository) ResetFailedLoginAttempts(ctx context.Context, userID uuid.UUID) error {
+	if err := r.q.ResetFailedLoginAttempts(ctx, userID); err != nil {
+		return fmt.Errorf("reset failed login attempts: %w", err)
+	}
+	return nil
 }

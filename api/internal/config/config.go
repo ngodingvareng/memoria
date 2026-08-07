@@ -26,6 +26,28 @@ type Config struct {
 	StorageSecretKey    string        `mapstructure:"STORAGE_SECRET_KEY"`
 	StorageBucket       string        `mapstructure:"STORAGE_BUCKET"`
 	StorageUsePathStyle bool          `mapstructure:"STORAGE_USE_PATH_STYLE"`
+
+	// CORSAllowedOrigins is comma-separated in .env (e.g.
+	// "http://localhost:5173,https://app.example.com") — viper's default
+	// mapstructure decode hooks (the same ones that parse
+	// JWT_ACCESS_TOKEN_TTL's "5m" into a time.Duration) split it into a
+	// []string automatically.
+	CORSAllowedOrigins []string `mapstructure:"CORS_ALLOWED_ORIGINS"`
+
+	// LoginRateLimitMax/Window throttle POST /auth/login and
+	// /auth/register per client IP, independently of the per-account
+	// lockout below — this is what stops a single IP from hammering
+	// many different accounts (or brute-forcing one) with request
+	// volume alone.
+	LoginRateLimitMax    int           `mapstructure:"LOGIN_RATE_LIMIT_MAX"`
+	LoginRateLimitWindow time.Duration `mapstructure:"LOGIN_RATE_LIMIT_WINDOW"`
+
+	// LoginMaxFailedAttempts/LockoutDuration implement per-account
+	// lockout: after this many consecutive failed password attempts
+	// against one credential account, it's locked for LockoutDuration
+	// regardless of which IP is trying it.
+	LoginMaxFailedAttempts int           `mapstructure:"LOGIN_MAX_FAILED_ATTEMPTS"`
+	LoginLockoutDuration   time.Duration `mapstructure:"LOGIN_LOCKOUT_DURATION"`
 }
 
 func (c *Config) GetDSN() string {
@@ -38,6 +60,10 @@ func LoadConfig() (*Config, error) {
 	viper.AutomaticEnv()
 
 	viper.SetDefault("SERVER_PORT", "3000")
+	viper.SetDefault("LOGIN_RATE_LIMIT_MAX", 10)
+	viper.SetDefault("LOGIN_RATE_LIMIT_WINDOW", time.Minute)
+	viper.SetDefault("LOGIN_MAX_FAILED_ATTEMPTS", 5)
+	viper.SetDefault("LOGIN_LOCKOUT_DURATION", 15*time.Minute)
 
 	if err := viper.ReadInConfig(); err != nil {
 		// A missing .env is fine — env vars alone are a valid config

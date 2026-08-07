@@ -23,6 +23,13 @@ type UserRepository interface {
 type UserAccountRepository interface {
 	CreateCredential(ctx context.Context, userID uuid.UUID, accountID, passwordHash string) (*entity.UserAccount, error)
 	GetCredentialByUserID(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error)
+	// IncrementFailedLoginAttempts records one more failed password
+	// attempt against the credential account and returns the row with
+	// its updated count, so the caller can decide whether it just
+	// crossed the lockout threshold.
+	IncrementFailedLoginAttempts(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error)
+	LockCredentialAccount(ctx context.Context, userID uuid.UUID, until time.Time) error
+	ResetFailedLoginAttempts(ctx context.Context, userID uuid.UUID) error
 }
 
 type RefreshTokenRepository interface {
@@ -128,6 +135,11 @@ type authUsecase struct {
 	accessTokens    AccessTokenIssuer
 	refreshTokenGen RefreshTokenGenerator
 	refreshTokenTTL time.Duration
+	// maxFailedLoginAttempts/loginLockoutDuration implement per-account
+	// lockout (see Login below) — independent of any IP-based rate
+	// limiting applied at the HTTP layer.
+	maxFailedLoginAttempts int
+	loginLockoutDuration   time.Duration
 }
 
 func NewAuthUsecase(
@@ -139,11 +151,15 @@ func NewAuthUsecase(
 	accessTokens AccessTokenIssuer,
 	refreshTokenGen RefreshTokenGenerator,
 	refreshTokenTTL time.Duration,
+	maxFailedLoginAttempts int,
+	loginLockoutDuration time.Duration,
 ) AuthUsecase {
 	return &authUsecase{
 		uow: uow, users: users, userAccounts: userAccounts, refreshTokens: refreshTokens,
 		hasher: hasher, accessTokens: accessTokens, refreshTokenGen: refreshTokenGen,
-		refreshTokenTTL: refreshTokenTTL,
+		refreshTokenTTL:        refreshTokenTTL,
+		maxFailedLoginAttempts: maxFailedLoginAttempts,
+		loginLockoutDuration:   loginLockoutDuration,
 	}
 }
 
@@ -200,12 +216,45 @@ func (u *authUsecase) Login(ctx context.Context, input LoginInput) (*AuthTokens,
 	if account.PasswordHash == nil {
 		return nil, errs.ErrInvalidCredentials
 	}
+
+	if account.LockedUntil != nil && account.LockedUntil.After(time.Now()) {
+		return nil, errs.ErrAccountLocked
+	}
+
 	if err := u.hasher.Compare(*account.PasswordHash, input.Password); err != nil {
+		if regErr := u.registerFailedLogin(ctx, user.ID); regErr != nil {
+			return nil, fmt.Errorf("registering failed login: %w", regErr)
+		}
 		return nil, errs.ErrInvalidCredentials
+	}
+
+	if account.FailedLoginAttempts > 0 || account.LockedUntil != nil {
+		if err := u.userAccounts.ResetFailedLoginAttempts(ctx, user.ID); err != nil {
+			return nil, fmt.Errorf("resetting failed login attempts: %w", err)
+		}
 	}
 
 	// Login always starts a fresh chain.
 	return u.issueSession(ctx, u.refreshTokens, user, uuid.New(), input.IPAddress, input.UserAgent)
+}
+
+// registerFailedLogin records one more failed password attempt and, once
+// the count reaches maxFailedLoginAttempts, locks the account for
+// loginLockoutDuration. Locking re-triggers on every failed attempt made
+// after the count is already at/above the threshold (including right
+// after a previous lockout expires), which is deliberately more
+// aggressive than resetting the count on expiry alone.
+func (u *authUsecase) registerFailedLogin(ctx context.Context, userID uuid.UUID) error {
+	updated, err := u.userAccounts.IncrementFailedLoginAttempts(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("incrementing failed login attempts: %w", err)
+	}
+	if int(updated.FailedLoginAttempts) >= u.maxFailedLoginAttempts {
+		if err := u.userAccounts.LockCredentialAccount(ctx, userID, time.Now().Add(u.loginLockoutDuration)); err != nil {
+			return fmt.Errorf("locking account: %w", err)
+		}
+	}
+	return nil
 }
 
 func (u *authUsecase) issueSession(ctx context.Context, repo RefreshTokenRepository, user *entity.User, familyID uuid.UUID, ip, ua *string) (*AuthTokens, error) {

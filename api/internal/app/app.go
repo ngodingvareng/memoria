@@ -5,12 +5,15 @@ import (
 	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/limiter"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/config"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/handler"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
+	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/repository"
 	"github.com/ngodingvareng/memoria/internal/security"
 	"github.com/ngodingvareng/memoria/internal/storage"
@@ -61,7 +64,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	refreshTokenGenerator := security.NewRefreshTokenGenerator()
 	hasher := security.NewScryptHasher()
 
-	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, hasher, accessTokenIssuer, refreshTokenGenerator, cfg.JWTRefreshTokenTTL)
+	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, hasher, accessTokenIssuer, refreshTokenGenerator, cfg.JWTRefreshTokenTTL, cfg.LoginMaxFailedAttempts, cfg.LoginLockoutDuration)
 	authHandler := handler.NewAuthHandler(authUsecase, cfg.SecureCookies)
 
 	// 3b. Threads
@@ -93,8 +96,31 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	fiberApp.Use(slogfiber.New(slog.Default()))
 	fiberApp.Use(recover.New())
 
+	// AllowCredentials is required for the browser to send/receive the
+	// httpOnly refresh_token cookie cross-origin (see auth_handler.go's
+	// setRefreshCookie) — that in turn means AllowOrigins can't contain
+	// "*", only the explicit origins listed in CORS_ALLOWED_ORIGINS.
+	fiberApp.Use(cors.New(cors.Config{
+		AllowOrigins:     cfg.CORSAllowedOrigins,
+		AllowCredentials: true,
+		AllowHeaders:     []string{fiber.HeaderAuthorization, fiber.HeaderContentType},
+	}))
+
+	// Per-IP throttle for the brute-forceable, unauthenticated auth
+	// endpoints (login/register) — see router.go for which routes this
+	// gets attached to. LimitReached returns errs.ErrTooManyRequests so
+	// the response goes through the same CustomErrorHandler JSON shape
+	// as every other error.
+	authRateLimiter := limiter.New(limiter.Config{
+		Max:        cfg.LoginRateLimitMax,
+		Expiration: cfg.LoginRateLimitWindow,
+		LimitReached: func(c fiber.Ctx) error {
+			return errs.ErrTooManyRequests
+		},
+	})
+
 	// 5. Router
-	rest.SetupRoutes(fiberApp, accessTokenIssuer, rest.Handlers{
+	rest.SetupRoutes(fiberApp, accessTokenIssuer, authRateLimiter, rest.Handlers{
 		Auth:        authHandler,
 		Thread:      threadHandler,
 		ThreadImage: threadImageHandler,

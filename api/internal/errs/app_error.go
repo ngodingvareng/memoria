@@ -50,6 +50,12 @@ var (
 
 	// 422 Unprocessable Entity
 	ErrUnprocessableEntity = New(http.StatusUnprocessableEntity, "unprocessable entity")
+
+	// 423 Locked
+	ErrAccountLocked = New(http.StatusLocked, "account temporarily locked due to too many failed login attempts")
+
+	// 429 Too Many Requests
+	ErrTooManyRequests = New(http.StatusTooManyRequests, "too many requests")
 )
 
 type ValidationError struct {

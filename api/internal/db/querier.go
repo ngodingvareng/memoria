@@ -86,6 +86,10 @@ type Querier interface {
 	// Actually cascades into user_accounts/user_sessions/activities/... Only
 	// call this from the purge job, on rows already past their grace period.
 	HardDeleteUser(ctx context.Context, id uuid.UUID) error
+	// Called after a wrong password. The usecase decides whether the
+	// returned failed_login_attempts count crosses the configured
+	// lockout threshold and, if so, calls LockCredentialUserAccount.
+	IncrementFailedLoginAttempts(ctx context.Context, userID uuid.UUID) (UserAccount, error)
 	// "How has this Thread's commitments changed over time" view.
 	ListCommitmentHistoryByThreadID(ctx context.Context, threadID uuid.UUID) ([]CommitmentHistory, error)
 	// Can return more than one row: a Thread may carry several concurrent
@@ -110,6 +114,7 @@ type Querier interface {
 	// For a purge job: pass purge_before = NOW() - INTERVAL '30 days' (or
 	// whatever grace period is chosen) from the application.
 	ListUsersPendingPurge(ctx context.Context, purgeBefore pgtype.Timestamptz) ([]User, error)
+	LockCredentialUserAccount(ctx context.Context, arg LockCredentialUserAccountParams) error
 	// The timeout job itself: bulk-flip every 'due' Moment whose confirmation
 	// window (due_at + threads.confirmation_timeout_minutes) has closed.
 	// Run this on a schedule (e.g. every minute).
@@ -118,6 +123,8 @@ type Querier interface {
 	// "WHERE status = 'due'" avoids a race against the timeout job flipping
 	// the same row at the same time.
 	RecordMoment(ctx context.Context, arg RecordMomentParams) (Moment, error)
+	// Called after a successful login to clear any accumulated failures.
+	ResetFailedLoginAttempts(ctx context.Context, userID uuid.UUID) error
 	RestoreMoment(ctx context.Context, id uuid.UUID) error
 	RestoreThread(ctx context.Context, arg RestoreThreadParams) error
 	RestoreUser(ctx context.Context, id uuid.UUID) error
