@@ -49,7 +49,7 @@ type AuthRepositories struct {
 
 // AuthUnitOfWork runs fn with repositories all bound to the SAME
 // transaction. This is the multi-repository counterpart to the
-// single-repository WithTransaction pattern used in activity_usecase.go
+// single-repository WithTransaction pattern used in thread_usecase.go
 // — that pattern only coordinates one repository at a time, which isn't
 // enough here since Register spans two.
 type AuthUnitOfWork interface {

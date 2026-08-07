@@ -123,7 +123,7 @@ func TestS3Storage_PutAndPresignGet_RoundTrip(t *testing.T) {
 	s := setupTestStorage(t)
 	ctx := context.Background()
 
-	key := "activities/test-activity/photo.jpg"
+	key := "threads/test-thread/photo.jpg"
 	content := []byte("fake jpeg bytes for testing")
 
 	err := s.Put(ctx, key, bytes.NewReader(content), int64(len(content)), "image/jpeg")
@@ -150,7 +150,7 @@ func TestS3Storage_Delete_ObjectNoLongerDownloadable(t *testing.T) {
 	s := setupTestStorage(t)
 	ctx := context.Background()
 
-	key := "activities/test-activity/to-delete.jpg"
+	key := "threads/test-thread/to-delete.jpg"
 	err := s.Put(ctx, key, bytes.NewReader([]byte("bytes")), 5, "image/jpeg")
 	require.NoError(t, err)
 
@@ -171,7 +171,7 @@ func TestS3Storage_PresignedURL_ExpiresEventually(t *testing.T) {
 	s := setupTestStorage(t)
 	ctx := context.Background()
 
-	key := "activities/test-activity/expiring.jpg"
+	key := "threads/test-thread/expiring.jpg"
 	err := s.Put(ctx, key, bytes.NewReader([]byte("bytes")), 5, "image/jpeg")
 	require.NoError(t, err)
 

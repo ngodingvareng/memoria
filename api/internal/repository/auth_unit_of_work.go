@@ -15,7 +15,7 @@ import (
 var _ usecase.AuthUnitOfWork = (*authUnitOfWork)(nil)
 
 // authUnitOfWork coordinates a transaction across MORE than one
-// repository — the multi-repository counterpart to activityRepository's
+// repository — the multi-repository counterpart to threadRepository's
 // own single-repository WithTransaction. Register needs to insert both a
 // users row and a user_accounts row atomically; Refresh needs to insert
 // a new refresh_tokens row and revoke the old one atomically. Neither

@@ -12,9 +12,9 @@ import (
 // Handlers groups every handler the router needs. Add a field here each
 // time a new domain's handler is wired up in app.go.
 type Handlers struct {
-	Auth          *handler.AuthHandler
-	Activity      *handler.ActivityHandler
-	ActivityImage *handler.ActivityImageHandler
+	Auth        *handler.AuthHandler
+	Thread      *handler.ThreadHandler
+	ThreadImage *handler.ThreadImageHandler
 }
 
 func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, h Handlers) {
@@ -34,14 +34,14 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, h Handlers) {
 	auth.Post("/refresh", h.Auth.Refresh)
 	auth.Post("/logout", h.Auth.Logout)
 
-	activities := app.Group("/activities", middleware.RequireAuth(issuer))
-	activities.Post("/", h.Activity.CreateActivity)
-	activities.Put("/:id", h.Activity.UpdateActivity)
-	activities.Delete("/:id", h.Activity.DeleteActivity)
-	activities.Get("/", h.Activity.SearchActivities)
-	activities.Get("/:id", h.Activity.GetActivity)
+	threads := app.Group("/threads", middleware.RequireAuth(issuer))
+	threads.Post("/", h.Thread.CreateThread)
+	threads.Put("/:id", h.Thread.UpdateThread)
+	threads.Delete("/:id", h.Thread.DeleteThread)
+	threads.Get("/", h.Thread.SearchThreads)
+	threads.Get("/:id", h.Thread.GetThread)
 
-	activities.Post("/:id/images", h.ActivityImage.UploadActivityImage)
-	activities.Get("/:id/images", h.ActivityImage.ListActivityImages)
-	activities.Delete("/:id/images/:imageId", h.ActivityImage.DeleteActivityImage)
+	threads.Post("/:id/images", h.ThreadImage.UploadThreadImage)
+	threads.Get("/:id/images", h.ThreadImage.ListThreadImages)
+	threads.Delete("/:id/images/:imageId", h.ThreadImage.DeleteThreadImage)
 }

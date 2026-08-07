@@ -12,10 +12,10 @@ packages:
 
       AuthUnitOfWork:
 
-      ActivityRepository:
-      ActivityImageRepository:
+      ThreadRepository:
+      ThreadImageRepository:
       UserRepository:
       UserAccountRepository:
       RefreshTokenRepository:
 
-      ActivityAccessChecker:
+      ThreadAccessChecker:
