@@ -8,7 +8,7 @@ import (
 )
 
 // This file holds pgtype <-> plain-Go-pointer conversions shared by
-// every entity mapper in this package (activity_mapper.go,
+// every entity mapper in this package (thread_mapper.go,
 // user_mapper.go, etc. as they're added). Keeping pgtype awareness
 // confined to internal/repository is deliberate — entity and usecase
 // never see pgtype directly, only plain Go types (string, *string,

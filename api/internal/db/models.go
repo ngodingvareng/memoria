@@ -12,49 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type ActivityCaptureStatus string
-
-const (
-	ActivityCaptureStatusAwaiting ActivityCaptureStatus = "awaiting"
-	ActivityCaptureStatusCaptured ActivityCaptureStatus = "captured"
-	ActivityCaptureStatusMissed   ActivityCaptureStatus = "missed"
-)
-
-func (e *ActivityCaptureStatus) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = ActivityCaptureStatus(s)
-	case string:
-		*e = ActivityCaptureStatus(s)
-	default:
-		return fmt.Errorf("unsupported scan type for ActivityCaptureStatus: %T", src)
-	}
-	return nil
-}
-
-type NullActivityCaptureStatus struct {
-	ActivityCaptureStatus ActivityCaptureStatus
-	Valid                 bool // Valid is true if ActivityCaptureStatus is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullActivityCaptureStatus) Scan(value interface{}) error {
-	if value == nil {
-		ns.ActivityCaptureStatus, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.ActivityCaptureStatus.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullActivityCaptureStatus) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.ActivityCaptureStatus), nil
-}
-
 type AuthProviderID string
 
 const (
@@ -98,66 +55,88 @@ func (ns NullAuthProviderID) Value() (driver.Value, error) {
 	return string(ns.AuthProviderID), nil
 }
 
-type Activity struct {
-	ID                         uuid.UUID
-	UserID                     uuid.UUID
-	Name                       string
-	Description                pgtype.Text
-	IsFixedSchedule            bool
-	ColorHex                   pgtype.Text
-	ConfirmationTimeoutMinutes pgtype.Int4
-	CreatedAt                  pgtype.Timestamptz
-	UpdatedAt                  pgtype.Timestamptz
-	DeletedAt                  pgtype.Timestamptz
+type MomentStatus string
+
+const (
+	MomentStatusDue    MomentStatus = "due"
+	MomentStatusKept   MomentStatus = "kept"
+	MomentStatusMissed MomentStatus = "missed"
+)
+
+func (e *MomentStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MomentStatus(s)
+	case string:
+		*e = MomentStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MomentStatus: %T", src)
+	}
+	return nil
 }
 
-type ActivityCapture struct {
-	ID          uuid.UUID
-	ActivityID  uuid.UUID
-	ScheduleID  pgtype.UUID
-	Status      ActivityCaptureStatus
-	ScheduledAt pgtype.Timestamptz
-	ConfirmedAt pgtype.Timestamptz
-	OccurredAt  pgtype.Timestamptz
-	Content     pgtype.Text
-	ColorHex    pgtype.Text
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
-	DeletedAt   pgtype.Timestamptz
+type NullMomentStatus struct {
+	MomentStatus MomentStatus
+	Valid        bool // Valid is true if MomentStatus is not NULL
 }
 
-type ActivityCaptureImage struct {
-	ID                uuid.UUID
-	ActivityCaptureID uuid.UUID
-	ImagePath         string
-	ImageAlt          pgtype.Text
-	CreatedAt         pgtype.Timestamptz
+// Scan implements the Scanner interface.
+func (ns *NullMomentStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.MomentStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MomentStatus.Scan(value)
 }
 
-type ActivityImage struct {
-	ID         uuid.UUID
-	ActivityID uuid.UUID
-	ImagePath  string
-	ImageAlt   pgtype.Text
-	CreatedAt  pgtype.Timestamptz
+// Value implements the driver Valuer interface.
+func (ns NullMomentStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MomentStatus), nil
 }
 
-type ActivitySchedule struct {
+type Commitment struct {
 	ID             uuid.UUID
-	ActivityID     uuid.UUID
+	ThreadID       uuid.UUID
 	CronExpression string
 	Timezone       pgtype.Text
 	CreatedAt      pgtype.Timestamptz
 }
 
-type ActivityScheduleHistory struct {
+type CommitmentHistory struct {
 	ID             uuid.UUID
-	ActivityID     uuid.UUID
-	ScheduleID     pgtype.UUID
+	ThreadID       uuid.UUID
+	CommitmentID   pgtype.UUID
 	CronExpression string
 	Timezone       pgtype.Text
 	ActiveFrom     pgtype.Timestamptz
 	ActiveUntil    pgtype.Timestamptz
+}
+
+type Moment struct {
+	ID           uuid.UUID
+	ThreadID     uuid.UUID
+	CommitmentID pgtype.UUID
+	Status       MomentStatus
+	DueAt        pgtype.Timestamptz
+	CapturedAt   pgtype.Timestamptz
+	OccurredAt   pgtype.Timestamptz
+	Content      pgtype.Text
+	ColorHex     pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+	DeletedAt    pgtype.Timestamptz
+}
+
+type MomentImage struct {
+	ID        uuid.UUID
+	MomentID  uuid.UUID
+	ImagePath string
+	ImageAlt  pgtype.Text
+	CreatedAt pgtype.Timestamptz
 }
 
 type RefreshToken struct {
@@ -172,6 +151,27 @@ type RefreshToken struct {
 	UserAgent    pgtype.Text
 	CreatedAt    pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
+}
+
+type Thread struct {
+	ID                         uuid.UUID
+	UserID                     uuid.UUID
+	Name                       string
+	Description                pgtype.Text
+	HasCommitment              bool
+	ColorHex                   pgtype.Text
+	ConfirmationTimeoutMinutes pgtype.Int4
+	CreatedAt                  pgtype.Timestamptz
+	UpdatedAt                  pgtype.Timestamptz
+	DeletedAt                  pgtype.Timestamptz
+}
+
+type ThreadImage struct {
+	ID        uuid.UUID
+	ThreadID  uuid.UUID
+	ImagePath string
+	ImageAlt  pgtype.Text
+	CreatedAt pgtype.Timestamptz
 }
 
 type User struct {

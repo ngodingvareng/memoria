@@ -13,7 +13,7 @@ import (
 // change, this interface and its implementation don't.
 type Storage interface {
 	// Put uploads an object under key. key is what gets persisted as
-	// activity_images.image_path — store the key, not a full URL, so
+	// thread_images.image_path — store the key, not a full URL, so
 	// switching backends later never requires a data migration.
 	Put(ctx context.Context, key string, body io.Reader, size int64, contentType string) error
 

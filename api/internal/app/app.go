@@ -67,14 +67,14 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, hasher, accessTokenIssuer, refreshTokenGenerator, cfg.JWTRefreshTokenTTL, cfg.LoginMaxFailedAttempts, cfg.LoginLockoutDuration)
 	authHandler := handler.NewAuthHandler(authUsecase, cfg.SecureCookies)
 
-	// 3b. Activities
-	activityRepo := repository.NewActivityRepository(conn)
-	activityUsecase := usecase.NewActivityUsecase(activityRepo)
-	activityHandler := handler.NewActivityHandler(activityUsecase)
+	// 3b. Threads
+	threadRepo := repository.NewThreadRepository(conn)
+	threadUsecase := usecase.NewThreadUsecase(threadRepo)
+	threadHandler := handler.NewThreadHandler(threadUsecase)
 
-	activityImageRepo := repository.NewActivityImageRepository(conn)
-	activityImageUsecase := usecase.NewActivityImageUsecase(activityImageRepo, objectStorage, activityRepo)
-	activityImageHandler := handler.NewActivityImageHandler(activityImageUsecase)
+	threadImageRepo := repository.NewThreadImageRepository(conn)
+	threadImageUsecase := usecase.NewThreadImageUsecase(threadImageRepo, objectStorage, threadRepo)
+	threadImageHandler := handler.NewThreadImageHandler(threadImageUsecase)
 
 	// 4. Fiber app + global middleware.
 	// Renamed the local var from "app" to "fiberApp" — this file's own
@@ -83,7 +83,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	fiberApp := fiber.New(fiber.Config{
 		ErrorHandler: middleware.CustomErrorHandler,
 		// Default fasthttp body limit is 4MB — too small for image
-		// uploads. ActivityImageHandler also enforces its own
+		// uploads. ThreadImageHandler also enforces its own
 		// maxImageUploadSize as a second, more specific check.
 		BodyLimit: 15 * 1024 * 1024, // 15 MB
 
@@ -121,9 +121,9 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 
 	// 5. Router
 	rest.SetupRoutes(fiberApp, accessTokenIssuer, authRateLimiter, rest.Handlers{
-		Auth:          authHandler,
-		Activity:      activityHandler,
-		ActivityImage: activityImageHandler,
+		Auth:        authHandler,
+		Thread:      threadHandler,
+		ThreadImage: threadImageHandler,
 	})
 
 	return &Container{

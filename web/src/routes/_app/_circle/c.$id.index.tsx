@@ -18,7 +18,7 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '@/components/ui/item';
-import { ActivityGraph } from '@/features/activities';
+import { MomentHeatmap } from '@/features/threads';
 import { getNoteColorClass } from '@/lib/colors';
 import { dummyStories } from '@/lib/dummies';
 import { cn } from '@/lib/utils';
@@ -63,7 +63,7 @@ function RouteComponent() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center">
           <h2 className="text-xl font-semibold">
-            336k activities over the last year
+            336k threads over the last year
           </h2>
 
           <div className="grow flex justify-end">
@@ -86,7 +86,7 @@ function RouteComponent() {
           </div>
         </div>
 
-        <ActivityGraph />
+        <MomentHeatmap />
 
         <div className="flex gap-4">
           <Item variant="outline" className="items-start">
@@ -150,11 +150,11 @@ function RouteComponent() {
 
           <Item variant="outline" className="items-start">
             <ItemContent className="flex flex-col gap-4">
-              <h3 className="text-lg font-semibold">Activities</h3>
+              <h3 className="text-lg font-semibold">Threads</h3>
 
               {/* <Empty>
                     <EmptyHeader>
-                      <EmptyDescription>No activities</EmptyDescription>
+                      <EmptyDescription>No threads</EmptyDescription>
                     </EmptyHeader>
                   </Empty> */}
 
@@ -204,26 +204,28 @@ function RouteComponent() {
       <div className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold">Last Stories</h2>
 
-        {[dummyStories[0]].map((capture) => (
+        {[dummyStories[0]].map((moment) => (
           <Item variant="outline">
             <ItemContent className="flex flex-col gap-4">
               <div className="flex items-center gap-4">
                 <Link
                   to="/$username"
-                  params={{ username: capture.user.username }}
+                  params={{ username: moment.user.username }}
                   className="flex gap-2 items-center"
                 >
                   <Avatar size="lg">
                     <AvatarImage
-                      src={capture.user.imageSrc}
-                      alt={capture.user.imageAlt}
+                      src={moment.user.imageSrc}
+                      alt={moment.user.imageAlt}
                     />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium text-base/4">{capture.user.name}</p>
+                    <p className="font-medium text-base/4">
+                      {moment.user.name}
+                    </p>
                     <p className="text-base/5 text-muted-foreground">
-                      {capture.user.username}
+                      {moment.user.username}
                     </p>
                   </div>
                 </Link>
@@ -242,9 +244,9 @@ function RouteComponent() {
                     </Badge>
                   </div>
                   <div className="flex gap-1 items-center">
-                    <p className="font-bold">{capture.date}</p>
+                    <p className="font-bold">{moment.date}</p>
                     <p className="text-primary/60 text-lg font-semibold">/</p>
-                    <p className="font-medium">{capture.time}</p>
+                    <p className="font-medium">{moment.time}</p>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger
@@ -272,16 +274,16 @@ function RouteComponent() {
                 <Item
                   className={cn(
                     'max-w-2xs flex flex-col w-full overflow-hidden',
-                    capture.color
-                      ? getNoteColorClass(capture.color)
+                    moment.color
+                      ? getNoteColorClass(moment.color)
                       : getNoteColorClass('zinc')
                   )}
                 />
                 <Item className="grow">
                   <ItemContent className="typeset max-w-none">
-                    {capture.content}
+                    {moment.content}
                     <div className="flex flex-wrap gap-x-2">
-                      {capture.tags
+                      {moment.tags
                         .map((tag) => `#${tag}`)
                         .map((tag) => (
                           <p>

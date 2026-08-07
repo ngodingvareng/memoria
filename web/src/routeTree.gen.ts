@@ -19,33 +19,33 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppUsernameRouteImport } from './routes/_app/$username'
 import { Route as AppCircleRouteImport } from './routes/_app/_circle'
+import { Route as AppCommitmentRouteImport } from './routes/_app/commitment'
 import { Route as AppMentionsRouteImport } from './routes/_app/mentions'
 import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
-import { Route as AppScheduleRouteImport } from './routes/_app/schedule'
 import { Route as AppSearchRouteImport } from './routes/_app/search'
 import { Route as AuthSigninRouteImport } from './routes/_auth/signin'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
-import { Route as AppActivityIndexRouteImport } from './routes/_app/activity.index'
-import { Route as AppActivityNewRouteImport } from './routes/_app/activity.new'
 import { Route as AppAlbumIndexRouteImport } from './routes/_app/album.index'
-import { Route as AppCaptureNewRouteImport } from './routes/_app/capture.new'
 import { Route as AppCircleIndexRouteImport } from './routes/_app/circle.index'
 import { Route as AppCircleNewRouteImport } from './routes/_app/circle.new'
+import { Route as AppMomentNewRouteImport } from './routes/_app/moment.new'
 import { Route as AppRecapPeriodRouteImport } from './routes/_app/recap.$period'
+import { Route as AppThreadIndexRouteImport } from './routes/_app/thread.index'
+import { Route as AppThreadNewRouteImport } from './routes/_app/thread.new'
 import { Route as UserUserIndexRouteImport } from './routes/_user/user.index'
 import { Route as UserUserAccountRouteImport } from './routes/_user/user.account'
-import { Route as UserUserActivityRouteImport } from './routes/_user/user.activity'
 import { Route as UserUserNotificationRouteImport } from './routes/_user/user.notification'
 import { Route as UserUserPrivacyRouteImport } from './routes/_user/user.privacy'
-import { Route as AppActivityIdIndexRouteImport } from './routes/_app/activity.$id.index'
-import { Route as AppActivityIdInfoRouteImport } from './routes/_app/activity.$id.info'
+import { Route as UserUserThreadsRouteImport } from './routes/_user/user.threads'
+import { Route as AppThreadIdIndexRouteImport } from './routes/_app/thread.$id.index'
+import { Route as AppThreadIdInfoRouteImport } from './routes/_app/thread.$id.info'
 import { Route as AppCircleCIdIndexRouteImport } from './routes/_app/_circle/c.$id.index'
-import { Route as AppCircleCIdActivityRouteImport } from './routes/_app/_circle/c.$id.activity'
 import { Route as AppCircleCIdAlbumRouteImport } from './routes/_app/_circle/c.$id.album'
 import { Route as AppCircleCIdInviteRouteImport } from './routes/_app/_circle/c.$id.invite'
 import { Route as AppCircleCIdMemberRouteImport } from './routes/_app/_circle/c.$id.member'
 import { Route as AppCircleCIdSettingsRouteImport } from './routes/_app/_circle/c.$id.settings'
-import { Route as AppActivityIdCapturesCaptureIdRouteImport } from './routes/_app/activity.$id.captures.$captureId'
+import { Route as AppCircleCIdThreadRouteImport } from './routes/_app/_circle/c.$id.thread'
+import { Route as AppThreadIdMomentsMomentIdRouteImport } from './routes/_app/thread.$id.moments.$momentId'
 import { Route as AppCircleCIdJoinCodeRouteImport } from './routes/_app/_circle/c.$id.join.$code'
 
 const AppRoute = AppRouteImport.update({
@@ -94,6 +94,11 @@ const AppCircleRoute = AppCircleRouteImport.update({
   id: '/_circle',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCommitmentRoute = AppCommitmentRouteImport.update({
+  id: '/commitment',
+  path: '/commitment',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMentionsRoute = AppMentionsRouteImport.update({
   id: '/mentions',
   path: '/mentions',
@@ -102,11 +107,6 @@ const AppMentionsRoute = AppMentionsRouteImport.update({
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppScheduleRoute = AppScheduleRouteImport.update({
-  id: '/schedule',
-  path: '/schedule',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSearchRoute = AppSearchRouteImport.update({
@@ -124,24 +124,9 @@ const AuthSignupRoute = AuthSignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => AuthRoute,
 } as any)
-const AppActivityIndexRoute = AppActivityIndexRouteImport.update({
-  id: '/activity/',
-  path: '/activity/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppActivityNewRoute = AppActivityNewRouteImport.update({
-  id: '/activity/new',
-  path: '/activity/new',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppAlbumIndexRoute = AppAlbumIndexRouteImport.update({
   id: '/album/',
   path: '/album/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppCaptureNewRoute = AppCaptureNewRouteImport.update({
-  id: '/capture/new',
-  path: '/capture/new',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCircleIndexRoute = AppCircleIndexRouteImport.update({
@@ -154,9 +139,24 @@ const AppCircleNewRoute = AppCircleNewRouteImport.update({
   path: '/circle/new',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMomentNewRoute = AppMomentNewRouteImport.update({
+  id: '/moment/new',
+  path: '/moment/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppRecapPeriodRoute = AppRecapPeriodRouteImport.update({
   id: '/recap/$period',
   path: '/recap/$period',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppThreadIndexRoute = AppThreadIndexRouteImport.update({
+  id: '/thread/',
+  path: '/thread/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppThreadNewRoute = AppThreadNewRouteImport.update({
+  id: '/thread/new',
+  path: '/thread/new',
   getParentRoute: () => AppRoute,
 } as any)
 const UserUserIndexRoute = UserUserIndexRouteImport.update({
@@ -169,11 +169,6 @@ const UserUserAccountRoute = UserUserAccountRouteImport.update({
   path: '/user/account',
   getParentRoute: () => UserRoute,
 } as any)
-const UserUserActivityRoute = UserUserActivityRouteImport.update({
-  id: '/user/activity',
-  path: '/user/activity',
-  getParentRoute: () => UserRoute,
-} as any)
 const UserUserNotificationRoute = UserUserNotificationRouteImport.update({
   id: '/user/notification',
   path: '/user/notification',
@@ -184,24 +179,24 @@ const UserUserPrivacyRoute = UserUserPrivacyRouteImport.update({
   path: '/user/privacy',
   getParentRoute: () => UserRoute,
 } as any)
-const AppActivityIdIndexRoute = AppActivityIdIndexRouteImport.update({
-  id: '/activity/$id/',
-  path: '/activity/$id/',
+const UserUserThreadsRoute = UserUserThreadsRouteImport.update({
+  id: '/user/threads',
+  path: '/user/threads',
+  getParentRoute: () => UserRoute,
+} as any)
+const AppThreadIdIndexRoute = AppThreadIdIndexRouteImport.update({
+  id: '/thread/$id/',
+  path: '/thread/$id/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppActivityIdInfoRoute = AppActivityIdInfoRouteImport.update({
-  id: '/activity/$id/info',
-  path: '/activity/$id/info',
+const AppThreadIdInfoRoute = AppThreadIdInfoRouteImport.update({
+  id: '/thread/$id/info',
+  path: '/thread/$id/info',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCircleCIdIndexRoute = AppCircleCIdIndexRouteImport.update({
   id: '/c/$id/',
   path: '/c/$id/',
-  getParentRoute: () => AppCircleRoute,
-} as any)
-const AppCircleCIdActivityRoute = AppCircleCIdActivityRouteImport.update({
-  id: '/c/$id/activity',
-  path: '/c/$id/activity',
   getParentRoute: () => AppCircleRoute,
 } as any)
 const AppCircleCIdAlbumRoute = AppCircleCIdAlbumRouteImport.update({
@@ -224,10 +219,15 @@ const AppCircleCIdSettingsRoute = AppCircleCIdSettingsRouteImport.update({
   path: '/c/$id/settings',
   getParentRoute: () => AppCircleRoute,
 } as any)
-const AppActivityIdCapturesCaptureIdRoute =
-  AppActivityIdCapturesCaptureIdRouteImport.update({
-    id: '/activity/$id/captures/$captureId',
-    path: '/activity/$id/captures/$captureId',
+const AppCircleCIdThreadRoute = AppCircleCIdThreadRouteImport.update({
+  id: '/c/$id/thread',
+  path: '/c/$id/thread',
+  getParentRoute: () => AppCircleRoute,
+} as any)
+const AppThreadIdMomentsMomentIdRoute =
+  AppThreadIdMomentsMomentIdRouteImport.update({
+    id: '/thread/$id/moments/$momentId',
+    path: '/thread/$id/moments/$momentId',
     getParentRoute: () => AppRoute,
   } as any)
 const AppCircleCIdJoinCodeRoute = AppCircleCIdJoinCodeRouteImport.update({
@@ -243,32 +243,32 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/$username': typeof AppUsernameRoute
+  '/commitment': typeof AppCommitmentRoute
   '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
-  '/schedule': typeof AppScheduleRoute
   '/search': typeof AppSearchRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
-  '/activity/new': typeof AppActivityNewRoute
-  '/capture/new': typeof AppCaptureNewRoute
   '/circle/new': typeof AppCircleNewRoute
+  '/moment/new': typeof AppMomentNewRoute
   '/recap/$period': typeof AppRecapPeriodRoute
+  '/thread/new': typeof AppThreadNewRoute
   '/user/account': typeof UserUserAccountRoute
-  '/user/activity': typeof UserUserActivityRoute
   '/user/notification': typeof UserUserNotificationRoute
   '/user/privacy': typeof UserUserPrivacyRoute
-  '/activity/': typeof AppActivityIndexRoute
+  '/user/threads': typeof UserUserThreadsRoute
   '/album/': typeof AppAlbumIndexRoute
   '/circle/': typeof AppCircleIndexRoute
+  '/thread/': typeof AppThreadIndexRoute
   '/user/': typeof UserUserIndexRoute
-  '/activity/$id/info': typeof AppActivityIdInfoRoute
-  '/activity/$id/': typeof AppActivityIdIndexRoute
-  '/c/$id/activity': typeof AppCircleCIdActivityRoute
+  '/thread/$id/info': typeof AppThreadIdInfoRoute
+  '/thread/$id/': typeof AppThreadIdIndexRoute
   '/c/$id/album': typeof AppCircleCIdAlbumRoute
   '/c/$id/invite': typeof AppCircleCIdInviteRoute
   '/c/$id/member': typeof AppCircleCIdMemberRoute
   '/c/$id/settings': typeof AppCircleCIdSettingsRoute
-  '/activity/$id/captures/$captureId': typeof AppActivityIdCapturesCaptureIdRoute
+  '/c/$id/thread': typeof AppCircleCIdThreadRoute
+  '/thread/$id/moments/$momentId': typeof AppThreadIdMomentsMomentIdRoute
   '/c/$id/': typeof AppCircleCIdIndexRoute
   '/c/$id/join/$code': typeof AppCircleCIdJoinCodeRoute
 }
@@ -279,32 +279,32 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/$username': typeof AppUsernameRoute
+  '/commitment': typeof AppCommitmentRoute
   '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
-  '/schedule': typeof AppScheduleRoute
   '/search': typeof AppSearchRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
-  '/activity/new': typeof AppActivityNewRoute
-  '/capture/new': typeof AppCaptureNewRoute
   '/circle/new': typeof AppCircleNewRoute
+  '/moment/new': typeof AppMomentNewRoute
   '/recap/$period': typeof AppRecapPeriodRoute
+  '/thread/new': typeof AppThreadNewRoute
   '/user/account': typeof UserUserAccountRoute
-  '/user/activity': typeof UserUserActivityRoute
   '/user/notification': typeof UserUserNotificationRoute
   '/user/privacy': typeof UserUserPrivacyRoute
-  '/activity': typeof AppActivityIndexRoute
+  '/user/threads': typeof UserUserThreadsRoute
   '/album': typeof AppAlbumIndexRoute
   '/circle': typeof AppCircleIndexRoute
+  '/thread': typeof AppThreadIndexRoute
   '/user': typeof UserUserIndexRoute
-  '/activity/$id/info': typeof AppActivityIdInfoRoute
-  '/activity/$id': typeof AppActivityIdIndexRoute
-  '/c/$id/activity': typeof AppCircleCIdActivityRoute
+  '/thread/$id/info': typeof AppThreadIdInfoRoute
+  '/thread/$id': typeof AppThreadIdIndexRoute
   '/c/$id/album': typeof AppCircleCIdAlbumRoute
   '/c/$id/invite': typeof AppCircleCIdInviteRoute
   '/c/$id/member': typeof AppCircleCIdMemberRoute
   '/c/$id/settings': typeof AppCircleCIdSettingsRoute
-  '/activity/$id/captures/$captureId': typeof AppActivityIdCapturesCaptureIdRoute
+  '/c/$id/thread': typeof AppCircleCIdThreadRoute
+  '/thread/$id/moments/$momentId': typeof AppThreadIdMomentsMomentIdRoute
   '/c/$id': typeof AppCircleCIdIndexRoute
   '/c/$id/join/$code': typeof AppCircleCIdJoinCodeRoute
 }
@@ -319,33 +319,33 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_app/$username': typeof AppUsernameRoute
   '/_app/_circle': typeof AppCircleRouteWithChildren
+  '/_app/commitment': typeof AppCommitmentRoute
   '/_app/mentions': typeof AppMentionsRoute
   '/_app/notifications': typeof AppNotificationsRoute
-  '/_app/schedule': typeof AppScheduleRoute
   '/_app/search': typeof AppSearchRoute
   '/_auth/signin': typeof AuthSigninRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/_app/': typeof AppIndexRoute
-  '/_app/activity/new': typeof AppActivityNewRoute
-  '/_app/capture/new': typeof AppCaptureNewRoute
   '/_app/circle/new': typeof AppCircleNewRoute
+  '/_app/moment/new': typeof AppMomentNewRoute
   '/_app/recap/$period': typeof AppRecapPeriodRoute
+  '/_app/thread/new': typeof AppThreadNewRoute
   '/_user/user/account': typeof UserUserAccountRoute
-  '/_user/user/activity': typeof UserUserActivityRoute
   '/_user/user/notification': typeof UserUserNotificationRoute
   '/_user/user/privacy': typeof UserUserPrivacyRoute
-  '/_app/activity/': typeof AppActivityIndexRoute
+  '/_user/user/threads': typeof UserUserThreadsRoute
   '/_app/album/': typeof AppAlbumIndexRoute
   '/_app/circle/': typeof AppCircleIndexRoute
+  '/_app/thread/': typeof AppThreadIndexRoute
   '/_user/user/': typeof UserUserIndexRoute
-  '/_app/activity/$id/info': typeof AppActivityIdInfoRoute
-  '/_app/activity/$id/': typeof AppActivityIdIndexRoute
-  '/_app/_circle/c/$id/activity': typeof AppCircleCIdActivityRoute
+  '/_app/thread/$id/info': typeof AppThreadIdInfoRoute
+  '/_app/thread/$id/': typeof AppThreadIdIndexRoute
   '/_app/_circle/c/$id/album': typeof AppCircleCIdAlbumRoute
   '/_app/_circle/c/$id/invite': typeof AppCircleCIdInviteRoute
   '/_app/_circle/c/$id/member': typeof AppCircleCIdMemberRoute
   '/_app/_circle/c/$id/settings': typeof AppCircleCIdSettingsRoute
-  '/_app/activity/$id/captures/$captureId': typeof AppActivityIdCapturesCaptureIdRoute
+  '/_app/_circle/c/$id/thread': typeof AppCircleCIdThreadRoute
+  '/_app/thread/$id/moments/$momentId': typeof AppThreadIdMomentsMomentIdRoute
   '/_app/_circle/c/$id/': typeof AppCircleCIdIndexRoute
   '/_app/_circle/c/$id/join/$code': typeof AppCircleCIdJoinCodeRoute
 }
@@ -358,32 +358,32 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/$username'
+    | '/commitment'
     | '/mentions'
     | '/notifications'
-    | '/schedule'
     | '/search'
     | '/signin'
     | '/signup'
-    | '/activity/new'
-    | '/capture/new'
     | '/circle/new'
+    | '/moment/new'
     | '/recap/$period'
+    | '/thread/new'
     | '/user/account'
-    | '/user/activity'
     | '/user/notification'
     | '/user/privacy'
-    | '/activity/'
+    | '/user/threads'
     | '/album/'
     | '/circle/'
+    | '/thread/'
     | '/user/'
-    | '/activity/$id/info'
-    | '/activity/$id/'
-    | '/c/$id/activity'
+    | '/thread/$id/info'
+    | '/thread/$id/'
     | '/c/$id/album'
     | '/c/$id/invite'
     | '/c/$id/member'
     | '/c/$id/settings'
-    | '/activity/$id/captures/$captureId'
+    | '/c/$id/thread'
+    | '/thread/$id/moments/$momentId'
     | '/c/$id/'
     | '/c/$id/join/$code'
   fileRoutesByTo: FileRoutesByTo
@@ -394,32 +394,32 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/$username'
+    | '/commitment'
     | '/mentions'
     | '/notifications'
-    | '/schedule'
     | '/search'
     | '/signin'
     | '/signup'
-    | '/activity/new'
-    | '/capture/new'
     | '/circle/new'
+    | '/moment/new'
     | '/recap/$period'
+    | '/thread/new'
     | '/user/account'
-    | '/user/activity'
     | '/user/notification'
     | '/user/privacy'
-    | '/activity'
+    | '/user/threads'
     | '/album'
     | '/circle'
+    | '/thread'
     | '/user'
-    | '/activity/$id/info'
-    | '/activity/$id'
-    | '/c/$id/activity'
+    | '/thread/$id/info'
+    | '/thread/$id'
     | '/c/$id/album'
     | '/c/$id/invite'
     | '/c/$id/member'
     | '/c/$id/settings'
-    | '/activity/$id/captures/$captureId'
+    | '/c/$id/thread'
+    | '/thread/$id/moments/$momentId'
     | '/c/$id'
     | '/c/$id/join/$code'
   id:
@@ -433,33 +433,33 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_app/$username'
     | '/_app/_circle'
+    | '/_app/commitment'
     | '/_app/mentions'
     | '/_app/notifications'
-    | '/_app/schedule'
     | '/_app/search'
     | '/_auth/signin'
     | '/_auth/signup'
     | '/_app/'
-    | '/_app/activity/new'
-    | '/_app/capture/new'
     | '/_app/circle/new'
+    | '/_app/moment/new'
     | '/_app/recap/$period'
+    | '/_app/thread/new'
     | '/_user/user/account'
-    | '/_user/user/activity'
     | '/_user/user/notification'
     | '/_user/user/privacy'
-    | '/_app/activity/'
+    | '/_user/user/threads'
     | '/_app/album/'
     | '/_app/circle/'
+    | '/_app/thread/'
     | '/_user/user/'
-    | '/_app/activity/$id/info'
-    | '/_app/activity/$id/'
-    | '/_app/_circle/c/$id/activity'
+    | '/_app/thread/$id/info'
+    | '/_app/thread/$id/'
     | '/_app/_circle/c/$id/album'
     | '/_app/_circle/c/$id/invite'
     | '/_app/_circle/c/$id/member'
     | '/_app/_circle/c/$id/settings'
-    | '/_app/activity/$id/captures/$captureId'
+    | '/_app/_circle/c/$id/thread'
+    | '/_app/thread/$id/moments/$momentId'
     | '/_app/_circle/c/$id/'
     | '/_app/_circle/c/$id/join/$code'
   fileRoutesById: FileRoutesById
@@ -546,6 +546,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCircleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/commitment': {
+      id: '/_app/commitment'
+      path: '/commitment'
+      fullPath: '/commitment'
+      preLoaderRoute: typeof AppCommitmentRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/mentions': {
       id: '/_app/mentions'
       path: '/mentions'
@@ -558,13 +565,6 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AppNotificationsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/schedule': {
-      id: '/_app/schedule'
-      path: '/schedule'
-      fullPath: '/schedule'
-      preLoaderRoute: typeof AppScheduleRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/search': {
@@ -588,32 +588,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignupRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_app/activity/': {
-      id: '/_app/activity/'
-      path: '/activity'
-      fullPath: '/activity/'
-      preLoaderRoute: typeof AppActivityIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/activity/new': {
-      id: '/_app/activity/new'
-      path: '/activity/new'
-      fullPath: '/activity/new'
-      preLoaderRoute: typeof AppActivityNewRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/album/': {
       id: '/_app/album/'
       path: '/album'
       fullPath: '/album/'
       preLoaderRoute: typeof AppAlbumIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/capture/new': {
-      id: '/_app/capture/new'
-      path: '/capture/new'
-      fullPath: '/capture/new'
-      preLoaderRoute: typeof AppCaptureNewRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/circle/': {
@@ -630,11 +609,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCircleNewRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/moment/new': {
+      id: '/_app/moment/new'
+      path: '/moment/new'
+      fullPath: '/moment/new'
+      preLoaderRoute: typeof AppMomentNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/recap/$period': {
       id: '/_app/recap/$period'
       path: '/recap/$period'
       fullPath: '/recap/$period'
       preLoaderRoute: typeof AppRecapPeriodRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/thread/': {
+      id: '/_app/thread/'
+      path: '/thread'
+      fullPath: '/thread/'
+      preLoaderRoute: typeof AppThreadIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/thread/new': {
+      id: '/_app/thread/new'
+      path: '/thread/new'
+      fullPath: '/thread/new'
+      preLoaderRoute: typeof AppThreadNewRouteImport
       parentRoute: typeof AppRoute
     }
     '/_user/user/': {
@@ -651,13 +651,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserUserAccountRouteImport
       parentRoute: typeof UserRoute
     }
-    '/_user/user/activity': {
-      id: '/_user/user/activity'
-      path: '/user/activity'
-      fullPath: '/user/activity'
-      preLoaderRoute: typeof UserUserActivityRouteImport
-      parentRoute: typeof UserRoute
-    }
     '/_user/user/notification': {
       id: '/_user/user/notification'
       path: '/user/notification'
@@ -672,18 +665,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserUserPrivacyRouteImport
       parentRoute: typeof UserRoute
     }
-    '/_app/activity/$id/': {
-      id: '/_app/activity/$id/'
-      path: '/activity/$id'
-      fullPath: '/activity/$id/'
-      preLoaderRoute: typeof AppActivityIdIndexRouteImport
+    '/_user/user/threads': {
+      id: '/_user/user/threads'
+      path: '/user/threads'
+      fullPath: '/user/threads'
+      preLoaderRoute: typeof UserUserThreadsRouteImport
+      parentRoute: typeof UserRoute
+    }
+    '/_app/thread/$id/': {
+      id: '/_app/thread/$id/'
+      path: '/thread/$id'
+      fullPath: '/thread/$id/'
+      preLoaderRoute: typeof AppThreadIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/activity/$id/info': {
-      id: '/_app/activity/$id/info'
-      path: '/activity/$id/info'
-      fullPath: '/activity/$id/info'
-      preLoaderRoute: typeof AppActivityIdInfoRouteImport
+    '/_app/thread/$id/info': {
+      id: '/_app/thread/$id/info'
+      path: '/thread/$id/info'
+      fullPath: '/thread/$id/info'
+      preLoaderRoute: typeof AppThreadIdInfoRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/_circle/c/$id/': {
@@ -691,13 +691,6 @@ declare module '@tanstack/react-router' {
       path: '/c/$id'
       fullPath: '/c/$id/'
       preLoaderRoute: typeof AppCircleCIdIndexRouteImport
-      parentRoute: typeof AppCircleRoute
-    }
-    '/_app/_circle/c/$id/activity': {
-      id: '/_app/_circle/c/$id/activity'
-      path: '/c/$id/activity'
-      fullPath: '/c/$id/activity'
-      preLoaderRoute: typeof AppCircleCIdActivityRouteImport
       parentRoute: typeof AppCircleRoute
     }
     '/_app/_circle/c/$id/album': {
@@ -728,11 +721,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCircleCIdSettingsRouteImport
       parentRoute: typeof AppCircleRoute
     }
-    '/_app/activity/$id/captures/$captureId': {
-      id: '/_app/activity/$id/captures/$captureId'
-      path: '/activity/$id/captures/$captureId'
-      fullPath: '/activity/$id/captures/$captureId'
-      preLoaderRoute: typeof AppActivityIdCapturesCaptureIdRouteImport
+    '/_app/_circle/c/$id/thread': {
+      id: '/_app/_circle/c/$id/thread'
+      path: '/c/$id/thread'
+      fullPath: '/c/$id/thread'
+      preLoaderRoute: typeof AppCircleCIdThreadRouteImport
+      parentRoute: typeof AppCircleRoute
+    }
+    '/_app/thread/$id/moments/$momentId': {
+      id: '/_app/thread/$id/moments/$momentId'
+      path: '/thread/$id/moments/$momentId'
+      fullPath: '/thread/$id/moments/$momentId'
+      preLoaderRoute: typeof AppThreadIdMomentsMomentIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/_circle/c/$id/join/$code': {
@@ -746,21 +746,21 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppCircleRouteChildren {
-  AppCircleCIdActivityRoute: typeof AppCircleCIdActivityRoute
   AppCircleCIdAlbumRoute: typeof AppCircleCIdAlbumRoute
   AppCircleCIdInviteRoute: typeof AppCircleCIdInviteRoute
   AppCircleCIdMemberRoute: typeof AppCircleCIdMemberRoute
   AppCircleCIdSettingsRoute: typeof AppCircleCIdSettingsRoute
+  AppCircleCIdThreadRoute: typeof AppCircleCIdThreadRoute
   AppCircleCIdIndexRoute: typeof AppCircleCIdIndexRoute
   AppCircleCIdJoinCodeRoute: typeof AppCircleCIdJoinCodeRoute
 }
 
 const AppCircleRouteChildren: AppCircleRouteChildren = {
-  AppCircleCIdActivityRoute: AppCircleCIdActivityRoute,
   AppCircleCIdAlbumRoute: AppCircleCIdAlbumRoute,
   AppCircleCIdInviteRoute: AppCircleCIdInviteRoute,
   AppCircleCIdMemberRoute: AppCircleCIdMemberRoute,
   AppCircleCIdSettingsRoute: AppCircleCIdSettingsRoute,
+  AppCircleCIdThreadRoute: AppCircleCIdThreadRoute,
   AppCircleCIdIndexRoute: AppCircleCIdIndexRoute,
   AppCircleCIdJoinCodeRoute: AppCircleCIdJoinCodeRoute,
 }
@@ -772,41 +772,41 @@ const AppCircleRouteWithChildren = AppCircleRoute._addFileChildren(
 interface AppRouteChildren {
   AppUsernameRoute: typeof AppUsernameRoute
   AppCircleRoute: typeof AppCircleRouteWithChildren
+  AppCommitmentRoute: typeof AppCommitmentRoute
   AppMentionsRoute: typeof AppMentionsRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
-  AppScheduleRoute: typeof AppScheduleRoute
   AppSearchRoute: typeof AppSearchRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppActivityNewRoute: typeof AppActivityNewRoute
-  AppCaptureNewRoute: typeof AppCaptureNewRoute
   AppCircleNewRoute: typeof AppCircleNewRoute
+  AppMomentNewRoute: typeof AppMomentNewRoute
   AppRecapPeriodRoute: typeof AppRecapPeriodRoute
-  AppActivityIndexRoute: typeof AppActivityIndexRoute
+  AppThreadNewRoute: typeof AppThreadNewRoute
   AppAlbumIndexRoute: typeof AppAlbumIndexRoute
   AppCircleIndexRoute: typeof AppCircleIndexRoute
-  AppActivityIdInfoRoute: typeof AppActivityIdInfoRoute
-  AppActivityIdIndexRoute: typeof AppActivityIdIndexRoute
-  AppActivityIdCapturesCaptureIdRoute: typeof AppActivityIdCapturesCaptureIdRoute
+  AppThreadIndexRoute: typeof AppThreadIndexRoute
+  AppThreadIdInfoRoute: typeof AppThreadIdInfoRoute
+  AppThreadIdIndexRoute: typeof AppThreadIdIndexRoute
+  AppThreadIdMomentsMomentIdRoute: typeof AppThreadIdMomentsMomentIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppUsernameRoute: AppUsernameRoute,
   AppCircleRoute: AppCircleRouteWithChildren,
+  AppCommitmentRoute: AppCommitmentRoute,
   AppMentionsRoute: AppMentionsRoute,
   AppNotificationsRoute: AppNotificationsRoute,
-  AppScheduleRoute: AppScheduleRoute,
   AppSearchRoute: AppSearchRoute,
   AppIndexRoute: AppIndexRoute,
-  AppActivityNewRoute: AppActivityNewRoute,
-  AppCaptureNewRoute: AppCaptureNewRoute,
   AppCircleNewRoute: AppCircleNewRoute,
+  AppMomentNewRoute: AppMomentNewRoute,
   AppRecapPeriodRoute: AppRecapPeriodRoute,
-  AppActivityIndexRoute: AppActivityIndexRoute,
+  AppThreadNewRoute: AppThreadNewRoute,
   AppAlbumIndexRoute: AppAlbumIndexRoute,
   AppCircleIndexRoute: AppCircleIndexRoute,
-  AppActivityIdInfoRoute: AppActivityIdInfoRoute,
-  AppActivityIdIndexRoute: AppActivityIdIndexRoute,
-  AppActivityIdCapturesCaptureIdRoute: AppActivityIdCapturesCaptureIdRoute,
+  AppThreadIndexRoute: AppThreadIndexRoute,
+  AppThreadIdInfoRoute: AppThreadIdInfoRoute,
+  AppThreadIdIndexRoute: AppThreadIdIndexRoute,
+  AppThreadIdMomentsMomentIdRoute: AppThreadIdMomentsMomentIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -825,17 +825,17 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface UserRouteChildren {
   UserUserAccountRoute: typeof UserUserAccountRoute
-  UserUserActivityRoute: typeof UserUserActivityRoute
   UserUserNotificationRoute: typeof UserUserNotificationRoute
   UserUserPrivacyRoute: typeof UserUserPrivacyRoute
+  UserUserThreadsRoute: typeof UserUserThreadsRoute
   UserUserIndexRoute: typeof UserUserIndexRoute
 }
 
 const UserRouteChildren: UserRouteChildren = {
   UserUserAccountRoute: UserUserAccountRoute,
-  UserUserActivityRoute: UserUserActivityRoute,
   UserUserNotificationRoute: UserUserNotificationRoute,
   UserUserPrivacyRoute: UserUserPrivacyRoute,
+  UserUserThreadsRoute: UserUserThreadsRoute,
   UserUserIndexRoute: UserUserIndexRoute,
 }
 

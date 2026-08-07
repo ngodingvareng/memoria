@@ -1,14 +1,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Wrapper from '@/components/wrapper';
-import { CaptureList, type CaptureCardParam } from '@/features/activities';
+import { MomentList, type MomentCardParam } from '@/features/threads';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/$username')({
   component: RouteComponent,
 });
 
-export const dummyActivityStories: CaptureCardParam[] = [
+export const dummyThreadStories: MomentCardParam[] = [
   {
     user: {
       name: 'Ahmad Faisal',
@@ -16,16 +16,15 @@ export const dummyActivityStories: CaptureCardParam[] = [
       imageSrc: 'https://randomuser.me/api/portraits/men/45.jpg',
       imageAlt: 'Profile photo of Ahmad Faisal',
     },
-    activity: {
+    thread: {
       name: 'Hiking Mount Rinjani',
     },
     color: 'emerald', // Tailwind color
     content: (
       <div className="flex flex-col gap-3">
         <p>
-          The long, exhausting trek paid off in full watching the sunrise
-          from Rinjani's summit. Truly an unforgettable, magical experience!
-          🏔️✨
+          The long, exhausting trek paid off in full watching the sunrise from
+          Rinjani's summit. Truly an unforgettable, magical experience! 🏔️✨
         </p>
         <img
           src="https://images.unsplash.com/photo-1596404835697-3d964fdd9d49?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80"
@@ -50,15 +49,15 @@ export const dummyActivityStories: CaptureCardParam[] = [
       imageSrc: 'https://randomuser.me/api/portraits/women/68.jpg',
       imageAlt: 'Profile photo of Nadia Putri',
     },
-    activity: {
+    thread: {
       name: 'Concert Night',
     },
     color: 'purple', // Tailwind color
     content: (
       <div>
         <p>
-          Tonight was insane! Got a spot right at the front and sang along
-          from start to finish. My voice is completely gone but{' '}
+          Tonight was insane! Got a spot right at the front and sang along from
+          start to finish. My voice is completely gone but{' '}
           <i>totally worth it!</i> 🎤🎶
         </p>
       </div>
@@ -79,16 +78,16 @@ export const dummyActivityStories: CaptureCardParam[] = [
       imageSrc: 'https://randomuser.me/api/portraits/men/22.jpg',
       imageAlt: 'Profile photo of Chef Dimas',
     },
-    activity: {
+    thread: {
       name: 'New Recipe Experiment',
     },
     color: 'orange', // Tailwind color
     content: (
       <div className="space-y-2">
         <p>
-          Tried making <b>Beef Wellington</b> for the first time today.{' '}
-          The <i>pastry</i> came out crisp and the meat was a perfect
-          medium rare! 🥩🔥 Anyone want the recipe?
+          Tried making <b>Beef Wellington</b> for the first time today. The{' '}
+          <i>pastry</i> came out crisp and the meat was a perfect medium rare!
+          🥩🔥 Anyone want the recipe?
         </p>
         <img
           src="https://images.unsplash.com/photo-1600891964092-4316c288032e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80"
@@ -113,16 +112,16 @@ export const dummyActivityStories: CaptureCardParam[] = [
       imageSrc: 'https://randomuser.me/api/portraits/men/85.jpg',
       imageAlt: 'Profile photo of Kevin',
     },
-    activity: {
+    thread: {
       name: 'Valorant Tournament',
     },
     color: 'rose', // Tailwind color
     content: (
       <div>
         <p>
-          A <i>Clutch 1v5</i> moment that secured our team's spot in
-          tomorrow's Final! Hands still shaking but GGWP to every team that
-          played today. 🎮🏆
+          A <i>Clutch 1v5</i> moment that secured our team's spot in tomorrow's
+          Final! Hands still shaking but GGWP to every team that played today.
+          🎮🏆
         </p>
       </div>
     ),
@@ -142,16 +141,16 @@ export const dummyActivityStories: CaptureCardParam[] = [
       imageSrc: 'https://randomuser.me/api/portraits/women/12.jpg',
       imageAlt: 'Profile photo of Maya Sari',
     },
-    activity: {
+    thread: {
       name: 'UI/UX Redesign Wrapped',
     },
     color: 'cyan', // Tailwind color
     content: (
       <div>
         <p>
-          Finally finished the fintech app <i>redesign</i> project and
-          handed it over to the dev team. Really happy with how the color
-          palette and interactions turned out. Time to rest! 💻🎨
+          Finally finished the fintech app <i>redesign</i> project and handed it
+          over to the dev team. Really happy with how the color palette and
+          interactions turned out. Time to rest! 💻🎨
         </p>
       </div>
     ),
@@ -171,15 +170,15 @@ export const dummyActivityStories: CaptureCardParam[] = [
       imageSrc: 'https://randomuser.me/api/portraits/women/33.jpg',
       imageAlt: 'Profile photo of Sinta Wijaya',
     },
-    activity: {
+    thread: {
       name: 'Evening Yoga Session',
     },
     color: 'teal', // Tailwind color
     content: (
       <div className="flex flex-col gap-2">
         <p>
-          Closing out the weekend with a Vinyasa Yoga session. Really
-          helped clear my mind before facing Monday tomorrow. Namaste 🙏🧘‍♀️
+          Closing out the weekend with a Vinyasa Yoga session. Really helped
+          clear my mind before facing Monday tomorrow. Namaste 🙏🧘‍♀️
         </p>
       </div>
     ),
@@ -220,7 +219,7 @@ function RouteComponent() {
               </p>
               <p>
                 <span className="font-semibold">6.7M</span>{' '}
-                <span className="text-muted-foreground">activities</span>
+                <span className="text-muted-foreground">threads</span>
               </p>
             </div>
 
@@ -235,7 +234,7 @@ function RouteComponent() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <CaptureList captures={dummyActivityStories} withStoryLayout />
+          <MomentList moments={dummyThreadStories} withStoryLayout />
         </div>
       </div>
     </Wrapper>

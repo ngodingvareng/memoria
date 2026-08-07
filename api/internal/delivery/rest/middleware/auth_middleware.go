@@ -23,8 +23,8 @@ const userIDLocalsKey = "user_id"
 
 // RequireAuth validates the Authorization: Bearer <access_token> header
 // against the given issuer — this is what replaces the userID :=
-// uuid.New() placeholder that's been sitting in ActivityHandler since
-// the very first version of the create-activity feature.
+// uuid.New() placeholder that's been sitting in ThreadHandler since
+// the very first version of the create-thread feature.
 //
 // Unlike the old session-cookie RequireAuth, this never touches the
 // database: the access token is a stateless, self-contained JWT, so a

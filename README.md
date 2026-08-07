@@ -8,15 +8,17 @@
 
 ## What is this dawg?
 
-Memoria is a full-stack activity-tracking app built with Golang and React (using TanStack Router), built around a simple philosophy: capture your moments and history today so you can look back and reminisce later. It's inspired by Instagram (for the social side) and GitHub's contribution graph (for visualizing daily activity over time).
+Memoria is a full-stack private memory keeper built with Golang and React (using TanStack Router), built around a simple philosophy: capture your moments and history today so you can look back and reminisce later. It's inspired by Instagram (for the social side) and GitHub's contribution graph (for visualizing daily activity over time).
 
-The core entity is the **Activity** — e.g. "Work," "Morning Run," "Reading." Each Activity can have many **Activity Items**, its individual occurrences (one Activity to many Items). An Activity can either follow a **fixed schedule** (e.g. "Work" recurs every weekday) or have items added manually whenever the user wants.
+Its value is deferred by design — almost nothing it does matters on day one, and all of it compounds by year three. The archive is the product.
 
-When an Activity has a fixed schedule, Memoria automatically generates its Items as they become due. Each Item starts as "awaiting confirmation" until the user checks it off as done or not done, optionally attaching a note (text + multiple photos) about what happened. If an Item isn't confirmed within a configurable timeout (with a sensible default) after it appears, it automatically flips to "not done."
+The core entity is the **Thread** — e.g. "Work," "Morning Run," "Reading" — a recurring strand of a life rather than a task. Each Thread holds many **Moments**, its individual occurrences. Moments are captured manually whenever the user wants, which is the primary way Memoria is meant to be used; *capture* is the verb, *Moment* is the thing.
 
-Every Item also carries its own scheduled datetime and can be given a color, letting Activities and Items be told apart visually. On top of that, Memoria includes a statistics view: a GitHub-style contribution heatmap of your activity history, plus a chart showing the confirmation delay for fixed-schedule items — how long it typically takes between an Item appearing and you actually confirming it.
+A manually captured Moment has no state at all — it is created and it exists. A Thread can also take on one or more **Commitments**, an opt-in scheduled mode where Memoria generates a Moment each time it comes due (**due** → **kept**, or **missed** if the confirmation window closes unanswered) and keeps an honest record of whether the user showed up. Commitment deliberately judges the user; that is what it's for, so you can look back and learn from what you actually did. It's explained bluntly at opt-in, its strictness is user-set, and the record it produces reaches the archive only in aggregate — a year's adherence rate is a memory worth keeping, a wall of individual missed days is not.
 
-See [`FEATURES.md`](./FEATURES.md) for the full feature breakdown, including Circles (private social groups), Captures, mentions, notifications, albums, and recaps.
+Every Moment also carries the datetime it actually took place and can be given a color, letting Threads and Moments be told apart visually. On top of that, Memoria includes **Rhythms**: a GitHub-style contribution heatmap of your history, plus **Time to Tell** — how long something takes to settle into a record, i.e. the gap between it happening and you actually writing it down. It's texture about how memory works, not a punctuality score.
+
+See [`FEATURES.md`](./FEATURES.md) for the full feature breakdown — including the principles and non-goals every feature is checked against, the product vocabulary, and Circles (private social groups), Mentions, notifications, Albums, Echoes, and Recaps.
 
 This is a monorepo with four projects, each with its own toolchain:
 

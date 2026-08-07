@@ -40,19 +40,19 @@ Dependencies only point inward. Concretely:
 **Interfaces are declared by the consumer, not the implementer** (per
 `AGENTS.md`: "always implement abstractions"). A repository interface
 lives in the `usecase` file of the usecase that needs it
-(`ActivityRepository` in `activity_usecase.go`), not next to
-`activityRepository` in `internal/repository`.
+(`ThreadRepository` in `thread_usecase.go`), not next to
+`threadRepository` in `internal/repository`.
 
 ## 2. Directory & File Placement
 
 | Concern | Directory | Filename pattern | Example |
 |---|---|---|---|
-| Domain struct | `internal/entity/` | `<domain>.go` | `activity.go` |
-| Repository interface + Input/Output structs | `internal/usecase/` | `<domain>_usecase.go` | `activity_usecase.go` |
-| Repository implementation | `internal/repository/` | `<domain>_repository.go` | `activity_repository.go` |
-| DB row ↔ entity conversion | `internal/repository/` | `<domain>_mapper.go` | `activity_mapper.go` |
-| Fiber handler | `internal/delivery/rest/handler/` | `<domain>_handler.go` | `activity_handler.go` |
-| Request/response structs | `internal/delivery/rest/dto/` | `<domain>_dto.go` | `activity_dto.go` |
+| Domain struct | `internal/entity/` | `<domain>.go` | `thread.go` |
+| Repository interface + Input/Output structs | `internal/usecase/` | `<domain>_usecase.go` | `thread_usecase.go` |
+| Repository implementation | `internal/repository/` | `<domain>_repository.go` | `thread_repository.go` |
+| DB row ↔ entity conversion | `internal/repository/` | `<domain>_mapper.go` | `thread_mapper.go` |
+| Fiber handler | `internal/delivery/rest/handler/` | `<domain>_handler.go` | `thread_handler.go` |
+| Request/response structs | `internal/delivery/rest/dto/` | `<domain>_dto.go` | `thread_dto.go` |
 
 Rules:
 
@@ -66,25 +66,110 @@ Rules:
   `internal/repository/pgtype_convert.go` holds `pgtype ↔ *string/*int32/...`
   conversions shared by every `*_mapper.go` — see its own header comment
   for the reasoning.
-- A domain with sub-resources (e.g. `activity` → `activity_image`) gets
+- A domain with sub-resources (e.g. `thread` → `thread_image`) gets
   its own full file set per sub-resource, not folded into the parent's
-  files.
+  files. What that sub-resource is *called* is a separate question —
+  see §3.1.
+- **Packages stay flat.** `internal/entity/` is one package with one
+  file per domain; no sub-packages per domain or per aggregate. This
+  holds while the type count is small enough to scan.
+
+Grouping entities into per-aggregate sub-packages (`entity/thread/`,
+`entity/moment/`, making the package name the namespace and shortening
+`entity.MomentImage` to `moment.Image`) is the intended escape hatch
+once `internal/entity/` stops being scannable — roughly 25–30 types, or
+whenever finding the right file starts costing time. It is deliberately
+not done now: at ~10 entities it buys nothing and costs a refactor.
+Two things to know before reaching for it:
+
+- It changes the naming rules in §3.1, since the package name absorbs
+  the prefix. Choosing bare names now makes that move cheaper, not more
+  expensive.
+- Aggregates must reference each other **by ID only**
+  (`ThreadID uuid.UUID`, never `*thread.Thread`). Cross-aggregate
+  pointers create Go import cycles, which is the same constraint DDD
+  arrives at independently — if a pointer feels necessary, the
+  aggregate boundary is drawn in the wrong place.
 
 ## 3. Naming Conventions
 
 | Concept | Convention | Example |
 |---|---|---|
-| Repository/usecase interface | PascalCase noun/role | `ActivityRepository`, `ActivityAccessChecker` |
-| Concrete struct implementing an interface | unexported camelCase of the interface name | `activityRepository` implements `ActivityRepository` |
-| Constructor | `New<Type>`, returns the interface if one exists, else `*ConcreteType` | `func NewActivityUsecase(repo ActivityRepository) ActivityUsecase` |
-| Usecase operation input | `<Operation>Input` | `CreateActivityInput`, `UpdateActivityInput` |
-| Usecase operation output (when not just the entity) | `<Operation>Result` | `SearchActivitiesResult` |
-| Mapper: DB row → entity | `toEntity<Name>` | `toEntityActivity(row db.Activity) *entity.Activity` |
-| Mapper: entity → sqlc params | `to<Operation><Name>Params` | `toCreateActivityParams`, `toUpdateActivityParams` |
-| DTO request | `<Action><Name>Request` | `CreateActivityRequest` |
-| DTO response | `<Name>Response` | `ActivityResponse` |
-| DTO response constructor | `New<Name>Response` | `dto.NewActivityResponse(e *entity.Activity) ActivityResponse` |
+| Repository/usecase interface | PascalCase noun/role | `ThreadRepository`, `ThreadAccessChecker` |
+| Concrete struct implementing an interface | unexported camelCase of the interface name | `threadRepository` implements `ThreadRepository` |
+| Constructor | `New<Type>`, returns the interface if one exists, else `*ConcreteType` | `func NewThreadUsecase(repo ThreadRepository) ThreadUsecase` |
+| Usecase operation input | `<Operation>Input` | `CreateThreadInput`, `UpdateThreadInput` |
+| Usecase operation output (when not just the entity) | `<Operation>Result` | `SearchThreadsResult` |
+| Mapper: DB row → entity | `toEntity<Name>` | `toEntityThread(row db.Thread) *entity.Thread` |
+| Mapper: entity → sqlc params | `to<Operation><Name>Params` | `toCreateThreadParams`, `toUpdateThreadParams` |
+| DTO request | `<Action><Name>Request` | `CreateThreadRequest` |
+| DTO response | `<Name>Response` | `ThreadResponse` |
+| DTO response constructor | `New<Name>Response` | `dto.NewThreadResponse(e *entity.Thread) ThreadResponse` |
 | Error sentinel | `Err<Reason>`, package-level `var` | `errs.ErrNotFound`, `errs.ErrEmailAlreadyExists` |
+
+### 3.1 Entity Naming: When to Prefix With the Parent
+
+A child entity's name is not where "belongs to a parent" gets
+expressed — the foreign key already does that, and doing it twice means
+two places that can disagree.
+
+> **The foreign key expresses ownership. The name expresses identity.**
+
+Prefix a child entity with its parent **only** when at least one of
+these holds:
+
+1. **The bare noun is semantically empty.** `Image`, `History`,
+   `Token`, `Item`, `Entry`, `Detail`, `Status`, `Config` mean nothing
+   standing alone and need a parent to be readable at all.
+2. **The bare noun is already taken** — by the language, the stdlib, a
+   dependency, or another domain concept here. `Session`, `Type`,
+   `Error`, `Context`, `Time` are all taken in a Go web backend.
+3. **Sibling variants exist that must be told apart.** When two
+   entities under different parents share a noun, both get prefixed,
+   because the bare noun can't say which one it is.
+
+If none applies, use the bare noun.
+
+The fastest check is to say it in a sentence a domain expert would
+actually use. Nobody says "add a thread-moment to the Work thread" —
+they say "add a moment." When the parent doesn't appear in the spoken
+form, it doesn't belong in the type name. (`OrderLine` in other
+codebases is not a counterexample: people really do say "order line,"
+because "line" alone means nothing. That's rule 1 doing the work, not
+ownership.)
+
+Applied to every entity in this codebase:
+
+| Entity | Verdict | Why |
+|---|---|---|
+| `Thread` | bare | Root; nothing to prefix with. |
+| `Moment` | bare | "Moment" carries its own meaning — no rule applies. |
+| `Commitment` | bare | Same. |
+| `ThreadImage` | prefixed | Rules 1 + 3 — "Image" is empty, and `MomentImage` is its sibling. |
+| `MomentImage` | prefixed | Rules 1 + 3, same pair. |
+| `CommitmentHistory` | prefixed | Rule 1 — "History" is empty. |
+| `RefreshToken` | prefixed | Rules 1 + 3 — "Token" is empty; `AccessToken` is its sibling. |
+| `User` | bare | Root. |
+| `UserAccount` | prefixed | Rule 2 — "Account" is ambiguous (billing? tenant?). |
+| `UserVerification` | prefixed | Rule 1 — "Verification" is too vague alone. |
+
+Two costs of prefixing when no rule calls for it:
+
+- **Prefixes compound down the tree.** Every level inherits all of its
+  ancestors. The pre-rename `ActivityCaptureImage` was already three
+  nouns, and a fourth level would have been unreadable. It is
+  `MomentImage` now, not `ThreadMomentImage`, precisely to stop the
+  accumulation.
+- **A name that encodes a relation becomes a lie when the relation
+  loosens.** Renaming a Go type is cheap; renaming a table, its
+  columns, its queries, its mappers, and every DTO mirroring it is not.
+  Relations loosen far more often than they tighten — a `Moment`
+  created by photo backfill exists before it has any parent at all,
+  which alone rules out `ThreadMoment`.
+
+Entity names track `FEATURES.md`'s `Vocabulary` section, which is the
+authoritative product vocabulary. When the two disagree, `FEATURES.md`
+wins and the code follows.
 
 ## 4. Function Signature Conventions
 
@@ -92,7 +177,7 @@ Rules:
 - `error` is always the last return value.
 - More than 2–3 domain parameters on a usecase method → wrap them in an
   `<Operation>Input` struct instead of a long parameter list. (Compare
-  `CreateActivity(ctx, CreateActivityInput{...})` against
+  `CreateThread(ctx, CreateThreadInput{...})` against
   `Login`/`Refresh`, which also take an `Input` struct despite having
   only 2–4 fields — consistency wins over "is this really necessary
   here.")
@@ -123,20 +208,20 @@ with different name but identical logic.
 ```go
 // GOOD — one implementation satisfies two interfaces because the
 // method names match:
-type ActivityRepository interface {
-    GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error)
+type ThreadRepository interface {
+    GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Thread, error)
 }
-type ActivityAccessChecker interface {
-    GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Activity, error)
+type ThreadAccessChecker interface {
+    GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Thread, error)
 }
-// activityRepository.GetByID alone satisfies both — see:
-var _ usecase.ActivityRepository = (*activityRepository)(nil)
-var _ usecase.ActivityAccessChecker = (*activityRepository)(nil)
+// threadRepository.GetByID alone satisfies both — see:
+var _ usecase.ThreadRepository = (*threadRepository)(nil)
+var _ usecase.ThreadAccessChecker = (*threadRepository)(nil)
 ```
 
-This isn't hypothetical — `internal/repository/activity_repository.go`
-used to carry both `GetByID` and a copy-pasted `GetActivityByID` with
-identical bodies, purely because `ActivityAccessChecker` had named its
+This isn't hypothetical — `internal/repository/thread_repository.go`
+used to carry both `GetByID` and a copy-pasted `GetThreadByID` with
+identical bodies, purely because `ThreadAccessChecker` had named its
 method differently. Renaming it to match removed the duplicate outright
 (see PR #2). When you add a compile-time assertion for a new interface,
 add both `var _ Interface = (*impl)(nil)` lines next to each other so
@@ -147,7 +232,7 @@ visible at a glance.
 
 - A `*_usecase.go` file stays as one file with the interface + all
   methods together up to **~5–6 methods or ~250–300 lines**. Past that,
-  split per operation (`activity_usecase_create.go`, etc.) while keeping
+  split per operation (`thread_usecase_create.go`, etc.) while keeping
   the interface declaration in the main file.
 - A `*_dto.go` file stays one-file-per-entity (not per-operation) as long
   as it stays reasonable — don't preemptively split `CreateXRequest` /
@@ -439,7 +524,7 @@ func NewDomainResponse(e *entity.Domain) DomainResponse {
   been wrapped once within the same logical operation (e.g. inside a
   `WithTransaction` callback — the callback's own `Create`/`Update` call
   already wrapped it; returning it unwrapped from the callback avoids
-  "creating activity: creating activity: insert activity: ..." stutter).
+  "creating thread: creating thread: insert thread: ..." stutter).
 - **Log unexpected errors exactly once**, in
   `middleware.CustomErrorHandler` — this is the single point in the
   whole request lifecycle allowed to call `slog.ErrorContext` on an
@@ -449,7 +534,7 @@ func NewDomainResponse(e *entity.Domain) DomainResponse {
   handler layer: `slog.InfoContext(c, "<domain> <verb, past tense>",
   "<domain>_id", id, "user_id", userID)`. Every `Create`/`Update`/`Delete`
   handler must have exactly one such line right before its success
-  response. This was missed on `ActivityImageHandler.DeleteActivityImage`
+  response. This was missed on `ThreadImageHandler.DeleteThreadImage`
   in a prior review pass — check new mutating endpoints against this.
 
 ## 10. Code Ordering Inside a File
@@ -486,7 +571,7 @@ func NewDomainResponse(e *entity.Domain) DomainResponse {
   worse than a missing one. (CI should eventually enforce this — see
   `TODO.md` Tier 4.)
 - Test names: `Test<Type>_<Method>_<Scenario>` (e.g.
-  `TestActivityUsecase_UpdateActivity_NotFound`).
+  `TestThreadUsecase_UpdateThread_NotFound`).
 
 ## 12. Pre-merge Self-review Checklist
 
@@ -496,6 +581,9 @@ func NewDomainResponse(e *entity.Domain) DomainResponse {
 - [ ] No unused exported function/type — `grep` its name across the repo
       before committing; if it has zero call sites, delete it rather
       than leaving it "for later."
+- [ ] Any new child entity is named bare unless rule 1, 2, or 3 of §3.1
+      applies — a parent prefix added only to express "belongs to"
+      duplicates what the foreign key already says.
 - [ ] No leftover scaffold/draft comments ("if you like", "assuming
       this is...", a NOTE phrased as an instruction to a future dev)
       (§8).

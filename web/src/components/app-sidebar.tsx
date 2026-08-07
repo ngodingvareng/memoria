@@ -30,9 +30,9 @@ const data = {
       url: '/',
     },
     {
-      title: 'Activities',
+      title: 'Threads',
       icon: Activity01Icon,
-      url: '/activity',
+      url: '/thread',
     },
     {
       title: 'Circles',
@@ -40,9 +40,9 @@ const data = {
       url: '/circle',
     },
     {
-      title: 'Schedules',
+      title: 'Commitments',
       icon: TwentyFourHoursClockIcon,
-      url: '/schedule',
+      url: '/commitment',
     },
     {
       title: 'Mentions',
@@ -68,23 +68,23 @@ const data = {
   recent: [
     {
       title: 'What is this?',
-      url: '/activity/1',
+      url: '/thread/1',
     },
     {
       title: 'He is not here anymore, so I should go tomorrow',
-      url: '/activity/2',
+      url: '/thread/2',
     },
     {
       title: 'What',
-      url: '/activity/3',
+      url: '/thread/3',
     },
     {
       title: 'PHOBOS <- Holy gd reference',
-      url: '/activity/4',
+      url: '/thread/4',
     },
     {
       title: "There's weird light in front of my house",
-      url: '/activity/5',
+      url: '/thread/5',
     },
   ],
 };
@@ -148,7 +148,7 @@ export default function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Recent Activities</SidebarGroupLabel>
+          <SidebarGroupLabel>Recent Threads</SidebarGroupLabel>
           <SidebarMenu>
             {data.recent.map((item) => (
               <SidebarMenuItem key={item.title}>
