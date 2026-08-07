@@ -9,7 +9,7 @@ export function CreateHeaderLink() {
       <Button
         size="lg"
         render={
-          <Link to="/activity/new">
+          <Link to="/thread/new">
             <HugeiconsIcon icon={PlusSignIcon} /> New
           </Link>
         }

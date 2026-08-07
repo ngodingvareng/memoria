@@ -20,15 +20,12 @@ import {
 } from '@/components/ui/item';
 import Wrapper from '@/components/wrapper';
 import {
-  ActivityGraph,
-  CaptureList,
-  type CaptureCardParam,
-} from '@/features/activities';
+  MomentHeatmap,
+  MomentList,
+  type MomentCardParam,
+} from '@/features/threads';
 
-import {
-  ArrowDown01Icon,
-  ArrowRight02Icon
-} from '@hugeicons/core-free-icons';
+import { ArrowDown01Icon, ArrowRight02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute } from '@tanstack/react-router';
 
@@ -53,7 +50,7 @@ const music = [
   },
 ];
 
-export const dummyActivityStories: CaptureCardParam[] = [
+export const dummyThreadStories: MomentCardParam[] = [
   {
     user: {
       name: 'Budi Santoso',
@@ -61,15 +58,15 @@ export const dummyActivityStories: CaptureCardParam[] = [
       imageSrc: 'https://randomuser.me/api/portraits/men/32.jpg',
       imageAlt: 'Profile photo of Budi Santoso',
     },
-    activity: {
+    thread: {
       name: '5KM Morning Run',
     },
     color: 'orange',
     content: (
       <div>
         <p>
-          Started the day with a 5km run around the GBK area. The weather
-          today is bright and the air feels so fresh! 🏃‍♂️☀️
+          Started the day with a 5km run around the GBK area. The weather today
+          is bright and the air feels so fresh! 🏃‍♂️☀️
         </p>
       </div>
     ),
@@ -89,7 +86,7 @@ export const dummyActivityStories: CaptureCardParam[] = [
       imageSrc: 'https://randomuser.me/api/portraits/women/44.jpg',
       imageAlt: 'Profile photo of Siti Aminah',
     },
-    activity: {
+    thread: {
       name: 'Food Exploring',
     },
     color: 'yellow',
@@ -97,8 +94,8 @@ export const dummyActivityStories: CaptureCardParam[] = [
       <div>
         <p>
           Tried a new coffee shop that's going viral in South Jakarta. The
-          coffee is great and the vibe is so <i>cozy</i> for working or
-          just hanging out. ☕🥐
+          coffee is great and the vibe is so <i>cozy</i> for working or just
+          hanging out. ☕🥐
         </p>
         <img
           src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
@@ -123,7 +120,7 @@ export const dummyActivityStories: CaptureCardParam[] = [
       imageSrc: 'https://randomuser.me/api/portraits/men/75.jpg',
       imageAlt: 'Profile photo of Reza Rahadian',
     },
-    activity: {
+    thread: {
       name: 'Live Coding',
     },
     color: 'blue',
@@ -131,8 +128,7 @@ export const dummyActivityStories: CaptureCardParam[] = [
       <div>
         <p>
           Finally fixed the *bug* that's been bothering me for 3 days.{' '}
-          <b>React hooks</b> are amazing but sometimes give me a headache!
-          💻🚀
+          <b>React hooks</b> are amazing but sometimes give me a headache! 💻🚀
         </p>
       </div>
     ),
@@ -175,7 +171,7 @@ function Index() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center">
                 <h2 className="text-xl font-semibold">
-                  336k activities over the last year
+                  336k threads over the last year
                 </h2>
 
                 <div className="grow flex justify-end">
@@ -200,7 +196,7 @@ function Index() {
                 </div>
               </div>
 
-              <ActivityGraph />
+              <MomentHeatmap />
 
               <div className="flex gap-4">
                 <Item variant="outline" className="items-start">
@@ -264,11 +260,11 @@ function Index() {
 
                 <Item variant="outline" className="items-start">
                   <ItemContent className="flex flex-col gap-4">
-                    <h3 className="text-lg font-semibold">Activities</h3>
+                    <h3 className="text-lg font-semibold">Threads</h3>
 
                     {/* <Empty>
                   <EmptyHeader>
-                    <EmptyDescription>No activities</EmptyDescription>
+                    <EmptyDescription>No threads</EmptyDescription>
                   </EmptyHeader>
                 </Empty> */}
 
@@ -321,7 +317,7 @@ function Index() {
             </div>
             <div className="flex flex-col gap-4">
               <div className="flex items-center">
-                <h2 className="text-xl font-semibold">Capture Today</h2>
+                <h2 className="text-xl font-semibold">Moment Today</h2>
 
                 <div className="grow flex justify-end">
                   <Button variant="ghost">
@@ -329,15 +325,12 @@ function Index() {
                   </Button>
                 </div>
               </div>
-              <CaptureList
-                captures={[dummyActivityStories[0]]}
-                withStoryLayout
-              />
+              <MomentList moments={[dummyThreadStories[0]]} withStoryLayout />
             </div>
             <div className="flex flex-col gap-4">
-              <h2 className="text-xl font-semibold">Last Captures</h2>
+              <h2 className="text-xl font-semibold">Last Moments</h2>
 
-              <CaptureList captures={dummyActivityStories} withStoryLayout />
+              <MomentList moments={dummyThreadStories} withStoryLayout />
             </div>
           </div>
         </Wrapper>

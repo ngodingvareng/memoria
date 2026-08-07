@@ -32,15 +32,12 @@ import {
 } from '@mdxeditor/editor';
 import '@mdxeditor/editor/style.css';
 
-interface CaptureInputProps {
+interface MomentInputProps {
   onOpenTimeDialog: () => void;
   onPublish: () => void;
 }
 
-export function CaptureInput({
-  onOpenTimeDialog,
-  onPublish,
-}: CaptureInputProps) {
+export function MomentInput({ onOpenTimeDialog, onPublish }: MomentInputProps) {
   return (
     <div className="sticky bottom-0 pb-6 left-0 z-30 bg-linear-to-t from-background pt-20 from-60% to-transparent w-full">
       <Item variant="outline" className="mx-auto shadow-sm bg-card max-w-5xl">

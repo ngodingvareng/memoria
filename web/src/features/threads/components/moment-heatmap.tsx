@@ -1829,7 +1829,7 @@ const data = [
   },
 ];
 
-export function ActivityGraph() {
+export function MomentHeatmap() {
   return (
     <div className="flex flex-col gap-2">
       <Item variant="outline">
@@ -1842,7 +1842,7 @@ export function ActivityGraph() {
             data={data}
             fontSize={14}
             labels={{
-              totalCount: '{{count}} activities in 2022 & 2023',
+              totalCount: '{{count}} threads in 2022 & 2023',
             }}
             maxLevel={4}
             minLevel={0}

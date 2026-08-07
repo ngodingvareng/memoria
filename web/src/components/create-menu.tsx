@@ -17,8 +17,8 @@ import {
 const data = {
   menuItems: [
     {
-      label: 'New Activity',
-      link: '/activity/new',
+      label: 'New Thread',
+      link: '/thread/new',
     },
     {
       label: 'New Circle',
@@ -32,8 +32,8 @@ export function CreateMenu() {
     <ButtonGroup>
       <Button
         render={
-          <Link to="/capture/new">
-            <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} /> New Capture
+          <Link to="/moment/new">
+            <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} /> Capture
           </Link>
         }
       />

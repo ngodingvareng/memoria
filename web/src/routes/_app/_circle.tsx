@@ -21,8 +21,8 @@ function RouteComponent() {
     ? 'settings'
     : pathname.includes('/member')
       ? 'members'
-      : pathname.includes('/activity')
-        ? 'activities'
+      : pathname.includes('/thread')
+        ? 'threads'
         : 'overview';
 
   return (
@@ -56,10 +56,10 @@ function RouteComponent() {
               }
             />
             <TabsTrigger
-              value="activities"
+              value="threads"
               render={
-                <Link to="/g/$id/activity" params={{ id: '1' }}>
-                  Activities
+                <Link to="/g/$id/thread" params={{ id: '1' }}>
+                  Threads
                 </Link>
               }
             />

@@ -19,11 +19,11 @@ import { ArrowDown01Icon, StarIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_app/activity/')({
+export const Route = createFileRoute('/_app/thread/')({
   component: RouteComponent,
 });
 
-const activities = [
+const threads = [
   {
     name: 'v0-1.5-sm',
     description: '5 days ago',
@@ -55,7 +55,7 @@ function RouteComponent() {
     <Wrapper>
       <div className="flex flex-col gap-8">
         <div className="flex items-center">
-          <h1 className="text-2xl font-semibold">Activities</h1>
+          <h1 className="text-2xl font-semibold">Threads</h1>
           <div className="grow justify-end gap-2 flex items-center">
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button variant="secondary" />}>
@@ -73,16 +73,16 @@ function RouteComponent() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button>New Activity</Button>
+            <Button>New Thread</Button>
           </div>
         </div>
         <ItemGroup className="grid grid-cols-3 gap-4">
-          {activities.map((model) => (
+          {threads.map((model) => (
             <Item
               key={model.name}
               variant="outline"
               render={
-                <Link to="/activity/$id" params={{ id: '1' }}>
+                <Link to="/thread/$id" params={{ id: '1' }}>
                   <ItemHeader>
                     <img
                       src={model.image}

@@ -38,14 +38,14 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 
-export interface CaptureCardParam {
+export interface MomentCardParam {
   user: {
     name: string;
     username: string;
     imageSrc: string;
     imageAlt: string;
   };
-  activity: {
+  thread: {
     name: string;
   };
   color: string;
@@ -62,9 +62,9 @@ export interface CaptureCardParam {
   isOwnedByCurrentUser?: boolean;
 }
 
-export function CaptureCard({
+export function MomentCard({
   user,
-  activity,
+  thread,
   color,
   content,
   tags,
@@ -73,7 +73,7 @@ export function CaptureCard({
   stats,
   isPublished = false,
   isOwnedByCurrentUser = false,
-}: CaptureCardParam) {
+}: MomentCardParam) {
   return (
     <Item size="xs">
       <ItemContent className="flex flex-col gap-4">
@@ -193,7 +193,7 @@ export function CaptureCard({
                   className="size-4 font-bold text-muted-foreground"
                 />
                 <div className="font-medium">
-                  <p>{activity.name}</p>
+                  <p>{thread.name}</p>
                 </div>
                 <div className="grow items-center flex gap-2 justify-end">
                   <div>

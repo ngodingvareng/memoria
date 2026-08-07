@@ -1,8 +1,8 @@
 import Wrapper from '@/components/wrapper';
-import { CreateActivityForm } from '@/features/activities';
+import { CreateThreadForm } from '@/features/threads';
 import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_app/activity/new')({
+export const Route = createFileRoute('/_app/thread/new')({
   component: RouteComponent,
 });
 
@@ -11,10 +11,10 @@ function RouteComponent() {
     <Wrapper>
       <div className="flex flex-col gap-8 max-w-xl">
         <div className="flex items-center">
-          <h1 className="text-2xl font-semibold">Create activity</h1>
+          <h1 className="text-2xl font-semibold">Create thread</h1>
         </div>
 
-        <CreateActivityForm />
+        <CreateThreadForm />
       </div>
     </Wrapper>
   );

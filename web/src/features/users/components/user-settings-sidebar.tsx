@@ -17,8 +17,8 @@ const data = {
       url: '/user/account',
     },
     {
-      title: 'Activity',
-      url: '/user/activity',
+      title: 'Threads',
+      url: '/user/threads',
     },
     {
       title: 'Notification',

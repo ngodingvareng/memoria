@@ -1,14 +1,14 @@
-interface ActivityHeroProps {
+interface ThreadHeroProps {
   isReadMode: boolean;
   imageUrl: string;
   imageAlt: string;
 }
 
-export function ActivityHero({
+export function ThreadHero({
   isReadMode,
   imageUrl,
   imageAlt,
-}: ActivityHeroProps) {
+}: ThreadHeroProps) {
   if (isReadMode) return null;
 
   return (

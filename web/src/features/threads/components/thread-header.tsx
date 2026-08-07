@@ -4,19 +4,19 @@ import { Edit04Icon, EyeIcon, Search01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
 
-interface ActivityHeaderProps {
+interface ThreadHeaderProps {
   isReadMode: boolean;
   onToggleMode: () => void;
   onShare: () => void;
   noteCount: number;
 }
 
-export function ActivityHeader({
+export function ThreadHeader({
   isReadMode,
   onToggleMode,
   onShare,
   noteCount,
-}: ActivityHeaderProps) {
+}: ThreadHeaderProps) {
   return (
     <div className="flex flex-col gap-2 mt-4">
       <div className="flex items-center justify-end gap-1">
@@ -38,7 +38,7 @@ export function ActivityHeader({
           <Button
             variant="outline"
             render={
-              <Link to="/activity/$id/info" params={{ id: '1' }}>
+              <Link to="/thread/$id/info" params={{ id: '1' }}>
                 Info
               </Link>
             }
