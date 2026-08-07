@@ -10,6 +10,8 @@ Memoria — a private memory keeper built around capturing moments and history t
 
 `FEATURES.md` is the full product spec and opens with **Principles** and **Non-Goals** that every feature is checked against — read those before proposing or implementing product behavior, since several are deliberate constraints that look like missing features (no streaks, no visible reaction counts, no read receipts, no real-time engagement notifications, and the Commitment Firewall, which allows aggregate adherence into the archive but keeps individual **missed** Moments out of every archive surface). Beyond those it covers Threads, Moments, Circles, Commitments, Notifications, Albums, Recaps, Looking Back surfaces, Time semantics, Lifecycle/deletion semantics, and Privacy controls. Note that `FEATURES.md` intentionally runs ahead of the code — treat it as the target, not a description of what exists, and check `api/TODO.md` for what is actually built.
 
+`COMMITMENT.md` (root) is the design conversation for the Commitment mode specifically — a user-perspective walkthrough plus the open questions (C1–C7) that block implementation. Commitment is a **deliberately deferred, long-horizon feature**: don't start the scheduler or timeout worker, and don't treat its absence as a gap to close.
+
 This is a monorepo with four independent projects, each with its own toolchain and lifecycle:
 
 - **`api/`** — Go backend (Fiber). The most mature and actively developed part of the stack.

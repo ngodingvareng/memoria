@@ -118,6 +118,10 @@ Capturing must work with no network. The moments most worth capturing — on a t
 
 The opt-in mode where a Thread stops being flexible and takes on a schedule the user sets, with the app keeping an honest record of whether they kept it.
 
+> **Special feature, long horizon — not scheduled.** Commitment is the only mode that judges the user, and it touches the scheduler, notifications, the archive surfaces, and the privacy model at once. It needs a long design conversation before any of it is built, and several of its rules are still undecided. It is deliberately not a near-term priority.
+>
+> [`COMMITMENT.md`](COMMITMENT.md) walks the feature through from the user's side scenario by scenario, and collects the open questions that block implementation. The section below stays the definition of record; that document is the design conversation.
+
 A Thread can carry more than one Commitment, and each one is independent — its own recurrence rule, its own confirmation window, its own strictness. "Morning Run" and "Evening Walk" under the same Thread are two Commitments, not one schedule with two times, precisely because they usually deserve different demands.
 
 > "Work" recurs every weekday (Mon–Fri).

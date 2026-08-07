@@ -4,8 +4,10 @@ Remaining work, ordered by priority (security-critical first, product-blocking n
 
 ## Tier 2 — Core product features not started
 
-- [ ] **Scheduler worker** — a job that evaluates cron expressions from `commitments` and auto-generates `moments`. The `ListCommitmentsForGeneration` query exists, but there's no worker actually parsing cron and calling `CreateCommittedMoment`.
-- [ ] **Timeout worker** — a periodic job calling `MarkOverdueMomentsAsMissed` (see the retroactive-timeout decision under Tier 5 before implementing this).
+Both Commitment workers below are **deferred on purpose** — see `COMMITMENT.md`. Commitment is a long-horizon feature whose design isn't settled, and C5 there (a manual capture landing on a Thread with an open **due** Moment) would be a first-week bug for every user if the scheduler shipped before it's decided. Don't start either worker until those questions are answered.
+
+- [ ] **Scheduler worker** — a job that evaluates cron expressions from `commitments` and auto-generates `moments`. The `ListCommitmentsForGeneration` query exists, but there's no worker actually parsing cron and calling `CreateCommittedMoment`. Blocked on `COMMITMENT.md` C1, C4, C5, C6.
+- [ ] **Timeout worker** — a periodic job calling `MarkOverdueMomentsAsMissed` (see the retroactive-timeout decision under Tier 5 before implementing this). Blocked on `COMMITMENT.md` C2 and C3.
 - [ ] **Statistics endpoints** — heatmap & Time to Tell chart. The `GetHeatmapData` / `GetSettlingTimeStats` queries exist, but there's no usecase/handler yet.
 - [ ] `RestoreThread` — usecase + handler. The sqlc query already exists (`internal/db/threads.sql.go`), nothing calls it yet.
 - [ ] `moment_images` upload — needs the identical repository/usecase/handler pattern already used for `thread_images`.
