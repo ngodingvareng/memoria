@@ -5,73 +5,15 @@ package repository_test
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-openapi/testify/v2/require"
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/entity"
 	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/repository"
 	"github.com/ngodingvareng/memoria/internal/usecase"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
-
-// testUsername generates a unique value matching
-// chk_users_username_format (^[a-z0-9_.]{3,30}$) — uuid.NewString()'s
-// dashes aren't allowed there, so they're stripped.
-func testUsername() string {
-	return "user_" + strings.ReplaceAll(uuid.NewString(), "-", "")[:20]
-}
-
-func setupTestDB(t *testing.T) *pgxpool.Pool {
-	t.Helper()
-	ctx := context.Background()
-
-	pgContainer, err := postgres.Run(ctx,
-		"postgres:18-alpine",
-		postgres.WithDatabase("memoria_test"),
-		postgres.WithUsername("test"),
-		postgres.WithPassword("test"),
-		testcontainers.WithWaitStrategy(wait.
-			ForLog("database system is ready to accept connections").
-			WithOccurrence(2),
-		),
-	)
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = pgContainer.Terminate(ctx) })
-
-	dsn, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
-	require.NoError(t, err)
-
-	m, err := migrate.New("file://../../db/migrations", dsn)
-	require.NoError(t, err)
-	require.NoError(t, m.Up())
-
-	pool, err := pgxpool.New(ctx, dsn)
-	require.NoError(t, err)
-	t.Cleanup(pool.Close)
-
-	return pool
-}
-
-func seedTestUser(t *testing.T, pool *pgxpool.Pool) uuid.UUID {
-	t.Helper()
-	var id uuid.UUID
-	err := pool.QueryRow(context.Background(),
-		`INSERT INTO users (name, username, email) VALUES ($1, $2, $3) RETURNING id`,
-		"Test User", testUsername(), uuid.NewString()+"@example.com",
-	).Scan(&id)
-	require.NoError(t, err)
-	return id
-}
 
 func TestThreadRepository_WithTransaction_CommitsOnSuccess(t *testing.T) {
 	pool := setupTestDB(t)
