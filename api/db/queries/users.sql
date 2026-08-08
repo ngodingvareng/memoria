@@ -1,6 +1,8 @@
 -- name: CreateUser :one
+-- username is nullable here: registration creates the account before the
+-- onboarding step (SetUsername) claims one.
 INSERT INTO users(name, username, email, timezone)
-VALUES (sqlc.arg(name), sqlc.arg(username), sqlc.arg(email), sqlc.arg(timezone))
+VALUES (sqlc.arg(name), sqlc.narg(username), sqlc.arg(email), sqlc.arg(timezone))
 RETURNING *;
 
 -- name: GetUserByID :one
@@ -48,6 +50,18 @@ SET mention_policy = sqlc.arg(mention_policy),
     circle_invite_policy = sqlc.arg(circle_invite_policy),
     discoverable_by_username = sqlc.arg(discoverable_by_username),
     strip_photo_metadata = sqlc.arg(strip_photo_metadata),
+    updated_at = NOW()
+WHERE id = sqlc.arg(id)
+    AND deleted_at IS NULL
+    RETURNING *;
+
+-- name: SetUsername :one
+-- Claims a username for an account that doesn't have one yet (the
+-- post-register onboarding step). uq_users_username_lower/
+-- chk_users_username_format still guard uniqueness/format at the DB
+-- level regardless of caller-side validation.
+UPDATE users
+SET username = sqlc.arg(username),
     updated_at = NOW()
 WHERE id = sqlc.arg(id)
     AND deleted_at IS NULL

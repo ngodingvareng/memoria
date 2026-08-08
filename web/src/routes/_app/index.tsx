@@ -23,7 +23,7 @@ import {
   MomentHeatmap,
   MomentList,
   type MomentCardParam,
-} from '@/features/threads';
+} from '@/features/moments';
 
 import { ArrowDown01Icon, ArrowRight02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';

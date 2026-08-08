@@ -186,6 +186,9 @@ func setupTestApp(t *testing.T) *testApp {
 		accessTokenIssuer, refreshTokenGenerator, 30*24*time.Hour, 5, 15*time.Minute)
 	authHandler := handler.NewAuthHandler(authUsecase, false)
 
+	userUsecase := usecase.NewUserUsecase(userRepo)
+	userHandler := handler.NewUserHandler(userUsecase)
+
 	threadRepo := repository.NewThreadRepository(pool)
 	threadUsecase := usecase.NewThreadUsecase(threadRepo)
 	threadHandler := handler.NewThreadHandler(threadUsecase)
@@ -243,6 +246,7 @@ func setupTestApp(t *testing.T) *testApp {
 
 	rest.SetupRoutes(fiberApp, accessTokenIssuer, noOpRateLimiter, rest.Handlers{
 		Auth:              authHandler,
+		User:              userHandler,
 		Thread:            threadHandler,
 		ThreadImage:       threadImageHandler,
 		Moment:            momentHandler,

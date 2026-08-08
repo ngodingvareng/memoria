@@ -8,9 +8,11 @@ import (
 )
 
 type User struct {
-	ID            uuid.UUID
-	Name          string
-	Username      string
+	ID   uuid.UUID
+	Name string
+	// Username is nil until the post-register onboarding step claims one
+	// (see UserUsecase.SetUsername).
+	Username      *string
 	Email         string
 	EmailVerified bool
 	ImagePath     *string

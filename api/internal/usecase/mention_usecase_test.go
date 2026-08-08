@@ -31,7 +31,7 @@ func TestMentionUsecase_CreateMention_AnyonePolicy_Success(t *testing.T) {
 	uc := usecase.NewMentionUsecase(repo, moments, circles, users, knowns, blocks)
 
 	momentID, ownerID, targetID := uuid.New(), uuid.New(), uuid.New()
-	target := &entity.User{ID: targetID, Name: "Gede", Username: "gede", MentionPolicy: enum.AudiencePolicyAnyone}
+	target := &entity.User{ID: targetID, Name: "Gede", Username: strPtr("gede"), MentionPolicy: enum.AudiencePolicyAnyone}
 
 	moments.EXPECT().GetByID(mock.Anything, momentID, ownerID).Return(&entity.Moment{ID: momentID, UserID: ownerID}, nil)
 	users.EXPECT().GetByUsername(mock.Anything, "gede").Return(target, nil)

@@ -1130,7 +1130,7 @@ type ThreadImage struct {
 type User struct {
 	ID                     uuid.UUID
 	Name                   string
-	Username               string
+	Username               pgtype.Text
 	Email                  string
 	EmailVerified          bool
 	ImagePath              pgtype.Text

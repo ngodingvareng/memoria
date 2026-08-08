@@ -96,6 +96,7 @@ const docTemplate = `{
         },
         "/auth/register": {
             "post": {
+                "description": "Creates the account (without a username — see\nPATCH /users/me/username for claiming one afterward) and\nimmediately starts a session, exactly like /auth/login:\nreturns an access token and sets the refresh token as an\nhttpOnly cookie scoped to /auth.",
                 "consumes": [
                     "application/json"
                 ],
@@ -121,7 +122,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_UserResponse"
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_LoginResponse"
                         }
                     },
                     "400": {
@@ -989,6 +990,31 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
                         "schema": {
                             "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
                         }
@@ -2273,9 +2299,98 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/me/username": {
+            "patch": {
+                "description": "Used by the post-register welcome/onboarding step.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Claim a username for the current account",
+                "parameters": [
+                    {
+                        "description": "Username to claim",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SetUsernameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/username-availability": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Check whether a username is available to claim",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username to check",
+                        "name": "username",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CheckUsernameAvailabilityResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CheckUsernameAvailabilityResponse": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleInviteLinkResponse": {
             "type": "object",
             "properties": {
@@ -2958,11 +3073,11 @@ const docTemplate = `{
             "required": [
                 "email",
                 "name",
-                "password",
-                "username"
+                "password"
             ],
             "properties": {
                 "email": {
+                    "description": "Username is deliberately not collected here — the account is\ncreated without one, and the welcome/onboarding step claims it\nafterward via PATCH /users/me/username.",
                     "type": "string",
                     "maxLength": 255,
                     "example": "budi@example.com"
@@ -2979,11 +3094,6 @@ const docTemplate = `{
                     "maxLength": 256,
                     "minLength": 8,
                     "example": "correct horse battery staple"
-                },
-                "username": {
-                    "description": "Matches users.chk_users_username_format — lowercase letters,\ndigits, underscore, and dot only. Stored as typed, matched\ncase-insensitively for uniqueness. See the \"username\" custom\nvalidator registered in AuthHandler.",
-                    "type": "string",
-                    "example": "budisantoso"
                 }
             }
         },
@@ -3027,6 +3137,19 @@ const docTemplate = `{
                         "tender"
                     ],
                     "example": "heart"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SetUsernameRequest": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "description": "Matches users.chk_users_username_format — lowercase letters,\ndigits, underscore, and dot only, 3-30 characters. See the\n\"username\" custom validator registered in UserHandler.",
+                    "type": "string",
+                    "example": "budisantoso"
                 }
             }
         },
@@ -3251,6 +3374,7 @@ const docTemplate = `{
                     "example": "Budi Santoso"
                 },
                 "username": {
+                    "description": "Username is nil until the welcome/onboarding step claims one.",
                     "type": "string",
                     "example": "budisantoso"
                 }
@@ -3303,6 +3427,23 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ThreadImageResponse"
                     }
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CheckUsernameAvailabilityResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CheckUsernameAvailabilityResponse"
                 },
                 "errors": {},
                 "message": {

@@ -14,11 +14,11 @@ export const Route = createFileRoute('/_auth/signup')({
 
 function RouteComponent() {
   return (
-    <Card>
+    <Card className="px-6">
       <CardHeader className="text-center">
-        <CardTitle className="text-xl">Create your account</CardTitle>
+        <CardTitle className="text-xl">Create new account</CardTitle>
         <CardDescription>
-          Enter your email below to create your account
+          Enter your information below to create your account
         </CardDescription>
       </CardHeader>
       <CardContent>

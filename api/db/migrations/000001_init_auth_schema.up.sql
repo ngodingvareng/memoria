@@ -29,8 +29,10 @@ CREATE TABLE users(
 
     -- Handle used for @mentions and for "invite by entering their
     -- username" (Circle Invite). Stored as typed, matched
-    -- case-insensitively via uq_users_username_lower.
-    username VARCHAR(30) NOT NULL,
+    -- case-insensitively via uq_users_username_lower. Nullable: a new
+    -- account has no username until the post-register onboarding step
+    -- claims one (see UserUsecase.SetUsername).
+    username VARCHAR(30),
 
     email VARCHAR(255) NOT NULL,
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,

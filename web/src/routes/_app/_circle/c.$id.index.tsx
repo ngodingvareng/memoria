@@ -18,7 +18,7 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '@/components/ui/item';
-import { MomentHeatmap } from '@/features/threads';
+import { MomentHeatmap } from '@/features/moments';
 import { getNoteColorClass } from '@/lib/colors';
 import { dummyStories } from '@/lib/dummies';
 import { cn } from '@/lib/utils';

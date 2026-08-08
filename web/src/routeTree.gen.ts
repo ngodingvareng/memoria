@@ -19,12 +19,12 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppUsernameRouteImport } from './routes/_app/$username'
 import { Route as AppCircleRouteImport } from './routes/_app/_circle'
-import { Route as AppCommitmentRouteImport } from './routes/_app/commitment'
 import { Route as AppMentionsRouteImport } from './routes/_app/mentions'
 import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
 import { Route as AppSearchRouteImport } from './routes/_app/search'
 import { Route as AuthSigninRouteImport } from './routes/_auth/signin'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
+import { Route as AuthWelcomeRouteImport } from './routes/_auth/welcome'
 import { Route as AppAlbumIndexRouteImport } from './routes/_app/album.index'
 import { Route as AppCircleIndexRouteImport } from './routes/_app/circle.index'
 import { Route as AppCircleNewRouteImport } from './routes/_app/circle.new'
@@ -94,11 +94,6 @@ const AppCircleRoute = AppCircleRouteImport.update({
   id: '/_circle',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCommitmentRoute = AppCommitmentRouteImport.update({
-  id: '/commitment',
-  path: '/commitment',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppMentionsRoute = AppMentionsRouteImport.update({
   id: '/mentions',
   path: '/mentions',
@@ -122,6 +117,11 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthWelcomeRoute = AuthWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => AuthRoute,
 } as any)
 const AppAlbumIndexRoute = AppAlbumIndexRouteImport.update({
@@ -243,12 +243,12 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/$username': typeof AppUsernameRoute
-  '/commitment': typeof AppCommitmentRoute
   '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
   '/search': typeof AppSearchRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
+  '/welcome': typeof AuthWelcomeRoute
   '/circle/new': typeof AppCircleNewRoute
   '/moment/new': typeof AppMomentNewRoute
   '/recap/$period': typeof AppRecapPeriodRoute
@@ -279,12 +279,12 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/$username': typeof AppUsernameRoute
-  '/commitment': typeof AppCommitmentRoute
   '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
   '/search': typeof AppSearchRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
+  '/welcome': typeof AuthWelcomeRoute
   '/circle/new': typeof AppCircleNewRoute
   '/moment/new': typeof AppMomentNewRoute
   '/recap/$period': typeof AppRecapPeriodRoute
@@ -319,12 +319,12 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_app/$username': typeof AppUsernameRoute
   '/_app/_circle': typeof AppCircleRouteWithChildren
-  '/_app/commitment': typeof AppCommitmentRoute
   '/_app/mentions': typeof AppMentionsRoute
   '/_app/notifications': typeof AppNotificationsRoute
   '/_app/search': typeof AppSearchRoute
   '/_auth/signin': typeof AuthSigninRoute
   '/_auth/signup': typeof AuthSignupRoute
+  '/_auth/welcome': typeof AuthWelcomeRoute
   '/_app/': typeof AppIndexRoute
   '/_app/circle/new': typeof AppCircleNewRoute
   '/_app/moment/new': typeof AppMomentNewRoute
@@ -358,12 +358,12 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/$username'
-    | '/commitment'
     | '/mentions'
     | '/notifications'
     | '/search'
     | '/signin'
     | '/signup'
+    | '/welcome'
     | '/circle/new'
     | '/moment/new'
     | '/recap/$period'
@@ -394,12 +394,12 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/$username'
-    | '/commitment'
     | '/mentions'
     | '/notifications'
     | '/search'
     | '/signin'
     | '/signup'
+    | '/welcome'
     | '/circle/new'
     | '/moment/new'
     | '/recap/$period'
@@ -433,12 +433,12 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_app/$username'
     | '/_app/_circle'
-    | '/_app/commitment'
     | '/_app/mentions'
     | '/_app/notifications'
     | '/_app/search'
     | '/_auth/signin'
     | '/_auth/signup'
+    | '/_auth/welcome'
     | '/_app/'
     | '/_app/circle/new'
     | '/_app/moment/new'
@@ -546,13 +546,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCircleRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/commitment': {
-      id: '/_app/commitment'
-      path: '/commitment'
-      fullPath: '/commitment'
-      preLoaderRoute: typeof AppCommitmentRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/mentions': {
       id: '/_app/mentions'
       path: '/mentions'
@@ -586,6 +579,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof AuthSignupRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/welcome': {
+      id: '/_auth/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof AuthWelcomeRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_app/album/': {
@@ -772,7 +772,6 @@ const AppCircleRouteWithChildren = AppCircleRoute._addFileChildren(
 interface AppRouteChildren {
   AppUsernameRoute: typeof AppUsernameRoute
   AppCircleRoute: typeof AppCircleRouteWithChildren
-  AppCommitmentRoute: typeof AppCommitmentRoute
   AppMentionsRoute: typeof AppMentionsRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppSearchRoute: typeof AppSearchRoute
@@ -792,7 +791,6 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppUsernameRoute: AppUsernameRoute,
   AppCircleRoute: AppCircleRouteWithChildren,
-  AppCommitmentRoute: AppCommitmentRoute,
   AppMentionsRoute: AppMentionsRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppSearchRoute: AppSearchRoute,
@@ -814,11 +812,13 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 interface AuthRouteChildren {
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
+  AuthWelcomeRoute: typeof AuthWelcomeRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
+  AuthWelcomeRoute: AuthWelcomeRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

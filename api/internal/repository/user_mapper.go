@@ -10,7 +10,7 @@ func toEntityUser(row db.User) *entity.User {
 	return &entity.User{
 		ID:                     row.ID,
 		Name:                   row.Name,
-		Username:               row.Username,
+		Username:               pgTextToPtr(row.Username),
 		Email:                  row.Email,
 		EmailVerified:          row.EmailVerified,
 		ImagePath:              pgTextToPtr(row.ImagePath),

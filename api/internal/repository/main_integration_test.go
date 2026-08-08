@@ -116,6 +116,10 @@ func testUsername() string {
 	return "user_" + strings.ReplaceAll(uuid.NewString(), "-", "")[:20]
 }
 
+// strPtr is a small literal-to-pointer helper for entity.User.Username
+// (nil until claimed via UserRepository.SetUsername).
+func strPtr(s string) *string { return &s }
+
 func seedTestUser(t *testing.T, pool *pgxpool.Pool) uuid.UUID {
 	t.Helper()
 	var id uuid.UUID

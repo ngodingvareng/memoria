@@ -20,11 +20,13 @@ RETURNING id, name, username, email, email_verified, image_path, bio, timezone, 
 
 type CreateUserParams struct {
 	Name     string
-	Username string
+	Username pgtype.Text
 	Email    string
 	Timezone string
 }
 
+// username is nullable here: registration creates the account before the
+// onboarding step (SetUsername) claims one.
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, createUser,
 		arg.Name,
@@ -230,6 +232,47 @@ func (q *Queries) SetUserEmailVerified(ctx context.Context, id uuid.UUID) error 
 	return err
 }
 
+const setUsername = `-- name: SetUsername :one
+UPDATE users
+SET username = $1,
+    updated_at = NOW()
+WHERE id = $2
+    AND deleted_at IS NULL
+    RETURNING id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
+`
+
+type SetUsernameParams struct {
+	Username pgtype.Text
+	ID       uuid.UUID
+}
+
+// Claims a username for an account that doesn't have one yet (the
+// post-register onboarding step). uq_users_username_lower/
+// chk_users_username_format still guard uniqueness/format at the DB
+// level regardless of caller-side validation.
+func (q *Queries) SetUsername(ctx context.Context, arg SetUsernameParams) (User, error) {
+	row := q.db.QueryRow(ctx, setUsername, arg.Username, arg.ID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Username,
+		&i.Email,
+		&i.EmailVerified,
+		&i.ImagePath,
+		&i.Bio,
+		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.MentionPolicy,
+		&i.CircleInvitePolicy,
+		&i.DiscoverableByUsername,
+		&i.StripPhotoMetadata,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const softDeleteUser = `-- name: SoftDeleteUser :exec
 UPDATE users
 SET deleted_at = NOW()
@@ -312,7 +355,7 @@ WHERE id = $6
 
 type UpdateUserProfileParams struct {
 	Name      string
-	Username  string
+	Username  pgtype.Text
 	ImagePath pgtype.Text
 	Bio       pgtype.Text
 	Timezone  string

@@ -6,7 +6,14 @@ import {
   FieldLabel,
   FieldSeparator,
 } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group';
+import { ViewIcon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
 
 export function SigninForm() {
@@ -37,25 +44,42 @@ export function SigninForm() {
           Or continue with
         </FieldSeparator>
         <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input id="email" type="email" placeholder="m@example.com" required />
+          <FieldLabel>Email</FieldLabel>
+          <InputGroup className="h-11!">
+            <InputGroupInput
+              autoComplete="off"
+              placeholder="memoria@example.com"
+              className="text-lg!"
+            />
+          </InputGroup>
         </Field>
         <Field>
-          <div className="flex items-center">
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Forgot your password?
-            </a>
-          </div>
-          <Input id="password" type="password" required />
+          <FieldLabel>Password</FieldLabel>
+          <InputGroup className="h-11!">
+            <InputGroupInput
+              type="password"
+              autoComplete="off"
+              placeholder="••••••••"
+              className="text-lg!"
+            />
+            <InputGroupAddon align="inline-end">
+             <InputGroupButton size="icon-sm">
+              <HugeiconsIcon icon={ViewIcon} />
+             </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
         </Field>
+
         <Field>
-          <Button type="submit">Login</Button>
-          <FieldDescription className="text-center">
-            Don&apos;t have an account? <Link to="/signup">Sign up</Link>
+          <Button type="submit">Sign in</Button>
+        </Field>
+
+        <Field>
+          <FieldDescription>
+            <Link to="/signup"> Forgot password?</Link>
+          </FieldDescription>
+          <FieldDescription>
+            New to Memoria? <Link to="/signup">Sign up</Link>
           </FieldDescription>
         </Field>
       </FieldGroup>

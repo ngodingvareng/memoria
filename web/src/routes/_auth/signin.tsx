@@ -14,9 +14,9 @@ export const Route = createFileRoute('/_auth/signin')({
 
 function RouteComponent() {
   return (
-    <Card>
+    <Card className='px-6'>
       <CardHeader className="text-center">
-        <CardTitle className="text-xl">Welcome back</CardTitle>
+        <CardTitle className="text-xl">Sign in</CardTitle>
         <CardDescription>
           Login with your Apple or Google account
         </CardDescription>

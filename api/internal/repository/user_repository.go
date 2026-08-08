@@ -31,7 +31,7 @@ func NewUserRepository(pool *pgxpool.Pool) *userRepository {
 func (r *userRepository) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
 	row, err := r.q.CreateUser(ctx, db.CreateUserParams{
 		Name:     user.Name,
-		Username: user.Username,
+		Username: ptrToPgText(user.Username),
 		Email:    user.Email,
 		Timezone: user.Timezone,
 	})
@@ -42,12 +42,8 @@ func (r *userRepository) Create(ctx context.Context, user *entity.User) (*entity
 		// uq_users_username_lower are the real guards, this just
 		// translates whichever one fired into a domain-level error
 		// instead of a raw pg error leaking upward.
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolationCode {
-			if pgErr.ConstraintName == "uq_users_username_lower" {
-				return nil, errs.ErrUsernameAlreadyExists
-			}
-			return nil, errs.ErrEmailAlreadyExists
+		if translated, ok := translateUserUniqueViolation(err); ok {
+			return nil, translated
 		}
 		return nil, fmt.Errorf("create user: %w", err)
 	}
@@ -91,4 +87,37 @@ func (r *userRepository) GetByUsername(ctx context.Context, username string) (*e
 		return nil, fmt.Errorf("get user by username: %w", err)
 	}
 	return toEntityUser(row), nil
+}
+
+// SetUsername implements [usecase.UserRepository].
+func (r *userRepository) SetUsername(ctx context.Context, id uuid.UUID, username string) (*entity.User, error) {
+	row, err := r.q.SetUsername(ctx, db.SetUsernameParams{
+		ID:       id,
+		Username: ptrToPgText(&username),
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		if translated, ok := translateUserUniqueViolation(err); ok {
+			return nil, translated
+		}
+		return nil, fmt.Errorf("set username: %w", err)
+	}
+	return toEntityUser(row), nil
+}
+
+// translateUserUniqueViolation converts a uq_users_email_lower/
+// uq_users_username_lower unique-violation into the matching domain
+// error, so callers never see a raw pg error. ok is false for any other
+// error, leaving the caller to wrap/return it as-is.
+func translateUserUniqueViolation(err error) (error, bool) {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) || pgErr.Code != pgUniqueViolationCode {
+		return nil, false
+	}
+	if pgErr.ConstraintName == "uq_users_username_lower" {
+		return errs.ErrUsernameAlreadyExists, true
+	}
+	return errs.ErrEmailAlreadyExists, true
 }

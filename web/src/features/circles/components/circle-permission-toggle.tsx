@@ -1,5 +1,3 @@
 export function CirclePermissionToggle() {
-  return (
-    <div>Hello World</div>
-  )
+  return <div>Hello World</div>;
 }

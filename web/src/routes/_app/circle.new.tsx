@@ -11,7 +11,7 @@ function RouteComponent() {
     <Wrapper>
       <div className="flex flex-col gap-8 max-w-xl">
         <div className="flex items-center">
-          <h1 className="text-2xl font-semibold">Create circle</h1>
+          <h1 className="text-2xl font-semibold">Create new circle</h1>
         </div>
 
         <CreateCircleForm />

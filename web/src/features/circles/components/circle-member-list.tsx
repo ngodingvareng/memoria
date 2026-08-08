@@ -1,5 +1,3 @@
 export function CircleMemberList() {
-  return (
-    <div>Hello World</div>
-  )
+  return <div>Hello World</div>;
 }

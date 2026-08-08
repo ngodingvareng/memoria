@@ -121,6 +121,8 @@ type Querier interface {
 	// creates a collaborative Thread owned by the Circle instead (see the
 	// header comment on the threads table).
 	CreateThread(ctx context.Context, arg CreateThreadParams) (Thread, error)
+	// username is nullable here: registration creates the account before the
+	// onboarding step (SetUsername) claims one.
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	// Idempotent: blocking someone already blocked is a no-op, not an error.
 	CreateUserBlock(ctx context.Context, arg CreateUserBlockParams) error
@@ -457,6 +459,11 @@ type Querier interface {
 	// does not admit them retroactively.
 	SetCircleInviteLinkRequiresApproval(ctx context.Context, arg SetCircleInviteLinkRequiresApprovalParams) (CircleInvite, error)
 	SetUserEmailVerified(ctx context.Context, id uuid.UUID) error
+	// Claims a username for an account that doesn't have one yet (the
+	// post-register onboarding step). uq_users_username_lower/
+	// chk_users_username_format still guard uniqueness/format at the DB
+	// level regardless of caller-side validation.
+	SetUsername(ctx context.Context, arg SetUsernameParams) (User, error)
 	// The "Share to circle too?" step of the mention flow (FEATURES.md,
 	// Mention) — never a standalone "share" action. Idempotent: sharing
 	// into a Circle it's already shared to is a no-op.

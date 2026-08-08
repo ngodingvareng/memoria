@@ -57,29 +57,42 @@ func newAuthUsecase(t *testing.T) (
 }
 
 // --- Register ---
-// Unchanged behavior from before this refactor — Register never touches
-// tokens at all, so these cases carry over as-is.
+// Register creates the account WITHOUT a username (claimed later via
+// UserUsecase.SetUsername in the welcome/onboarding step) and doubles as
+// login — it issues a session in the same transaction as the user +
+// credential rows, exactly like Login does.
 
 func TestAuthUsecase_Register_Success(t *testing.T) {
-	uc, users, userAccounts, _, uow, hasher, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").Return(nil, errs.ErrNotFound)
 	hasher.EXPECT().Hash("s3cur3-password").Return("hashed-password", nil)
 
 	created := &entity.User{ID: uuid.New(), Name: "Budi", Email: "budi@example.com"}
+	accessExpiresAt := time.Now().Add(15 * time.Minute)
+	wantRefreshExpiresAt := time.Now().Add(testRefreshTokenTTL)
+
 	uow.EXPECT().
 		WithTransaction(mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, fn func(usecase.AuthRepositories) error) error {
-			return fn(usecase.AuthRepositories{User: users, UserAccount: userAccounts})
+			return fn(usecase.AuthRepositories{User: users, UserAccount: userAccounts, RefreshToken: refreshTokens})
 		})
 	users.EXPECT().
 		Create(mock.Anything, mock.MatchedBy(func(u *entity.User) bool {
-			return u.Name == "Budi" && u.Email == "budi@example.com" && u.Timezone == "UTC"
+			return u.Name == "Budi" && u.Email == "budi@example.com" && u.Timezone == "UTC" && u.Username == nil
 		})).
 		Return(created, nil)
 	userAccounts.EXPECT().
 		CreateCredential(mock.Anything, created.ID, created.ID.String(), "hashed-password").
 		Return(&entity.UserAccount{}, nil)
+	accessTokens.EXPECT().Generate(created.ID).Return("access-token", accessExpiresAt, nil)
+	refreshTokenGen.EXPECT().Generate().Return("raw-refresh-token", nil)
+	refreshTokenGen.EXPECT().Hash("raw-refresh-token").Return("hashed-refresh-token")
+	refreshTokens.EXPECT().
+		Create(mock.Anything, mock.MatchedBy(func(rt *entity.RefreshToken) bool {
+			return rt.UserID == created.ID && rt.TokenHash == "hashed-refresh-token" && rt.FamilyID != uuid.Nil
+		})).
+		Return(&entity.RefreshToken{ID: uuid.New()}, nil)
 
 	result, err := uc.Register(context.Background(), usecase.RegisterInput{
 		Name:     "Budi",
@@ -87,8 +100,12 @@ func TestAuthUsecase_Register_Success(t *testing.T) {
 		Password: "s3cur3-password",
 	})
 
-	assert.NoError(t, err)
-	assert.Equal(t, created, result)
+	require.NoError(t, err)
+	assert.Equal(t, created, result.User)
+	assert.Equal(t, "access-token", result.AccessToken)
+	assert.Equal(t, accessExpiresAt, result.AccessTokenExpiresAt)
+	assert.Equal(t, "raw-refresh-token", result.RefreshToken)
+	assert.WithinDuration(t, wantRefreshExpiresAt, result.RefreshTokenExpiresAt, time.Second)
 }
 
 func TestAuthUsecase_Register_EmailAlreadyExists(t *testing.T) {
@@ -141,6 +158,36 @@ func TestAuthUsecase_Register_TransactionFails(t *testing.T) {
 	// userAccounts.CreateCredential must NOT be called if creating the
 	// user itself already failed — not stubbing it turns that into a
 	// hard test failure instead of silently passing.
+
+	result, err := uc.Register(context.Background(), usecase.RegisterInput{
+		Name: "Budi", Email: "budi@example.com", Password: "whatever",
+	})
+
+	assert.Nil(t, result)
+	assert.ErrorIs(t, err, wantErr)
+}
+
+func TestAuthUsecase_Register_IssueSessionFails(t *testing.T) {
+	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, _ := newAuthUsecase(t)
+
+	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
+	hasher.EXPECT().Hash(mock.Anything).Return("hashed", nil)
+
+	created := &entity.User{ID: uuid.New(), Name: "Budi", Email: "budi@example.com"}
+	uow.EXPECT().
+		WithTransaction(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, fn func(usecase.AuthRepositories) error) error {
+			return fn(usecase.AuthRepositories{User: users, UserAccount: userAccounts, RefreshToken: refreshTokens})
+		})
+	users.EXPECT().Create(mock.Anything, mock.Anything).Return(created, nil)
+	userAccounts.EXPECT().
+		CreateCredential(mock.Anything, created.ID, created.ID.String(), "hashed").
+		Return(&entity.UserAccount{}, nil)
+	wantErr := errors.New("token signing exploded")
+	accessTokens.EXPECT().Generate(created.ID).Return("", time.Time{}, wantErr)
+	// refreshTokenGen/refreshTokens.Create deliberately not stubbed — a
+	// failed access token mint must short-circuit before minting/storing
+	// a refresh token too, and the whole transaction rolls back.
 
 	result, err := uc.Register(context.Background(), usecase.RegisterInput{
 		Name: "Budi", Email: "budi@example.com", Password: "whatever",

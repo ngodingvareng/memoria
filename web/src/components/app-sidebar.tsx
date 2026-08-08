@@ -15,7 +15,6 @@ import {
   AtIcon,
   CircleIcon,
   Home05Icon,
-  TwentyFourHoursClockIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link, useRouterState } from '@tanstack/react-router';
@@ -38,11 +37,6 @@ const data = {
       title: 'Circles',
       icon: CircleIcon,
       url: '/circle',
-    },
-    {
-      title: 'Commitments',
-      icon: TwentyFourHoursClockIcon,
-      url: '/commitment',
     },
     {
       title: 'Mentions',

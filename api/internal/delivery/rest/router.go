@@ -14,6 +14,7 @@ import (
 type Handlers struct {
 	Health            *handler.HealthHandler
 	Auth              *handler.AuthHandler
+	User              *handler.UserHandler
 	Thread            *handler.ThreadHandler
 	ThreadImage       *handler.ThreadImageHandler
 	Moment            *handler.MomentHandler
@@ -49,6 +50,10 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	auth.Post("/login", authRateLimiter, h.Auth.Login)
 	auth.Post("/refresh", h.Auth.Refresh)
 	auth.Post("/logout", h.Auth.Logout)
+
+	users := app.Group("/users", middleware.RequireAuth(issuer))
+	users.Get("/username-availability", h.User.CheckUsernameAvailability)
+	users.Patch("/me/username", h.User.SetUsername)
 
 	threads := app.Group("/threads", middleware.RequireAuth(issuer))
 	threads.Post("/", h.Thread.CreateThread)

@@ -54,8 +54,8 @@ func TestCircleInviteUsecase_InviteDirect_SplitsByPolicy(t *testing.T) {
 	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens)
 
 	circleID, userID := uuid.New(), uuid.New()
-	openUser := &entity.User{ID: uuid.New(), Username: "open", DiscoverableByUsername: true, CircleInvitePolicy: enum.AudiencePolicyAnyone}
-	restrictedUser := &entity.User{ID: uuid.New(), Username: "restricted", DiscoverableByUsername: true, CircleInvitePolicy: enum.AudiencePolicyKnown}
+	openUser := &entity.User{ID: uuid.New(), Username: strPtr("open"), DiscoverableByUsername: true, CircleInvitePolicy: enum.AudiencePolicyAnyone}
+	restrictedUser := &entity.User{ID: uuid.New(), Username: strPtr("restricted"), DiscoverableByUsername: true, CircleInvitePolicy: enum.AudiencePolicyKnown}
 
 	circles.EXPECT().GetActiveMember(mock.Anything, circleID, userID).
 		Return(&entity.CircleMember{CircleID: circleID, UserID: userID, CanInvite: true}, nil)
@@ -87,7 +87,7 @@ func TestCircleInviteUsecase_InviteDirect_SkipsBlockedAndUnknownUsernames(t *tes
 	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens)
 
 	circleID, userID := uuid.New(), uuid.New()
-	blockedUser := &entity.User{ID: uuid.New(), Username: "blocked", DiscoverableByUsername: true, CircleInvitePolicy: enum.AudiencePolicyAnyone}
+	blockedUser := &entity.User{ID: uuid.New(), Username: strPtr("blocked"), DiscoverableByUsername: true, CircleInvitePolicy: enum.AudiencePolicyAnyone}
 
 	circles.EXPECT().GetActiveMember(mock.Anything, circleID, userID).
 		Return(&entity.CircleMember{CircleID: circleID, UserID: userID, CanInvite: true}, nil)

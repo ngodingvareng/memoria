@@ -2,7 +2,6 @@ package handler
 
 import (
 	"log/slog"
-	"regexp"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -13,10 +12,6 @@ import (
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	"github.com/ngodingvareng/memoria/internal/validate"
 )
-
-// usernameFormat mirrors users.chk_users_username_format exactly —
-// lowercase letters, digits, underscore, and dot, 3-30 characters.
-var usernameFormat = regexp.MustCompile(`^[a-z0-9_.]{3,30}$`)
 
 type AuthHandler struct {
 	usecase  usecase.AuthUsecase
@@ -31,9 +26,6 @@ type AuthHandler struct {
 
 func NewAuthHandler(uc usecase.AuthUsecase, secureCookies bool) *AuthHandler {
 	v := validator.New()
-	_ = v.RegisterValidation("username", func(fl validator.FieldLevel) bool {
-		return usernameFormat.MatchString(fl.Field().String())
-	})
 
 	return &AuthHandler{
 		usecase:       uc,
@@ -44,11 +36,16 @@ func NewAuthHandler(uc usecase.AuthUsecase, secureCookies bool) *AuthHandler {
 
 // Register godoc
 // @Summary      Register a new account
+// @Description  Creates the account (without a username — see
+// @Description  PATCH /users/me/username for claiming one afterward) and
+// @Description  immediately starts a session, exactly like /auth/login:
+// @Description  returns an access token and sets the refresh token as an
+// @Description  httpOnly cookie scoped to /auth.
 // @Tags         auth
 // @Accept       json
 // @Produce      json
 // @Param        request body dto.RegisterRequest true "Register request"
-// @Success      201 {object} dto.WebResponse[dto.UserResponse]
+// @Success      201 {object} dto.WebResponse[dto.LoginResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      409 {object} dto.WebResponse[any]
 // @Router       /auth/register [post]
@@ -61,22 +58,28 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
 	}
 
-	user, err := h.usecase.Register(c, usecase.RegisterInput{
-		Name:     req.Name,
-		Username: req.Username,
-		Email:    req.Email,
-		Password: req.Password,
+	ip := c.IP()
+	userAgent := string(c.Request().Header.UserAgent())
+
+	tokens, err := h.usecase.Register(c, usecase.RegisterInput{
+		Name:      req.Name,
+		Email:     req.Email,
+		Password:  req.Password,
+		IPAddress: &ip,
+		UserAgent: &userAgent,
 	})
 	if err != nil {
 		return err
 	}
 
-	slog.InfoContext(c, "user registered", "user_id", user.ID)
+	h.setRefreshCookie(c, tokens.RefreshToken, tokens.RefreshTokenExpiresAt)
 
-	return c.Status(fiber.StatusCreated).JSON(dto.WebResponse[dto.UserResponse]{
+	slog.InfoContext(c, "user registered", "user_id", tokens.User.ID)
+
+	return c.Status(fiber.StatusCreated).JSON(dto.WebResponse[dto.LoginResponse]{
 		Code:    fiber.StatusCreated,
 		Message: "registered",
-		Data:    dto.NewUserResponse(user),
+		Data:    newLoginResponse(tokens),
 	})
 }
 

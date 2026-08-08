@@ -20,11 +20,10 @@ func testEmail() string {
 	return uuid.NewString() + "@example.com"
 }
 
-func registerUser(t *testing.T, testApp *testApp, email, username string) *http.Response {
+func registerUser(t *testing.T, testApp *testApp, email string) *http.Response {
 	t.Helper()
 	return testApp.doRequest(t, http.MethodPost, "/auth/register", dto.RegisterRequest{
 		Name:     "Test User",
-		Username: username,
 		Email:    email,
 		Password: testPassword,
 	}, nil)
@@ -56,32 +55,37 @@ func refreshCookieHeader(token string) map[string]string {
 func TestAuthHandler_Register_Success(t *testing.T) {
 	testApp := setupTestApp(t)
 	email := testEmail()
-	username := testUsername()
 
-	resp := registerUser(t, testApp, email, username)
+	resp := registerUser(t, testApp, email)
 
 	require.Equal(t, http.StatusCreated, resp.StatusCode)
-	body := decodeBody[dto.WebResponse[dto.UserResponse]](t, resp)
-	require.Equal(t, "Test User", body.Data.Name)
-	require.Equal(t, username, body.Data.Username)
-	require.Equal(t, email, body.Data.Email)
-	require.False(t, body.Data.EmailVerified)
+	body := decodeBody[dto.WebResponse[dto.LoginResponse]](t, resp)
+	require.Equal(t, "Test User", body.Data.User.Name)
+	require.Nil(t, body.Data.User.Username, "username is claimed later via PATCH /users/me/username, not at register")
+	require.Equal(t, email, body.Data.User.Email)
+	require.False(t, body.Data.User.EmailVerified)
 }
 
-func TestAuthHandler_Register_ValidationError_InvalidUsername(t *testing.T) {
+func TestAuthHandler_Register_IssuesSessionLikeLogin(t *testing.T) {
+	// Register doubles as login — no separate POST /auth/login round
+	// trip is needed before the welcome/username-claim step.
 	testApp := setupTestApp(t)
 
-	resp := testApp.doRequest(t, http.MethodPost, "/auth/register", dto.RegisterRequest{
-		Name:     "Test User",
-		Username: "AB", // uppercase and shorter than the min length of 3
-		Email:    testEmail(),
-		Password: testPassword,
-	}, nil)
+	resp := registerUser(t, testApp, testEmail())
 
-	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	body := decodeBody[dto.WebResponse[any]](t, resp)
-	require.Equal(t, "Validation failed", body.Message)
-	require.NotNil(t, body.Errors)
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+	body := decodeBody[dto.WebResponse[dto.LoginResponse]](t, resp)
+	require.NotEmpty(t, body.Data.AccessToken)
+	require.Positive(t, body.Data.ExpiresIn)
+
+	var found bool
+	for _, c := range resp.Cookies() {
+		if c.Name == middleware.RefreshCookieName {
+			found = true
+			require.NotEmpty(t, c.Value)
+		}
+	}
+	require.True(t, found, "expected a %s cookie to be set", middleware.RefreshCookieName)
 }
 
 func TestAuthHandler_Register_ValidationError_ShortPassword(t *testing.T) {
@@ -89,7 +93,6 @@ func TestAuthHandler_Register_ValidationError_ShortPassword(t *testing.T) {
 
 	resp := testApp.doRequest(t, http.MethodPost, "/auth/register", dto.RegisterRequest{
 		Name:     "Test User",
-		Username: testUsername(),
 		Email:    testEmail(),
 		Password: "short", // below min=8
 	}, nil)
@@ -104,28 +107,17 @@ func TestAuthHandler_Register_DuplicateEmail_Conflict(t *testing.T) {
 	testApp := setupTestApp(t)
 	email := testEmail()
 
-	first := registerUser(t, testApp, email, testUsername())
+	first := registerUser(t, testApp, email)
 	require.Equal(t, http.StatusCreated, first.StatusCode)
 
-	second := registerUser(t, testApp, email, testUsername())
-	require.Equal(t, http.StatusConflict, second.StatusCode)
-}
-
-func TestAuthHandler_Register_DuplicateUsername_Conflict(t *testing.T) {
-	testApp := setupTestApp(t)
-	username := testUsername()
-
-	first := registerUser(t, testApp, testEmail(), username)
-	require.Equal(t, http.StatusCreated, first.StatusCode)
-
-	second := registerUser(t, testApp, testEmail(), username)
+	second := registerUser(t, testApp, email)
 	require.Equal(t, http.StatusConflict, second.StatusCode)
 }
 
 func TestAuthHandler_Login_Success(t *testing.T) {
 	testApp := setupTestApp(t)
 	email := testEmail()
-	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email, testUsername()).StatusCode)
+	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email).StatusCode)
 
 	resp := loginUser(t, testApp, email)
 
@@ -139,7 +131,7 @@ func TestAuthHandler_Login_Success(t *testing.T) {
 func TestAuthHandler_Login_SetsRefreshCookie(t *testing.T) {
 	testApp := setupTestApp(t)
 	email := testEmail()
-	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email, testUsername()).StatusCode)
+	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email).StatusCode)
 
 	resp := loginUser(t, testApp, email)
 
@@ -157,7 +149,7 @@ func TestAuthHandler_Login_SetsRefreshCookie(t *testing.T) {
 func TestAuthHandler_Login_WrongPassword_Unauthorized(t *testing.T) {
 	testApp := setupTestApp(t)
 	email := testEmail()
-	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email, testUsername()).StatusCode)
+	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email).StatusCode)
 
 	resp := testApp.doRequest(t, http.MethodPost, "/auth/login", dto.LoginRequest{
 		Email:    email,
@@ -178,7 +170,7 @@ func TestAuthHandler_Login_UnknownEmail_Unauthorized(t *testing.T) {
 func TestAuthHandler_Refresh_Success(t *testing.T) {
 	testApp := setupTestApp(t)
 	email := testEmail()
-	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email, testUsername()).StatusCode)
+	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email).StatusCode)
 
 	loginResp := loginUser(t, testApp, email)
 	require.Equal(t, http.StatusOK, loginResp.StatusCode)
@@ -212,7 +204,7 @@ func TestAuthHandler_Refresh_NoCookie_Unauthorized(t *testing.T) {
 func TestAuthHandler_Refresh_ReusedToken_Unauthorized(t *testing.T) {
 	testApp := setupTestApp(t)
 	email := testEmail()
-	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email, testUsername()).StatusCode)
+	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email).StatusCode)
 
 	loginResp := loginUser(t, testApp, email)
 	originalToken := refreshCookieValue(t, loginResp)
@@ -232,7 +224,7 @@ func TestAuthHandler_Refresh_ReusedToken_Unauthorized(t *testing.T) {
 func TestAuthHandler_Logout_WithCookie_NoContent(t *testing.T) {
 	testApp := setupTestApp(t)
 	email := testEmail()
-	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email, testUsername()).StatusCode)
+	require.Equal(t, http.StatusCreated, registerUser(t, testApp, email).StatusCode)
 
 	loginResp := loginUser(t, testApp, email)
 	token := refreshCookieValue(t, loginResp)

@@ -69,6 +69,9 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, hasher, accessTokenIssuer, refreshTokenGenerator, cfg.JWTRefreshTokenTTL, cfg.LoginMaxFailedAttempts, cfg.LoginLockoutDuration)
 	authHandler := handler.NewAuthHandler(authUsecase, cfg.SecureCookies)
 
+	userUsecase := usecase.NewUserUsecase(userRepo)
+	userHandler := handler.NewUserHandler(userUsecase)
+
 	// 3b. Threads
 	threadRepo := repository.NewThreadRepository(conn)
 	threadUsecase := usecase.NewThreadUsecase(threadRepo)
@@ -166,6 +169,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	rest.SetupRoutes(fiberApp, accessTokenIssuer, authRateLimiter, rest.Handlers{
 		Health:            healthHandler,
 		Auth:              authHandler,
+		User:              userHandler,
 		Thread:            threadHandler,
 		ThreadImage:       threadImageHandler,
 		Moment:            momentHandler,

@@ -23,6 +23,10 @@ type UserRepository interface {
 	// additionally check DiscoverableByUsername — see the
 	// GetUserByUsername query comment.
 	GetByUsername(ctx context.Context, username string) (*entity.User, error)
+	// SetUsername claims a username for an account that doesn't have one
+	// yet (the post-register onboarding step). Returns
+	// errs.ErrUsernameAlreadyExists on a uniqueness conflict.
+	SetUsername(ctx context.Context, id uuid.UUID, username string) (*entity.User, error)
 }
 
 type UserAccountRepository interface {
@@ -93,10 +97,11 @@ type RefreshTokenGenerator interface {
 // --- Inputs / outputs ---
 
 type RegisterInput struct {
-	Name     string
-	Username string
-	Email    string
-	Password string
+	Name      string
+	Email     string
+	Password  string
+	IPAddress *string
+	UserAgent *string
 }
 
 type LoginInput struct {
@@ -126,7 +131,7 @@ type AuthTokens struct {
 // --- Usecase ---
 
 type AuthUsecase interface {
-	Register(ctx context.Context, input RegisterInput) (*entity.User, error)
+	Register(ctx context.Context, input RegisterInput) (*AuthTokens, error)
 	Login(ctx context.Context, input LoginInput) (*AuthTokens, error)
 	Refresh(ctx context.Context, input RefreshInput) (*AuthTokens, error)
 	Logout(ctx context.Context, refreshToken string) error
@@ -169,7 +174,7 @@ func NewAuthUsecase(
 	}
 }
 
-func (u *authUsecase) Register(ctx context.Context, input RegisterInput) (*entity.User, error) {
+func (u *authUsecase) Register(ctx context.Context, input RegisterInput) (*AuthTokens, error) {
 	existing, err := u.users.GetByEmail(ctx, input.Email)
 	if err != nil && !errors.Is(err, errs.ErrNotFound) {
 		return nil, fmt.Errorf("checking existing email: %w", err)
@@ -183,10 +188,10 @@ func (u *authUsecase) Register(ctx context.Context, input RegisterInput) (*entit
 		return nil, fmt.Errorf("hashing password: %w", err)
 	}
 
-	var created *entity.User
+	var tokens *AuthTokens
 	err = u.uow.WithTransaction(ctx, func(repos AuthRepositories) error {
 		user, err := repos.User.Create(ctx, &entity.User{
-			Name: input.Name, Username: input.Username, Email: input.Email, Timezone: "UTC",
+			Name: input.Name, Email: input.Email, Timezone: "UTC",
 		})
 		if err != nil {
 			return fmt.Errorf("creating user: %w", err)
@@ -194,13 +199,20 @@ func (u *authUsecase) Register(ctx context.Context, input RegisterInput) (*entit
 		if _, err := repos.UserAccount.CreateCredential(ctx, user.ID, user.ID.String(), hashedPassword); err != nil {
 			return fmt.Errorf("creating credential account: %w", err)
 		}
-		created = user
+		// Register doubles as login — the account is unusable for the
+		// welcome/username-claim step otherwise, and there's no reason
+		// to make the frontend log in a second time right after signup.
+		t, err := u.issueSession(ctx, repos.RefreshToken, user, uuid.New(), input.IPAddress, input.UserAgent)
+		if err != nil {
+			return fmt.Errorf("issuing session: %w", err)
+		}
+		tokens = t
 		return nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("registering user: %w", err)
 	}
-	return created, nil
+	return tokens, nil
 }
 
 func (u *authUsecase) Login(ctx context.Context, input LoginInput) (*AuthTokens, error) {

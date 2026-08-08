@@ -7,7 +7,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Wrapper from '@/components/wrapper';
-import { MomentHeatmap, ThreadHero } from '@/features/threads';
+import { MomentHeatmap } from '@/features/moments';
+import { ThreadHero } from '@/features/threads';
 import { ArrowDown01Icon, ArrowLeft02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute } from '@tanstack/react-router';
