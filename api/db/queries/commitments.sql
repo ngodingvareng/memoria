@@ -38,8 +38,11 @@ WHERE id = sqlc.arg(id) AND thread_id = sqlc.arg(thread_id);
 
 -- name: ListCommitmentsForGeneration :many
 -- Feed for the scheduler worker: every Commitment belonging to a
--- non-deleted Thread. The worker evaluates cron_expression/timezone
--- itself and calls moments.CreateCommittedMoment when a slot fires.
+-- non-deleted Thread that isn't paused or archived. The worker evaluates
+-- cron_expression/timezone itself and calls moments.CreateCommittedMoment
+-- when a slot fires.
 SELECT commitments.* FROM commitments
     JOIN threads ON threads.id = commitments.thread_id
-WHERE threads.deleted_at IS NULL AND threads.has_commitment = TRUE;
+WHERE threads.deleted_at IS NULL
+    AND commitments.paused_at IS NULL
+    AND commitments.archived_at IS NULL;

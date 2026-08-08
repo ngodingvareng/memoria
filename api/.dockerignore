@@ -1,0 +1,5 @@
+.env
+.git
+*.md
+db/migrations
+internal/**/*_test.go

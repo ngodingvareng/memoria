@@ -9,7 +9,7 @@ COLOR_INFO   := \e[36m
 COLOR_SUCCESS:= \e[32m
 COLOR_WARN   := \e[33m
 
-.PHONY: dev dev-only build test test-unit test-integration db-generate migrate-create migrate-up migrate-down db-tables db-describe mock-generate help
+.PHONY: dev dev-only build test test-unit test-integration db-generate check-sql migrate-create migrate-up migrate-down db-tables db-describe mock-generate help
 
 # Default target: Display available commands
 help:
@@ -24,6 +24,7 @@ help:
 	@printf "  $(COLOR_SUCCESS)make migrate-up$(COLOR_RESET)       - Apply all up migrations (credentials from .env)\n"
 	@printf "  $(COLOR_SUCCESS)make migrate-down$(COLOR_RESET)     - Roll back all migrations (credentials from .env)\n"
 	@printf "  $(COLOR_SUCCESS)make db-generate$(COLOR_RESET)      - Clean & regenerate DB code via sqlc\n"
+	@printf "  $(COLOR_SUCCESS)make check-sql$(COLOR_RESET)        - PREPARE every generated query against Postgres\n"
 	@printf "  $(COLOR_SUCCESS)make db-tables$(COLOR_RESET)        - List all tables in the database\n"
 	@printf "  $(COLOR_SUCCESS)make db-describe$(COLOR_RESET)      - Describe a table's structure (prompts for name)\n"
 	@printf "  $(COLOR_SUCCESS)make mock-generate$(COLOR_RESET)    - Generate mock objects using Mockery\n"
@@ -131,6 +132,27 @@ db-generate:
 	@printf "$(COLOR_INFO)Generating DB code using sqlc...$(COLOR_RESET)\n"
 	@sqlc generate
 	@printf "$(COLOR_SUCCESS)✓ DB code generated successfully.$(COLOR_RESET)\n"
+
+## check-sql: PREPARE every sqlc-generated query against Postgres (catches operator-level errors sqlc generate misses, e.g. a broken ||).
+check-sql:
+	@bash -c '\
+		set -a; \
+		[ -f .env ] && source .env; \
+		set +a; \
+		missing=""; \
+		for var in DATABASE_USERNAME DATABASE_PASSWORD DATABASE_DBNAME DATABASE_PORT; do \
+			if [ -z "$${!var}" ]; then \
+				missing="$$missing $$var"; \
+			fi; \
+		done; \
+		if [ -n "$$missing" ]; then \
+			printf "$(COLOR_WARN)Missing required env variable(s) in .env:$$missing$(COLOR_RESET)\n"; \
+			exit 1; \
+		fi; \
+		printf "$(COLOR_INFO)Checking generated queries against Postgres...$(COLOR_RESET)\n"; \
+		go run ./cmd/checksql -dsn "postgres://$$DATABASE_USERNAME:$$DATABASE_PASSWORD@localhost:$$DATABASE_PORT/$$DATABASE_DBNAME?sslmode=disable" && \
+		printf "$(COLOR_SUCCESS)✓ All generated queries prepared successfully.$(COLOR_RESET)\n" \
+	'
 
 ## db-tables: List all tables in the database (runs psql inside the Postgres container from `make dev`).
 db-tables:

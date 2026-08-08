@@ -10,22 +10,28 @@ import (
 )
 
 type Config struct {
-	ServerPort          string        `mapstructure:"SERVER_PORT"`
-	SecureCookies       bool          `mapstructure:"SECURE_COOKIES"`
-	JWTSecret           string        `mapstructure:"JWT_SECRET"`
-	JWTIssuer           string        `mapstructure:"JWT_ISSUER"`
-	JWTAccessTokenTTL   time.Duration `mapstructure:"JWT_ACCESS_TOKEN_TTL"`
-	JWTRefreshTokenTTL  time.Duration `mapstructure:"JWT_REFRESH_TOKEN_TTL"`
-	DBUsername          string        `mapstructure:"DATABASE_USERNAME"`
-	DBPassword          string        `mapstructure:"DATABASE_PASSWORD"`
-	DBName              string        `mapstructure:"DATABASE_DBNAME"`
-	DBPort              string        `mapstructure:"DATABASE_PORT"`
-	StorageEndpoint     string        `mapstructure:"STORAGE_ENDPOINT"`
-	StorageRegion       string        `mapstructure:"STORAGE_REGION"`
-	StorageAccessKey    string        `mapstructure:"STORAGE_ACCESS_KEY"`
-	StorageSecretKey    string        `mapstructure:"STORAGE_SECRET_KEY"`
-	StorageBucket       string        `mapstructure:"STORAGE_BUCKET"`
-	StorageUsePathStyle bool          `mapstructure:"STORAGE_USE_PATH_STYLE"`
+	ServerPort         string        `mapstructure:"SERVER_PORT"`
+	SecureCookies      bool          `mapstructure:"SECURE_COOKIES"`
+	JWTSecret          string        `mapstructure:"JWT_SECRET"`
+	JWTIssuer          string        `mapstructure:"JWT_ISSUER"`
+	JWTAccessTokenTTL  time.Duration `mapstructure:"JWT_ACCESS_TOKEN_TTL"`
+	JWTRefreshTokenTTL time.Duration `mapstructure:"JWT_REFRESH_TOKEN_TTL"`
+	// DBHost defaults to "localhost" for local dev (`make dev`) and
+	// testing, but must be set to the Postgres service/host name (e.g.
+	// "postgres") when the app runs in its own container, as it does in
+	// docker-compose.yml — the app and database are no longer reachable
+	// on the same loopback address at that point.
+	DBHost              string `mapstructure:"DATABASE_HOST"`
+	DBUsername          string `mapstructure:"DATABASE_USERNAME"`
+	DBPassword          string `mapstructure:"DATABASE_PASSWORD"`
+	DBName              string `mapstructure:"DATABASE_DBNAME"`
+	DBPort              string `mapstructure:"DATABASE_PORT"`
+	StorageEndpoint     string `mapstructure:"STORAGE_ENDPOINT"`
+	StorageRegion       string `mapstructure:"STORAGE_REGION"`
+	StorageAccessKey    string `mapstructure:"STORAGE_ACCESS_KEY"`
+	StorageSecretKey    string `mapstructure:"STORAGE_SECRET_KEY"`
+	StorageBucket       string `mapstructure:"STORAGE_BUCKET"`
+	StorageUsePathStyle bool   `mapstructure:"STORAGE_USE_PATH_STYLE"`
 
 	// CORSAllowedOrigins is comma-separated in .env (e.g.
 	// "http://localhost:5173,https://app.example.com") — viper's default
@@ -51,8 +57,8 @@ type Config struct {
 }
 
 func (c *Config) GetDSN() string {
-	return fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable",
-		c.DBUsername, c.DBPassword, c.DBPort, c.DBName)
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		c.DBUsername, c.DBPassword, c.DBHost, c.DBPort, c.DBName)
 }
 
 func LoadConfig() (*Config, error) {
@@ -60,6 +66,7 @@ func LoadConfig() (*Config, error) {
 	viper.AutomaticEnv()
 
 	viper.SetDefault("SERVER_PORT", "3000")
+	viper.SetDefault("DATABASE_HOST", "localhost")
 	viper.SetDefault("LOGIN_RATE_LIMIT_MAX", 10)
 	viper.SetDefault("LOGIN_RATE_LIMIT_WINDOW", time.Minute)
 	viper.SetDefault("LOGIN_MAX_FAILED_ATTEMPTS", 5)

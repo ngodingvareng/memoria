@@ -12,6 +12,7 @@ import (
 // Handlers groups every handler the router needs. Add a field here each
 // time a new domain's handler is wired up in app.go.
 type Handlers struct {
+	Health            *handler.HealthHandler
 	Auth              *handler.AuthHandler
 	Thread            *handler.ThreadHandler
 	ThreadImage       *handler.ThreadImageHandler
@@ -31,6 +32,8 @@ type Handlers struct {
 // /refresh and /logout require a valid cookie/session already, so they
 // aren't password-guessing targets the way /login and /register are.
 func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimiter fiber.Handler, h Handlers) {
+	app.Get("/healthz", h.Health.Health)
+
 	app.Get("/docs/*", swaggo.New(swaggo.Config{Title: "Book API"}))
 
 	app.Get("/swagger", func(c fiber.Ctx) error {
