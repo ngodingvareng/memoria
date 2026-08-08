@@ -36,4 +36,8 @@ jobs:
         run: go test -tags=unit ./... -v
 
       - name: Run integration tests
-        run: go test -tags=integration ./... -v
+        # -p=1 serializes packages so their testcontainers-managed Postgres/
+        # RustFS containers don't all spin up at once — running them
+        # concurrently on a standard GH-hosted runner has caused sporadic
+        # Docker/Ryuk-reaper connection resets (see PR discussion).
+        run: go test -tags=integration -p=1 ./... -v
