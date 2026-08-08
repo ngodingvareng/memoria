@@ -23,8 +23,8 @@ func mustCreateTestUser(t *testing.T, pool *pgxpool.Pool) uuid.UUID {
 	t.Helper()
 	var id uuid.UUID
 	err := pool.QueryRow(context.Background(),
-		`INSERT INTO users (name, email, timezone) VALUES ($1, $2, 'UTC') RETURNING id`,
-		"Refresh Token Test User", uuid.NewString()+"@example.com",
+		`INSERT INTO users (name, username, email, timezone) VALUES ($1, $2, $3, 'UTC') RETURNING id`,
+		"Refresh Token Test User", testUsername(), uuid.NewString()+"@example.com",
 	).Scan(&id)
 	require.NoError(t, err)
 	return id
