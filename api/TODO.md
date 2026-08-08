@@ -10,7 +10,7 @@ Both Commitment workers below are **deferred on purpose** — see `COMMITMENT.md
 - [ ] **Timeout worker** — a periodic job calling `MarkOverdueMomentsAsMissed` (see the retroactive-timeout decision under Tier 5 before implementing this). Blocked on `COMMITMENT.md` C2 and C3.
 - [ ] **Statistics endpoints** — heatmap & Time to Tell chart. The `GetHeatmapData` / `GetSettlingTimeStats` queries exist, but there's no usecase/handler yet.
 - [ ] `RestoreThread` — usecase + handler. The sqlc query already exists (`internal/db/threads.sql.go`), nothing calls it yet.
-- [ ] `moment_images` upload — needs the identical repository/usecase/handler pattern already used for `thread_images`.
+- [x] ~~`moment_images` upload~~ — done: `Moment`/`MomentImage` now have the full repository/usecase/handler stack (create/update/soft-delete/get/list/search for Moments; upload/list/delete for MomentImage), mirroring `Thread`/`ThreadImage`. `RestoreMoment`, `TouchMomentLastViewed`, `ListMomentsOnDates` (Echoes), and the heatmap/Time-to-Tell queries above remain unwired, same as their Thread-side counterparts.
 
 ## Tier 3 — Auth feature completeness
 

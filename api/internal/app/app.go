@@ -76,6 +76,15 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	threadImageUsecase := usecase.NewThreadImageUsecase(threadImageRepo, objectStorage, threadRepo)
 	threadImageHandler := handler.NewThreadImageHandler(threadImageUsecase)
 
+	// 3c. Moments
+	momentRepo := repository.NewMomentRepository(conn)
+	momentUsecase := usecase.NewMomentUsecase(momentRepo, threadRepo)
+	momentHandler := handler.NewMomentHandler(momentUsecase)
+
+	momentImageRepo := repository.NewMomentImageRepository(conn)
+	momentImageUsecase := usecase.NewMomentImageUsecase(momentImageRepo, objectStorage, momentRepo)
+	momentImageHandler := handler.NewMomentImageHandler(momentImageUsecase)
+
 	// 4. Fiber app + global middleware.
 	// Renamed the local var from "app" to "fiberApp" — this file's own
 	// package is named "app", and reusing that name for a variable here
@@ -124,6 +133,8 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		Auth:        authHandler,
 		Thread:      threadHandler,
 		ThreadImage: threadImageHandler,
+		Moment:      momentHandler,
+		MomentImage: momentImageHandler,
 	})
 
 	return &Container{

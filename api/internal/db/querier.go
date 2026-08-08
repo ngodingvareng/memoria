@@ -93,6 +93,11 @@ type Querier interface {
 	// reached via a mention or a Circle share is authorized through
 	// moment_mentions/moment_circles instead — see those query files.
 	GetMomentByID(ctx context.Context, arg GetMomentByIDParams) (Moment, error)
+	// Backs the idempotent-retry path for CreateMoment: when the ON
+	// CONFLICT ... DO NOTHING above skips a duplicate offline-sync insert,
+	// RETURNING produces no row, and the caller re-fetches the already-
+	// persisted Moment through this query instead of surfacing an error.
+	GetMomentByUserAndClientID(ctx context.Context, arg GetMomentByUserAndClientIDParams) (Moment, error)
 	GetRefreshTokenByTokenHash(ctx context.Context, tokenHash string) (RefreshToken, error)
 	// Raw data for the Time to Tell chart (FEATURES.md, Rhythms): how long
 	// a Moment took to settle into a record. Scoped to origin = 'manual'

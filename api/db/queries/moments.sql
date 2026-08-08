@@ -25,6 +25,17 @@ INSERT INTO moments(
 ON CONFLICT (user_id, client_id) WHERE client_id IS NOT NULL DO NOTHING
 RETURNING *;
 
+-- name: GetMomentByUserAndClientID :one
+-- Backs the idempotent-retry path for CreateMoment: when the ON
+-- CONFLICT ... DO NOTHING above skips a duplicate offline-sync insert,
+-- RETURNING produces no row, and the caller re-fetches the already-
+-- persisted Moment through this query instead of surfacing an error.
+SELECT *
+FROM moments
+WHERE user_id = sqlc.arg(user_id)
+    AND client_id = sqlc.arg(client_id)
+    AND deleted_at IS NULL;
+
 -- name: GetMomentByID :one
 -- user_id in the WHERE clause doubles as an ownership check. A Moment
 -- reached via a mention or a Circle share is authorized through

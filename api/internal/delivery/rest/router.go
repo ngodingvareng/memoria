@@ -15,6 +15,8 @@ type Handlers struct {
 	Auth        *handler.AuthHandler
 	Thread      *handler.ThreadHandler
 	ThreadImage *handler.ThreadImageHandler
+	Moment      *handler.MomentHandler
+	MomentImage *handler.MomentImageHandler
 }
 
 // SetupRoutes wires every route. authRateLimiter is built in app.go
@@ -49,4 +51,18 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	threads.Post("/:id/images", h.ThreadImage.UploadThreadImage)
 	threads.Get("/:id/images", h.ThreadImage.ListThreadImages)
 	threads.Delete("/:id/images/:imageId", h.ThreadImage.DeleteThreadImage)
+
+	threads.Get("/:id/moments", h.Moment.ListThreadMoments)
+
+	moments := app.Group("/moments", middleware.RequireAuth(issuer))
+	moments.Post("/", h.Moment.CreateMoment)
+	moments.Get("/", h.Moment.ListMoments)
+	moments.Get("/search", h.Moment.SearchMoments)
+	moments.Put("/:id", h.Moment.UpdateMoment)
+	moments.Delete("/:id", h.Moment.DeleteMoment)
+	moments.Get("/:id", h.Moment.GetMoment)
+
+	moments.Post("/:id/images", h.MomentImage.UploadMomentImage)
+	moments.Get("/:id/images", h.MomentImage.ListMomentImages)
+	moments.Delete("/:id/images/:imageId", h.MomentImage.DeleteMomentImage)
 }

@@ -17,5 +17,8 @@ packages:
       UserRepository:
       UserAccountRepository:
       RefreshTokenRepository:
+      MomentRepository:
+      MomentImageRepository:
 
       ThreadAccessChecker:
+      MomentAccessChecker:

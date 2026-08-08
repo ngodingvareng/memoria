@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -73,4 +74,58 @@ func ptrToPgUUID(id *uuid.UUID) pgtype.UUID {
 		return pgtype.UUID{}
 	}
 	return pgtype.UUID{Bytes: *id, Valid: true}
+}
+
+func pgInt8ToPtr(i pgtype.Int8) *int64 {
+	if !i.Valid {
+		return nil
+	}
+	return new(i.Int64)
+}
+
+func ptrToPgInt8(i *int64) pgtype.Int8 {
+	if i == nil {
+		return pgtype.Int8{}
+	}
+	return pgtype.Int8{Int64: *i, Valid: true}
+}
+
+// pgNumericToPtr converts a NUMERIC column (moments.latitude/longitude)
+// into a plain *float64. The error Float64Value can return only occurs
+// on malformed digit data, which can't happen for a value Postgres has
+// already round-tripped through a column the CHECK constraints on
+// moments already bound — so it's discarded here rather than threaded
+// through every mapper caller.
+func pgNumericToPtr(n pgtype.Numeric) *float64 {
+	if !n.Valid {
+		return nil
+	}
+	f, _ := n.Float64Value()
+	return &f.Float64
+}
+
+// ptrToPgNumeric is the inverse of pgNumericToPtr. It goes through
+// Scan(string) because pgtype.Numeric has no direct float64 setter; the
+// Scan error is discarded because strconv.FormatFloat always produces
+// text Scan can parse.
+func ptrToPgNumeric(f *float64) pgtype.Numeric {
+	if f == nil {
+		return pgtype.Numeric{}
+	}
+	var n pgtype.Numeric
+	_ = n.Scan(strconv.FormatFloat(*f, 'f', -1, 64))
+	return n
+}
+
+// pgIntervalToDuration converts moments.settling_time. That column is
+// GENERATED ALWAYS AS (recorded_at - occurred_at) — a subtraction of two
+// timestamptz values — so Postgres never populates the Months component
+// for it; it's still handled here for a faithful Interval conversion.
+func pgIntervalToDuration(i pgtype.Interval) time.Duration {
+	if !i.Valid {
+		return 0
+	}
+	return time.Duration(i.Months)*30*24*time.Hour +
+		time.Duration(i.Days)*24*time.Hour +
+		time.Duration(i.Microseconds)*time.Microsecond
 }

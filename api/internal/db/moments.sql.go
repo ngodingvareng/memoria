@@ -192,6 +192,52 @@ func (q *Queries) GetMomentByID(ctx context.Context, arg GetMomentByIDParams) (M
 	return i, err
 }
 
+const getMomentByUserAndClientID = `-- name: GetMomentByUserAndClientID :one
+SELECT id, user_id, thread_id, origin, occurred_at, occurred_local, occurred_utc_offset_minutes, occurred_on, recorded_at, settling_time, note, color_hex, place_name, latitude, longitude, search_document, client_id, last_viewed_at, created_at, updated_at, deleted_at
+FROM moments
+WHERE user_id = $1
+    AND client_id = $2
+    AND deleted_at IS NULL
+`
+
+type GetMomentByUserAndClientIDParams struct {
+	UserID   uuid.UUID
+	ClientID pgtype.UUID
+}
+
+// Backs the idempotent-retry path for CreateMoment: when the ON
+// CONFLICT ... DO NOTHING above skips a duplicate offline-sync insert,
+// RETURNING produces no row, and the caller re-fetches the already-
+// persisted Moment through this query instead of surfacing an error.
+func (q *Queries) GetMomentByUserAndClientID(ctx context.Context, arg GetMomentByUserAndClientIDParams) (Moment, error) {
+	row := q.db.QueryRow(ctx, getMomentByUserAndClientID, arg.UserID, arg.ClientID)
+	var i Moment
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ThreadID,
+		&i.Origin,
+		&i.OccurredAt,
+		&i.OccurredLocal,
+		&i.OccurredUtcOffsetMinutes,
+		&i.OccurredOn,
+		&i.RecordedAt,
+		&i.SettlingTime,
+		&i.Note,
+		&i.ColorHex,
+		&i.PlaceName,
+		&i.Latitude,
+		&i.Longitude,
+		&i.SearchDocument,
+		&i.ClientID,
+		&i.LastViewedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const getSettlingTimeStats = `-- name: GetSettlingTimeStats :many
 SELECT
     id,
