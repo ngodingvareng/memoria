@@ -8,9 +8,9 @@ import (
 )
 
 // CircleInvite has two deliberately asymmetric shapes (see
-// enum.CircleInviteKind): Username invites carry InviteeUserID and no
-// TokenHash; Link invites carry TokenHash (and optionally MaxUses) and
-// no InviteeUserID.
+// enum.CircleInviteKind): Username invites carry InviteeUserID and
+// ExpiresAt, and no TokenHash; Link invites carry TokenHash and
+// RequiresApproval, never expire, and have no usage limit.
 type CircleInvite struct {
 	ID              uuid.UUID
 	CircleID        uuid.UUID
@@ -18,10 +18,11 @@ type CircleInvite struct {
 	Kind            enum.CircleInviteKind
 	InviteeUserID   *uuid.UUID
 	TokenHash       *string
-	Status          enum.CircleInviteStatus
-	MaxUses         *int32
-	UseCount        int32
-	ExpiresAt       *time.Time
-	RespondedAt     *time.Time
-	CreatedAt       time.Time
+	// RequiresApproval is set on Link invites only: whether following
+	// the link joins the Circle outright or opens a CircleJoinRequest.
+	RequiresApproval *bool
+	Status           enum.CircleInviteStatus
+	ExpiresAt        *time.Time
+	RespondedAt      *time.Time
+	CreatedAt        time.Time
 }

@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS data_exports;
+DROP TABLE IF EXISTS user_knows;
 DROP TABLE IF EXISTS user_mutes;
 DROP TABLE IF EXISTS user_blocks;
 DROP TABLE IF EXISTS user_devices;

@@ -1,8 +1,8 @@
 -- =========================================================
 -- Notification: an alert system that serves purely as a
--- reminder. Nothing here is real-time except the two cases
--- where a human being is actually waiting for an answer
--- (circle invite received, mentioned in a moment).
+-- reminder. Nothing here is real-time except the cases where
+-- a person is actually waiting for an answer, and the two
+-- that change who can see the user's Moments.
 -- =========================================================
 
 CREATE TYPE notification_kind AS ENUM(
@@ -18,7 +18,20 @@ CREATE TYPE notification_kind AS ENUM(
 
     -- Someone needs you, delivered immediately.
     'circle_invite_received',
+    'circle_join_request_received',
     'mentioned_in_moment',
+
+    -- Circle changes: immediate too, but nothing is being asked. Both
+    -- mean the user is now in a Circle they were not in before, which
+    -- changes who can see their Moments — too consequential to leave
+    -- unsaid, even though no answer is owed.
+    --
+    -- There is deliberately no 'circle_join_request_rejected' and no
+    -- 'circle_invite_declined': Memoria does not manufacture a moment of
+    -- rejection, the same reason a mentioned user can leave a Moment
+    -- without the owner being told.
+    'added_to_circle',
+    'circle_join_request_approved',
 
     -- Responses, batched into a single daily digest.
     'response_digest'
@@ -49,7 +62,11 @@ CREATE TABLE notification_preferences(
     recap_generated_enabled BOOLEAN NOT NULL DEFAULT TRUE,
 
     circle_invite_received_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    circle_join_request_received_enabled BOOLEAN NOT NULL DEFAULT TRUE,
     mentioned_in_moment_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+
+    added_to_circle_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    circle_join_request_approved_enabled BOOLEAN NOT NULL DEFAULT TRUE,
 
     response_digest_enabled BOOLEAN NOT NULL DEFAULT TRUE,
     response_digest_hour SMALLINT NOT NULL DEFAULT 20,
@@ -84,9 +101,9 @@ CREATE TABLE notifications(
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     kind notification_kind NOT NULL,
 
-    -- The person who caused it, for 'mentioned_in_moment' and
-    -- 'circle_invite_received'. NULL for gifts and reminders, which
-    -- have no actor by design.
+    -- The person who caused it: the mentioner, the inviter, whoever did
+    -- the adding, the person asking to join, the member who approved.
+    -- NULL for gifts and reminders, which have no actor by design.
     actor_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
 
     moment_id UUID REFERENCES moments(id) ON DELETE CASCADE,
@@ -95,6 +112,7 @@ CREATE TABLE notifications(
     commitment_occurrence_id UUID REFERENCES commitment_occurrences(id) ON DELETE CASCADE,
     circle_id UUID REFERENCES circles(id) ON DELETE CASCADE,
     circle_invite_id UUID REFERENCES circle_invites(id) ON DELETE CASCADE,
+    circle_join_request_id UUID REFERENCES circle_join_requests(id) ON DELETE CASCADE,
     recap_id UUID REFERENCES recaps(id) ON DELETE CASCADE,
     resurfacing_id UUID REFERENCES resurfacings(id) ON DELETE CASCADE,
 

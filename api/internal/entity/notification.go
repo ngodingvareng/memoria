@@ -19,9 +19,9 @@ type Notification struct {
 	UserID uuid.UUID
 	Kind   enum.NotificationKind
 
-	// The person who caused it. Set only for MentionedInMoment and
-	// CircleInviteReceived; nil for gifts and reminders, which have no
-	// actor by design.
+	// The person who caused it: the mentioner, the inviter, whoever did
+	// the adding, the person asking to join, the member who approved.
+	// Nil for gifts and reminders, which have no actor by design.
 	ActorUserID *uuid.UUID
 
 	MomentID               *uuid.UUID
@@ -30,6 +30,7 @@ type Notification struct {
 	CommitmentOccurrenceID *uuid.UUID
 	CircleID               *uuid.UUID
 	CircleInviteID         *uuid.UUID
+	CircleJoinRequestID    *uuid.UUID
 	RecapID                *uuid.UUID
 	ResurfacingID          *uuid.UUID
 

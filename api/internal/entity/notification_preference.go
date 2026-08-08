@@ -22,8 +22,12 @@ type NotificationPreference struct {
 	EchoReadyEnabled      bool
 	RecapGeneratedEnabled bool
 
-	CircleInviteReceivedEnabled bool
-	MentionedInMomentEnabled    bool
+	CircleInviteReceivedEnabled      bool
+	CircleJoinRequestReceivedEnabled bool
+	MentionedInMomentEnabled         bool
+
+	AddedToCircleEnabled             bool
+	CircleJoinRequestApprovedEnabled bool
 
 	ResponseDigestEnabled bool
 	ResponseDigestHour    int16

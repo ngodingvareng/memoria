@@ -45,6 +45,7 @@ The words below are the product's vocabulary and are used consistently throughou
 | Opt-in scheduled accountability | **Commitment** | A Thread may carry one or more. |
 | Naming another person present | **Mention** | |
 | A private social group | **Circle** | |
+| Someone you've marked as recognized | **Known** | Privacy plumbing, not a social graph. One-directional and silent. |
 | Photo gallery over the archive | **Album** | |
 | Automatic flashback surfaces | **Echoes** | |
 | Period summary | **Recap** | Monthly and yearly. |
@@ -228,9 +229,32 @@ A private social circle. A place to share exclusively with close friends. Users 
 
 ### Circle Invite
 
-- Any member of a circle who has invite privileges can invite another user by entering their username, provided that user allows being invited by username.
-- Any member of a circle who has invite privileges can share an invite link to the circle.
-- A user can join a circle directly if invited via username. Joining via an invite link requires confirmation from a circle member who has invite privileges.
+There are two ways into a Circle, and they differ in who does the choosing. Both are available only to members with invite privileges.
+
+#### Direct
+
+The member types usernames — several at once, not one action per person — and those users become members immediately. Nobody is asked to confirm.
+
+Skipping the confirmation is deliberate. A Circle is people who already know each other, and the ordinary case is adding the three friends you were just out with; charging three separate approvals for that treats a normal act of gathering as if it were a request from a stranger.
+
+The one thing that interrupts it is the recipient's own privacy setting (see [Privacy & Control](#social-interaction-controls)). A user who has restricted who may add them to a Circle is never added silently: the add becomes a pending invite addressed to them, and nothing happens until they accept. Left unanswered, that invite expires on its own rather than hanging in their notifications indefinitely.
+
+A user can also opt out of being found by username at all, in which case this path cannot reach them.
+
+#### Link
+
+The member generates a link that can be shared anywhere. It is a random string produced by the system, and each Circle has exactly one live link at a time.
+
+**The link does not expire and has no usage limit.** It stays valid until it is regenerated, and regenerating voids the old one the moment the new one exists. That single action is the entire revocation model — no expiry dates, no use counters, no list of past links to keep straight. A link that leaked is fixed by rotating it whenever that is discovered, which works at any point; hoping the leak ages out does not.
+
+Whoever generates the link chooses what happens at the other end:
+
+- **Approval required** *(default)* — following the link opens a request. Any member with invite privileges can approve or reject it. Until then the person is not a member and sees nothing of the Circle.
+- **Approval not required** — following the link joins the Circle.
+
+The default is the strict one, which is the opposite of what a group chat does. A link that travels anywhere is the only place in Memoria where someone nobody vouched for can reach an archive, and Principle 5 holds that sharing is relational rather than broadcast. Letting the link admit people on its own should be something a Circle turns on, not something it discovers it forgot to turn off.
+
+Rotating the link does not cancel requests already open against the old one. The request was to join the Circle, not to use a particular string, and an invite-privileged member still has to approve each one by hand.
 
 ### Permissions
 
@@ -383,8 +407,16 @@ An alert system that serves purely as a reminder. Notifications exist to bring s
 
 **Someone needs you** — delivered immediately, because a person is waiting:
 
-- **Circle invite received**: "Gede invited you to join the circle 'NgodingVareng'."
+- **Circle invite received**: "Gede invited you to join the circle 'NgodingVareng'." Only sent when an answer is genuinely owed — a direct add held back by the recipient's privacy setting.
+- **Circle join request received**: "Someone asked to join 'NgodingVareng' through your invite link." Goes to every member with invite privileges, since any of them can decide it.
 - **Mentioned in a moment**: "Margarin added you to the moment 'Evening Run at GBK'."
+
+**Circle changes** — delivered immediately as well, but nothing is being asked of you:
+
+- **Added to a circle**: "Gede added you to the circle 'NgodingVareng'." The ordinary direct add. You are already in, so this is told rather than asked — but never left unsaid, because who can see your Moments has changed.
+- **Join request approved**: "You're in. 'NgodingVareng' accepted your request."
+
+A rejected join request is never announced, and neither is a declined invite. Memoria does not manufacture a moment of rejection — the same reason a mentioned user can leave a Moment without the owner being told.
 
 **Responses** — **batched into a single daily digest**, never delivered individually:
 
@@ -399,7 +431,7 @@ Instant per-reaction and per-comment pings are the exact engagement mechanic Mem
 
 Users can enable or disable each type above independently, and set quiet hours during which nothing is delivered.
 
-The defaults are the actual product decision. Memoria ships with gifts on, "someone needs you" on, the response digest on at a fixed daily hour, and Commitment reminders on for Commitments only — with "Moment missed" off until asked for. Nothing is real-time except the two cases where a human being is actually waiting for an answer.
+The defaults are the actual product decision. Memoria ships with gifts on, "someone needs you" on, circle changes on, the response digest on at a fixed daily hour, and Commitment reminders on for Commitments only — with "Moment missed" off until asked for. Nothing is real-time except the cases where a person is waiting for an answer and the two that change who can see your Moments.
 
 ---
 
@@ -409,10 +441,27 @@ A macro-level account control system. Reinforces Memoria's position as a privacy
 
 ### Social Interaction Controls
 
-- Who can mention me
-- Who can invite me to a circle
+- Who can mention me — **Anyone** / **People I know** / **No one**
+- Who can invite me to a circle — same three
+- **Known** — mark another user as someone you know. See below.
 - **Block** a user — neither user can see, mention, comment on, or react to the other's Moments, in any context, in either direction.
 - **Mute** a user — one-directional: their Moments, comments, and reactions are hidden from the muter's view only. The muted user isn't restricted and isn't notified; everyone else still sees their activity normally.
+
+#### Known
+
+Search a username, tap once, and that person is marked as known to you. That is the entire feature.
+
+**It is one-directional and silent.** The other person is not notified, is not asked to confirm, and never sees that you marked them. There is nothing to accept and nothing to refuse. Memoria has no friend requests, no pending invitations between individuals, and no list anyone else can see — the same reason a rejected join request is never announced.
+
+**Marking someone grants access to you, never to them.** The edge always points outward from the person being protected: "people I know may mention me" means *people I marked*, so nobody can reach you by marking you. This is what makes the one-directional design safe, and it is why confirmation would add nothing — you are the only party whose decision is being recorded.
+
+It also keeps the control entirely yours. Under a mutual model, restricting who may mention you would mean negotiating with every person one at a time, and your privacy setting would only take effect once they agreed. Here you curate your own list and it takes effect immediately.
+
+**Known is not a social graph, and must never become one.** There are no counts, no visible lists, no mutual-friend surfaces, no suggestions. It exists to give the privacy settings a usable middle tier and nothing else — see [Non-Goals](#non-goals).
+
+**Sharing a Circle counts as knowing.** The middle tier resolves to *people you marked, plus people you already share an active Circle with*. Without the second half, the setting would deadlock: you can only be invited to your first Circle by someone you already share a Circle with. Leaving a Circle ends that half of it, but an explicit mark survives.
+
+Blocking overrides all of this in both directions, whatever either party has marked.
 
 **Blocking never subtracts from your own archive** (Principle 4). A Moment you captured that mentions a user you later block stays in your archive exactly as it was — the same photos, the same note, the same date. Only the mention itself goes inert: it stops linking to them, stops granting them access, and renders as a plain name. Losing your own memory of an evening because of how the friendship ended later would be the single worst thing this app could do.
 

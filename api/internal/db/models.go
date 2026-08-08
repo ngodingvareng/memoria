@@ -15,9 +15,9 @@ import (
 type AudiencePolicy string
 
 const (
-	AudiencePolicyAnyone        AudiencePolicy = "anyone"
-	AudiencePolicyCircleMembers AudiencePolicy = "circle_members"
-	AudiencePolicyNobody        AudiencePolicy = "nobody"
+	AudiencePolicyAnyone AudiencePolicy = "anyone"
+	AudiencePolicyKnown  AudiencePolicy = "known"
+	AudiencePolicyNobody AudiencePolicy = "nobody"
 )
 
 func (e *AudiencePolicy) Scan(src interface{}) error {
@@ -143,6 +143,7 @@ type CircleInviteStatus string
 
 const (
 	CircleInviteStatusPending  CircleInviteStatus = "pending"
+	CircleInviteStatusActive   CircleInviteStatus = "active"
 	CircleInviteStatusAccepted CircleInviteStatus = "accepted"
 	CircleInviteStatusDeclined CircleInviteStatus = "declined"
 	CircleInviteStatusRevoked  CircleInviteStatus = "revoked"
@@ -534,14 +535,17 @@ func (ns NullMomentOrigin) Value() (driver.Value, error) {
 type NotificationKind string
 
 const (
-	NotificationKindCommitmentUpcoming   NotificationKind = "commitment_upcoming"
-	NotificationKindMomentDue            NotificationKind = "moment_due"
-	NotificationKindMomentMissed         NotificationKind = "moment_missed"
-	NotificationKindEchoReady            NotificationKind = "echo_ready"
-	NotificationKindRecapGenerated       NotificationKind = "recap_generated"
-	NotificationKindCircleInviteReceived NotificationKind = "circle_invite_received"
-	NotificationKindMentionedInMoment    NotificationKind = "mentioned_in_moment"
-	NotificationKindResponseDigest       NotificationKind = "response_digest"
+	NotificationKindCommitmentUpcoming        NotificationKind = "commitment_upcoming"
+	NotificationKindMomentDue                 NotificationKind = "moment_due"
+	NotificationKindMomentMissed              NotificationKind = "moment_missed"
+	NotificationKindEchoReady                 NotificationKind = "echo_ready"
+	NotificationKindRecapGenerated            NotificationKind = "recap_generated"
+	NotificationKindCircleInviteReceived      NotificationKind = "circle_invite_received"
+	NotificationKindCircleJoinRequestReceived NotificationKind = "circle_join_request_received"
+	NotificationKindMentionedInMoment         NotificationKind = "mentioned_in_moment"
+	NotificationKindAddedToCircle             NotificationKind = "added_to_circle"
+	NotificationKindCircleJoinRequestApproved NotificationKind = "circle_join_request_approved"
+	NotificationKindResponseDigest            NotificationKind = "response_digest"
 )
 
 func (e *NotificationKind) Scan(src interface{}) error {
@@ -806,18 +810,17 @@ type Circle struct {
 }
 
 type CircleInvite struct {
-	ID              uuid.UUID
-	CircleID        uuid.UUID
-	InvitedByUserID pgtype.UUID
-	Kind            CircleInviteKind
-	InviteeUserID   pgtype.UUID
-	TokenHash       pgtype.Text
-	Status          CircleInviteStatus
-	MaxUses         pgtype.Int4
-	UseCount        int32
-	ExpiresAt       pgtype.Timestamptz
-	RespondedAt     pgtype.Timestamptz
-	CreatedAt       pgtype.Timestamptz
+	ID               uuid.UUID
+	CircleID         uuid.UUID
+	InvitedByUserID  pgtype.UUID
+	Kind             CircleInviteKind
+	InviteeUserID    pgtype.UUID
+	TokenHash        pgtype.Text
+	RequiresApproval pgtype.Bool
+	Status           CircleInviteStatus
+	ExpiresAt        pgtype.Timestamptz
+	RespondedAt      pgtype.Timestamptz
+	CreatedAt        pgtype.Timestamptz
 }
 
 type CircleJoinRequest struct {
@@ -1002,6 +1005,7 @@ type Notification struct {
 	CommitmentOccurrenceID pgtype.UUID
 	CircleID               pgtype.UUID
 	CircleInviteID         pgtype.UUID
+	CircleJoinRequestID    pgtype.UUID
 	RecapID                pgtype.UUID
 	ResurfacingID          pgtype.UUID
 	Payload                []byte
@@ -1012,20 +1016,23 @@ type Notification struct {
 }
 
 type NotificationPreference struct {
-	UserID                      uuid.UUID
-	CommitmentUpcomingEnabled   bool
-	MomentDueEnabled            bool
-	MomentMissedEnabled         bool
-	EchoReadyEnabled            bool
-	RecapGeneratedEnabled       bool
-	CircleInviteReceivedEnabled bool
-	MentionedInMomentEnabled    bool
-	ResponseDigestEnabled       bool
-	ResponseDigestHour          int16
-	QuietHoursStart             pgtype.Time
-	QuietHoursEnd               pgtype.Time
-	CreatedAt                   pgtype.Timestamptz
-	UpdatedAt                   pgtype.Timestamptz
+	UserID                           uuid.UUID
+	CommitmentUpcomingEnabled        bool
+	MomentDueEnabled                 bool
+	MomentMissedEnabled              bool
+	EchoReadyEnabled                 bool
+	RecapGeneratedEnabled            bool
+	CircleInviteReceivedEnabled      bool
+	CircleJoinRequestReceivedEnabled bool
+	MentionedInMomentEnabled         bool
+	AddedToCircleEnabled             bool
+	CircleJoinRequestApprovedEnabled bool
+	ResponseDigestEnabled            bool
+	ResponseDigestHour               int16
+	QuietHoursStart                  pgtype.Time
+	QuietHoursEnd                    pgtype.Time
+	CreatedAt                        pgtype.Timestamptz
+	UpdatedAt                        pgtype.Timestamptz
 }
 
 type Reaction struct {
@@ -1171,6 +1178,12 @@ type UserDevice struct {
 	LastSeenAt pgtype.Timestamptz
 	CreatedAt  pgtype.Timestamptz
 	RevokedAt  pgtype.Timestamptz
+}
+
+type UserKnow struct {
+	KnowerUserID uuid.UUID
+	KnownUserID  uuid.UUID
+	CreatedAt    pgtype.Timestamptz
 }
 
 type UserMute struct {

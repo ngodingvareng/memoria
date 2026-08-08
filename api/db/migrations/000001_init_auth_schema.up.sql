@@ -5,9 +5,15 @@
 CREATE TYPE auth_provider_id AS ENUM('google', 'credential');
 
 -- Who may reach a user through a given social affordance. Used by
--- users.mention_policy and users.circle_invite_policy. 'circle_members'
--- means "only people who already share at least one Circle with me".
-CREATE TYPE audience_policy AS ENUM('anyone', 'circle_members', 'nobody');
+-- users.mention_policy and users.circle_invite_policy.
+--
+-- 'known' resolves to a union, not just the user_knows table: someone I
+-- marked as known, OR someone I already share an active Circle with.
+-- The second half is load-bearing. Without it the tier deadlocks — you
+-- could only be invited to your first Circle by someone you already
+-- shared a Circle with — and it also spares users from marking every
+-- circle-mate by hand. Sharing a private Circle is knowing someone.
+CREATE TYPE audience_policy AS ENUM('anyone', 'known', 'nobody');
 
 CREATE TYPE device_platform AS ENUM('ios', 'android', 'web');
 
@@ -271,6 +277,38 @@ CREATE TABLE user_mutes(
 
     PRIMARY KEY(muter_user_id, muted_user_id),
     CONSTRAINT chk_user_mutes_not_self CHECK (muter_user_id <> muted_user_id)
+);
+
+
+-- ---------------------------------------------------------
+-- user_knows
+-- ---------------------------------------------------------
+-- The third unilateral stance one user can take toward another,
+-- alongside user_blocks ("never reach me") and user_mutes ("hide from
+-- my view"): "you may reach me". Same shape, same one-row-per-assertion
+-- storage, and read the same way — "user knows (user)".
+--
+-- One-directional and silent by design. The known user is not notified,
+-- does not confirm, and cannot see the row. There are deliberately no
+-- friend requests in Memoria: an unanswered one outlives its usefulness
+-- in both people's notifications, and a refused one is a moment of
+-- rejection the product does not manufacture.
+--
+-- The direction is the safety property. A row grants the *known* user
+-- access to the *knower*, so the only person who can widen access to me
+-- is me — marking someone gains the marker nothing. That is what makes
+-- skipping confirmation sound: only one party's decision is recorded,
+-- and it is the decision of the party being protected.
+--
+-- This is privacy plumbing, not a social graph (FEATURES.md, Non-Goals).
+-- Nothing may expose counts, mutual edges, or suggestions built on it.
+CREATE TABLE user_knows(
+    knower_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    known_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    PRIMARY KEY(knower_user_id, known_user_id),
+    CONSTRAINT chk_user_knows_not_self CHECK (knower_user_id <> known_user_id)
 );
 
 

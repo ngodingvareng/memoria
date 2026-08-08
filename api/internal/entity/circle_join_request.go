@@ -7,8 +7,9 @@ import (
 	"github.com/ngodingvareng/memoria/internal/enum"
 )
 
-// CircleJoinRequest is the approval step for a Link CircleInvite; a
-// Username invite never produces one of these.
+// CircleJoinRequest is the approval step for a Link CircleInvite whose
+// RequiresApproval is true. A Link without it admits people directly,
+// and a direct add never produces one of these.
 type CircleJoinRequest struct {
 	ID              uuid.UUID
 	CircleID        uuid.UUID
