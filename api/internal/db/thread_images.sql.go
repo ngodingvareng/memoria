@@ -15,7 +15,7 @@ import (
 const addThreadImage = `-- name: AddThreadImage :one
 INSERT INTO thread_images(thread_id, image_path, image_alt)
 VALUES ($1, $2, $3)
-RETURNING id, thread_id, image_path, image_alt, created_at
+RETURNING id, thread_id, image_path, image_alt, sort_order, created_at
 `
 
 type AddThreadImageParams struct {
@@ -32,6 +32,7 @@ func (q *Queries) AddThreadImage(ctx context.Context, arg AddThreadImageParams) 
 		&i.ThreadID,
 		&i.ImagePath,
 		&i.ImageAlt,
+		&i.SortOrder,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -54,10 +55,10 @@ func (q *Queries) DeleteThreadImage(ctx context.Context, arg DeleteThreadImagePa
 }
 
 const listThreadImagesByThreadID = `-- name: ListThreadImagesByThreadID :many
-SELECT id, thread_id, image_path, image_alt, created_at
+SELECT id, thread_id, image_path, image_alt, sort_order, created_at
 FROM thread_images
 WHERE thread_id = $1
-ORDER BY created_at
+ORDER BY sort_order, created_at
 `
 
 func (q *Queries) ListThreadImagesByThreadID(ctx context.Context, threadID uuid.UUID) ([]ThreadImage, error) {
@@ -74,6 +75,7 @@ func (q *Queries) ListThreadImagesByThreadID(ctx context.Context, threadID uuid.
 			&i.ThreadID,
 			&i.ImagePath,
 			&i.ImageAlt,
+			&i.SortOrder,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err

@@ -1,9 +1,18 @@
 -- =========================================================
--- Auth schema
--- Reviewed & consolidated version
+-- Auth, account-level privacy controls, and data ownership.
 -- =========================================================
 
-CREATE TYPE auth_provider_id AS ENUM('google', 'github', 'credential');
+CREATE TYPE auth_provider_id AS ENUM('google', 'credential');
+
+-- Who may reach a user through a given social affordance. Used by
+-- users.mention_policy and users.circle_invite_policy. 'circle_members'
+-- means "only people who already share at least one Circle with me".
+CREATE TYPE audience_policy AS ENUM('anyone', 'circle_members', 'nobody');
+
+CREATE TYPE device_platform AS ENUM('ios', 'android', 'web');
+
+CREATE TYPE data_export_status AS ENUM('pending', 'running', 'ready', 'failed', 'expired');
+
 
 -- ---------------------------------------------------------
 -- users
@@ -11,25 +20,60 @@ CREATE TYPE auth_provider_id AS ENUM('google', 'github', 'credential');
 CREATE TABLE users(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
+
+    -- Handle used for @mentions and for "invite by entering their
+    -- username" (Circle Invite). Stored as typed, matched
+    -- case-insensitively via uq_users_username_lower.
+    username VARCHAR(30) NOT NULL,
+
     email VARCHAR(255) NOT NULL,
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     image_path TEXT,
 
-    -- IANA timezone name (e.g. 'Asia/Jakarta'). Used to bucket
-    -- occurred_at/scheduled_at into "days" correctly for the heatmap and
-    -- other statistics — without this there's no way to know whose day
-    -- boundary to use when converting an absolute TIMESTAMPTZ to a date.
+    -- Free-text self-description. Visible only to people who can already
+    -- reach this user (circle co-members, and users they've mentioned or
+    -- been mentioned by) — Memoria has no public profiles, so there is no
+    -- surface where this is readable by a stranger.
+    bio TEXT,
+
+    -- IANA timezone name (e.g. 'Asia/Jakarta'). This is the user's
+    -- *current* zone, used to decide when "today" starts for scheduling
+    -- and digests. It is deliberately NOT what the archive is browsed
+    -- in: each Moment carries the offset that was in effect where it
+    -- happened (moments.occurred_utc_offset_minutes), so a trip to
+    -- Tokyo stays on Tokyo dates after the user flies home.
     timezone VARCHAR(50) NOT NULL DEFAULT 'UTC',
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-    -- Soft delete: lets account deletion have a recovery grace period
-    -- instead of instantly cascading a hard DELETE into activities /
-    -- activity_captures (which would permanently erase the user's history).
-    -- The app should hard-delete the row (triggering the real CASCADE)
-    -- only after the grace period via a purge job.
-    deleted_at TIMESTAMPTZ DEFAULT NULL
+    -- Social Interaction Controls (Privacy & Control).
+    mention_policy audience_policy NOT NULL DEFAULT 'anyone',
+    circle_invite_policy audience_policy NOT NULL DEFAULT 'anyone',
+
+    -- Gates the "invite by entering their username" path specifically:
+    -- a user who allows circle invites in general may still not want to
+    -- be findable by typing their handle.
+    discoverable_by_username BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- Data Controls: strip EXIF/GPS from uploaded photos. Applied at
+    -- upload time; moment_images.metadata_stripped records the outcome
+    -- per file so a later policy change doesn't rewrite history.
+    strip_photo_metadata BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- Soft delete: gives account deletion a recovery grace period
+    -- instead of instantly cascading a hard DELETE into the user's
+    -- entire archive. A purge job hard-deletes the row (triggering the
+    -- real CASCADE) once the grace period expires.
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+
+    CONSTRAINT chk_users_username_format
+    CHECK (username ~ '^[a-z0-9_.]{3,30}$'),
+
+    -- TEXT is unbounded; without this a single user can store an
+    -- arbitrarily large value. 500 chars is a bio, not a document.
+    CONSTRAINT chk_users_bio_length
+    CHECK (bio IS NULL OR length(bio) <= 500)
 );
 
 -- Case-insensitive uniqueness among live users only: a plain
@@ -38,6 +82,10 @@ CREATE TABLE users(
 -- that belongs to a soft-deleted (not yet purged) account.
 CREATE UNIQUE INDEX uq_users_email_lower
 ON users(lower(email))
+WHERE deleted_at IS NULL;
+
+CREATE UNIQUE INDEX uq_users_username_lower
+ON users(lower(username))
 WHERE deleted_at IS NULL;
 
 -- Supports a periodic purge job that hard-deletes users past their
@@ -139,12 +187,109 @@ CREATE TABLE user_verifications(
     identifier VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
     expires_at TIMESTAMPTZ NOT NULL,
+
+    -- Closes the replay hole logged as SCHEMA_REVIEW #10: validation
+    -- checks consumed_at IS NULL and stamps it in the same statement,
+    -- so two simultaneous requests can't both pass.
+    consumed_at TIMESTAMPTZ,
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Supports "find the pending verification for this identifier" lookups.
-CREATE INDEX idx_user_verifications_identifier ON user_verifications(identifier);
+CREATE INDEX idx_user_verifications_identifier
+ON user_verifications(identifier)
+WHERE consumed_at IS NULL;
 
 -- Supports the same periodic cleanup pattern as user_sessions.expires_at.
 CREATE INDEX idx_user_verifications_expires_at ON user_verifications(expires_at);
+
+
+-- ---------------------------------------------------------
+-- user_devices
+-- ---------------------------------------------------------
+-- Push targets. Notifications are queued in `notifications` and
+-- delivered to every live device row for the recipient.
+CREATE TABLE user_devices(
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    platform device_platform NOT NULL,
+    push_token TEXT NOT NULL,
+
+    -- The device's own zone, which may differ from users.timezone while
+    -- travelling. Quiet hours are evaluated against this when present.
+    timezone VARCHAR(50),
+
+    last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    revoked_at TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX uq_user_devices_push_token
+ON user_devices(push_token)
+WHERE revoked_at IS NULL;
+
+CREATE INDEX idx_user_devices_user_id ON user_devices(user_id) WHERE revoked_at IS NULL;
+
+
+-- ---------------------------------------------------------
+-- user_blocks
+-- ---------------------------------------------------------
+-- Blocking is symmetric in effect: neither user can see, mention,
+-- comment on, or react to the other, in any context, in either
+-- direction. Only one row is stored (the blocker's), so every access
+-- check must test the pair both ways:
+--
+--   NOT EXISTS (SELECT 1 FROM user_blocks
+--               WHERE (blocker_user_id = $viewer AND blocked_user_id = $owner)
+--                  OR (blocker_user_id = $owner  AND blocked_user_id = $viewer))
+--
+-- Blocking never deletes content on either side (Principle 4).
+CREATE TABLE user_blocks(
+    blocker_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    blocked_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    PRIMARY KEY(blocker_user_id, blocked_user_id),
+    CONSTRAINT chk_user_blocks_not_self CHECK (blocker_user_id <> blocked_user_id)
+);
+
+CREATE INDEX idx_user_blocks_blocked_user_id ON user_blocks(blocked_user_id);
+
+
+-- ---------------------------------------------------------
+-- user_mutes
+-- ---------------------------------------------------------
+-- Muting is one-directional and purely a view filter: the muted user
+-- is not restricted, is not notified, and their comments/reactions stay
+-- visible to everyone else. Only the muter's own rendering changes.
+CREATE TABLE user_mutes(
+    muter_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    muted_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    PRIMARY KEY(muter_user_id, muted_user_id),
+    CONSTRAINT chk_user_mutes_not_self CHECK (muter_user_id <> muted_user_id)
+);
+
+
+-- ---------------------------------------------------------
+-- data_exports
+-- ---------------------------------------------------------
+-- "Export all my data" — a complete, readable archive in an open
+-- format, including photos at original quality. Generated
+-- asynchronously; file_path points at object storage.
+CREATE TABLE data_exports(
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status data_export_status NOT NULL DEFAULT 'pending',
+    file_path TEXT,
+    byte_size BIGINT,
+    error_message TEXT,
+    requested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    completed_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_data_exports_user_id ON data_exports(user_id, requested_at DESC);

@@ -15,7 +15,7 @@ import (
 const createCommitment = `-- name: CreateCommitment :one
 INSERT INTO commitments(thread_id, cron_expression, timezone)
 VALUES ($1, $2, $3)
-RETURNING id, thread_id, cron_expression, timezone, created_at
+RETURNING id, thread_id, name, cron_expression, timezone, strictness, confirmation_window_minutes, consented_at, consent_version, notify_upcoming, notify_due, notify_missed, paused_at, archived_at, last_generated_at, created_at, updated_at, version
 `
 
 type CreateCommitmentParams struct {
@@ -30,9 +30,22 @@ func (q *Queries) CreateCommitment(ctx context.Context, arg CreateCommitmentPara
 	err := row.Scan(
 		&i.ID,
 		&i.ThreadID,
+		&i.Name,
 		&i.CronExpression,
 		&i.Timezone,
+		&i.Strictness,
+		&i.ConfirmationWindowMinutes,
+		&i.ConsentedAt,
+		&i.ConsentVersion,
+		&i.NotifyUpcoming,
+		&i.NotifyDue,
+		&i.NotifyMissed,
+		&i.PausedAt,
+		&i.ArchivedAt,
+		&i.LastGeneratedAt,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Version,
 	)
 	return i, err
 }
@@ -57,7 +70,7 @@ func (q *Queries) DeleteCommitment(ctx context.Context, arg DeleteCommitmentPara
 }
 
 const getCommitmentByID = `-- name: GetCommitmentByID :one
-SELECT id, thread_id, cron_expression, timezone, created_at
+SELECT id, thread_id, name, cron_expression, timezone, strictness, confirmation_window_minutes, consented_at, consent_version, notify_upcoming, notify_due, notify_missed, paused_at, archived_at, last_generated_at, created_at, updated_at, version
 FROM commitments
 WHERE id = $1 AND thread_id = $2
 `
@@ -73,15 +86,28 @@ func (q *Queries) GetCommitmentByID(ctx context.Context, arg GetCommitmentByIDPa
 	err := row.Scan(
 		&i.ID,
 		&i.ThreadID,
+		&i.Name,
 		&i.CronExpression,
 		&i.Timezone,
+		&i.Strictness,
+		&i.ConfirmationWindowMinutes,
+		&i.ConsentedAt,
+		&i.ConsentVersion,
+		&i.NotifyUpcoming,
+		&i.NotifyDue,
+		&i.NotifyMissed,
+		&i.PausedAt,
+		&i.ArchivedAt,
+		&i.LastGeneratedAt,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Version,
 	)
 	return i, err
 }
 
 const listCommitmentsByThreadID = `-- name: ListCommitmentsByThreadID :many
-SELECT id, thread_id, cron_expression, timezone, created_at
+SELECT id, thread_id, name, cron_expression, timezone, strictness, confirmation_window_minutes, consented_at, consent_version, notify_upcoming, notify_due, notify_missed, paused_at, archived_at, last_generated_at, created_at, updated_at, version
 FROM commitments
 WHERE thread_id = $1
 ORDER BY created_at
@@ -102,9 +128,22 @@ func (q *Queries) ListCommitmentsByThreadID(ctx context.Context, threadID uuid.U
 		if err := rows.Scan(
 			&i.ID,
 			&i.ThreadID,
+			&i.Name,
 			&i.CronExpression,
 			&i.Timezone,
+			&i.Strictness,
+			&i.ConfirmationWindowMinutes,
+			&i.ConsentedAt,
+			&i.ConsentVersion,
+			&i.NotifyUpcoming,
+			&i.NotifyDue,
+			&i.NotifyMissed,
+			&i.PausedAt,
+			&i.ArchivedAt,
+			&i.LastGeneratedAt,
 			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Version,
 		); err != nil {
 			return nil, err
 		}
@@ -117,7 +156,7 @@ func (q *Queries) ListCommitmentsByThreadID(ctx context.Context, threadID uuid.U
 }
 
 const listCommitmentsForGeneration = `-- name: ListCommitmentsForGeneration :many
-SELECT commitments.id, commitments.thread_id, commitments.cron_expression, commitments.timezone, commitments.created_at FROM commitments
+SELECT commitments.id, commitments.thread_id, commitments.name, commitments.cron_expression, commitments.timezone, commitments.strictness, commitments.confirmation_window_minutes, commitments.consented_at, commitments.consent_version, commitments.notify_upcoming, commitments.notify_due, commitments.notify_missed, commitments.paused_at, commitments.archived_at, commitments.last_generated_at, commitments.created_at, commitments.updated_at, commitments.version FROM commitments
     JOIN threads ON threads.id = commitments.thread_id
 WHERE threads.deleted_at IS NULL AND threads.has_commitment = TRUE
 `
@@ -137,9 +176,22 @@ func (q *Queries) ListCommitmentsForGeneration(ctx context.Context) ([]Commitmen
 		if err := rows.Scan(
 			&i.ID,
 			&i.ThreadID,
+			&i.Name,
 			&i.CronExpression,
 			&i.Timezone,
+			&i.Strictness,
+			&i.ConfirmationWindowMinutes,
+			&i.ConsentedAt,
+			&i.ConsentVersion,
+			&i.NotifyUpcoming,
+			&i.NotifyDue,
+			&i.NotifyMissed,
+			&i.PausedAt,
+			&i.ArchivedAt,
+			&i.LastGeneratedAt,
 			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Version,
 		); err != nil {
 			return nil, err
 		}
@@ -156,7 +208,7 @@ UPDATE commitments
 SET cron_expression = $1,
     timezone = $2
 WHERE id = $3 AND thread_id = $4
-    RETURNING id, thread_id, cron_expression, timezone, created_at
+    RETURNING id, thread_id, name, cron_expression, timezone, strictness, confirmation_window_minutes, consented_at, consent_version, notify_upcoming, notify_due, notify_missed, paused_at, archived_at, last_generated_at, created_at, updated_at, version
 `
 
 type UpdateCommitmentParams struct {
@@ -181,9 +233,22 @@ func (q *Queries) UpdateCommitment(ctx context.Context, arg UpdateCommitmentPara
 	err := row.Scan(
 		&i.ID,
 		&i.ThreadID,
+		&i.Name,
 		&i.CronExpression,
 		&i.Timezone,
+		&i.Strictness,
+		&i.ConfirmationWindowMinutes,
+		&i.ConsentedAt,
+		&i.ConsentVersion,
+		&i.NotifyUpcoming,
+		&i.NotifyDue,
+		&i.NotifyMissed,
+		&i.PausedAt,
+		&i.ArchivedAt,
+		&i.LastGeneratedAt,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Version,
 	)
 	return i, err
 }

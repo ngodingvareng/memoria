@@ -6,15 +6,19 @@ import (
 	"github.com/google/uuid"
 )
 
+// Thread is personal when CircleID is nil (owned by UserID) and
+// collaborative when it is set (owned by the Circle; access is governed
+// by CircleMember, not UserID).
 type Thread struct {
-	ID                         uuid.UUID
-	UserID                     uuid.UUID
-	Name                       string
-	Description                *string
-	HasCommitment              bool
-	ColorHex                   *string
-	ConfirmationTimeoutMinutes *int32
-	CreatedAt                  time.Time
-	UpdatedAt                  time.Time
-	DeletedAt                  *time.Time
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	CircleID    *uuid.UUID
+	Name        string
+	Description *string
+	ColorHex    *string
+	SortOrder   int32
+	ArchivedAt  *time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   *time.Time
 }

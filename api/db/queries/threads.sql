@@ -1,47 +1,80 @@
 -- name: CreateThread :one
-INSERT INTO threads(
-    user_id, name, description, has_commitment,
-    color_hex, confirmation_timeout_minutes
-) VALUES (
-    sqlc.arg(user_id), sqlc.arg(name), sqlc.narg(description), sqlc.arg(has_commitment),
-    sqlc.narg(color_hex), sqlc.arg(confirmation_timeout_minutes)
+-- circle_id NULL creates a personal Thread owned by user_id; setting it
+-- creates a collaborative Thread owned by the Circle instead (see the
+-- header comment on the threads table).
+INSERT INTO threads(user_id, circle_id, name, description, color_hex)
+VALUES (
+    sqlc.arg(user_id), sqlc.narg(circle_id), sqlc.arg(name),
+    sqlc.narg(description), sqlc.narg(color_hex)
 )
 RETURNING *;
 
 -- name: GetThreadByID :one
--- user_id in the WHERE clause doubles as an ownership check.
+-- No ownership/membership filter — callers on a collaborative Thread
+-- must authorize separately (see GetThreadWithAccess) since access
+-- there is governed by circle_members, not user_id.
 SELECT *
 FROM threads
 WHERE id = sqlc.arg(id)
-    AND user_id = sqlc.arg(user_id)
     AND deleted_at IS NULL;
 
--- name: ListThreadsByUserID :many
+-- name: GetThreadWithAccess :one
+-- "Can this viewer reach this Thread at all" — true for the Thread's
+-- creator, and for any active member of the Circle that owns it when
+-- it's collaborative.
+SELECT threads.*
+FROM threads
+WHERE threads.id = sqlc.arg(id)
+    AND threads.deleted_at IS NULL
+    AND (
+        threads.user_id = sqlc.arg(user_id)
+        OR threads.circle_id IN (
+            SELECT circle_id
+            FROM circle_members
+            WHERE user_id = sqlc.arg(user_id)
+                AND left_at IS NULL
+        )
+    );
+
+-- name: ListPersonalThreadsByUserID :many
+-- The "My Threads" list: Threads this user created that are not owned
+-- by a Circle.
 SELECT *
 FROM threads
 WHERE user_id = sqlc.arg(user_id)
+    AND circle_id IS NULL
+    AND deleted_at IS NULL
+ORDER BY sort_order, created_at DESC;
+
+-- name: ListThreadsByCircleID :many
+-- A Circle's collaborative Threads.
+SELECT *
+FROM threads
+WHERE circle_id = sqlc.arg(circle_id)
     AND deleted_at IS NULL
 ORDER BY created_at DESC;
 
 -- name: SearchThreads :many
--- Search & filter threads for the authenticated user's thread list.
--- All filters are optional (NULL = "don't filter on this"):
+-- Search & filter personal threads for the authenticated user's thread
+-- list. All filters are optional (NULL = "don't filter on this"):
 --   - name: case-insensitive partial match (ILIKE) against threads.name
---   - has_commitment: exact boolean match
--- Ordered newest-first; paginated via page_limit / page_offset.
+--   - archived: exact match against (archived_at IS NOT NULL)
+-- Ordered by sort_order then newest-first; paginated via
+-- page_limit / page_offset.
 SELECT *
 FROM threads
 WHERE user_id = sqlc.arg(user_id)
+    AND circle_id IS NULL
     AND deleted_at IS NULL
     AND (
         sqlc.narg(name)::text IS NULL
         OR name ILIKE '%' || sqlc.narg(name)::text || '%'
     )
     AND (
-        sqlc.narg(has_commitment)::bool IS NULL
-        OR has_commitment = sqlc.narg(has_commitment)::bool
+        sqlc.narg(archived)::bool IS NULL
+        OR (archived_at IS NOT NULL) = sqlc.narg(archived)::bool
     )
-ORDER BY created_at DESC
+ORDER BY sort_order, created_at DESC
 LIMIT sqlc.arg(page_limit)
 OFFSET sqlc.arg(page_offset);
 
@@ -51,14 +84,15 @@ OFFSET sqlc.arg(page_offset);
 SELECT COUNT(*)
 FROM threads
 WHERE user_id = sqlc.arg(user_id)
+    AND circle_id IS NULL
     AND deleted_at IS NULL
     AND (
         sqlc.narg(name)::text IS NULL
         OR name ILIKE '%' || sqlc.narg(name)::text || '%'
     )
     AND (
-        sqlc.narg(has_commitment)::bool IS NULL
-        OR has_commitment = sqlc.narg(has_commitment)::bool
+        sqlc.narg(archived)::bool IS NULL
+        OR (archived_at IS NOT NULL) = sqlc.narg(archived)::bool
     );
 
 -- name: UpdateThread :one
@@ -66,22 +100,37 @@ UPDATE threads
 SET name = sqlc.arg(name),
     description = sqlc.narg(description),
     color_hex = sqlc.narg(color_hex),
-    confirmation_timeout_minutes = sqlc.arg(confirmation_timeout_minutes),
     updated_at = NOW()
 WHERE id = sqlc.arg(id)
     AND user_id = sqlc.arg(user_id)
     AND deleted_at IS NULL
     RETURNING *;
 
--- name: SetThreadHasCommitment :exec
--- Toggling this does NOT itself touch commitments — if flipping to
--- false, the app should separately retire/archive existing commitments
--- (see commitments.sql) so the generator job actually stops.
+-- name: UpdateThreadSortOrder :exec
+-- Manual reordering on the Thread list; the archive itself always
+-- stays ordered by occurred_at regardless of this value.
 UPDATE threads
-SET has_commitment = sqlc.arg(has_commitment),
+SET sort_order = sqlc.arg(sort_order),
     updated_at = NOW()
 WHERE id = sqlc.arg(id)
-    AND user_id = sqlc.arg(user_id);
+    AND user_id = sqlc.arg(user_id)
+    AND deleted_at IS NULL;
+
+-- name: ArchiveThread :exec
+UPDATE threads
+SET archived_at = NOW(),
+    updated_at = NOW()
+WHERE id = sqlc.arg(id)
+    AND user_id = sqlc.arg(user_id)
+    AND deleted_at IS NULL;
+
+-- name: UnarchiveThread :exec
+UPDATE threads
+SET archived_at = NULL,
+    updated_at = NOW()
+WHERE id = sqlc.arg(id)
+    AND user_id = sqlc.arg(user_id)
+    AND deleted_at IS NULL;
 
 -- name: SoftDeleteThread :exec
 UPDATE threads

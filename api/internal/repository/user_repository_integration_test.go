@@ -20,6 +20,7 @@ func TestUserRepository_Create_Success(t *testing.T) {
 
 	user, err := repo.Create(context.Background(), &entity.User{
 		Name:     "Test User",
+		Username: testUsername(),
 		Email:    "unique-create@example.com",
 		Timezone: "UTC",
 	})
@@ -34,10 +35,10 @@ func TestUserRepository_Create_DuplicateEmail(t *testing.T) {
 	repo := repository.NewUserRepository(pool)
 
 	email := "duplicate@example.com"
-	_, err := repo.Create(context.Background(), &entity.User{Name: "First", Email: email, Timezone: "UTC"})
+	_, err := repo.Create(context.Background(), &entity.User{Name: "First", Username: testUsername(), Email: email, Timezone: "UTC"})
 	require.NoError(t, err)
 
-	_, err = repo.Create(context.Background(), &entity.User{Name: "Second", Email: email, Timezone: "UTC"})
+	_, err = repo.Create(context.Background(), &entity.User{Name: "Second", Username: testUsername(), Email: email, Timezone: "UTC"})
 
 	require.ErrorIs(t, err, errs.ErrEmailAlreadyExists)
 }
@@ -47,19 +48,34 @@ func TestUserRepository_Create_DuplicateEmail_CaseInsensitive(t *testing.T) {
 	pool := setupTestDB(t)
 	repo := repository.NewUserRepository(pool)
 
-	_, err := repo.Create(context.Background(), &entity.User{Name: "First", Email: "CaseTest@example.com", Timezone: "UTC"})
+	_, err := repo.Create(context.Background(), &entity.User{Name: "First", Username: testUsername(), Email: "CaseTest@example.com", Timezone: "UTC"})
 	require.NoError(t, err)
 
-	_, err = repo.Create(context.Background(), &entity.User{Name: "Second", Email: "casetest@example.com", Timezone: "UTC"})
+	_, err = repo.Create(context.Background(), &entity.User{Name: "Second", Username: testUsername(), Email: "casetest@example.com", Timezone: "UTC"})
 
 	require.ErrorIs(t, err, errs.ErrEmailAlreadyExists)
+}
+
+func TestUserRepository_Create_DuplicateUsername(t *testing.T) {
+	// Matches uq_users_username_lower — distinct from the email
+	// collision above via pgErr.ConstraintName.
+	pool := setupTestDB(t)
+	repo := repository.NewUserRepository(pool)
+
+	username := testUsername()
+	_, err := repo.Create(context.Background(), &entity.User{Name: "First", Username: username, Email: "first-username-dup@example.com", Timezone: "UTC"})
+	require.NoError(t, err)
+
+	_, err = repo.Create(context.Background(), &entity.User{Name: "Second", Username: username, Email: "second-username-dup@example.com", Timezone: "UTC"})
+
+	require.ErrorIs(t, err, errs.ErrUsernameAlreadyExists)
 }
 
 func TestUserRepository_GetByEmail_Found(t *testing.T) {
 	pool := setupTestDB(t)
 	repo := repository.NewUserRepository(pool)
 
-	created, err := repo.Create(context.Background(), &entity.User{Name: "Findable", Email: "findable@example.com", Timezone: "UTC"})
+	created, err := repo.Create(context.Background(), &entity.User{Name: "Findable", Username: testUsername(), Email: "findable@example.com", Timezone: "UTC"})
 	require.NoError(t, err)
 
 	found, err := repo.GetByEmail(context.Background(), "findable@example.com")
@@ -81,7 +97,7 @@ func TestUserRepository_GetByID_Found(t *testing.T) {
 	pool := setupTestDB(t)
 	repo := repository.NewUserRepository(pool)
 
-	created, err := repo.Create(context.Background(), &entity.User{Name: "ByID", Email: "byid@example.com", Timezone: "UTC"})
+	created, err := repo.Create(context.Background(), &entity.User{Name: "ByID", Username: testUsername(), Email: "byid@example.com", Timezone: "UTC"})
 	require.NoError(t, err)
 
 	found, err := repo.GetByID(context.Background(), created.ID)

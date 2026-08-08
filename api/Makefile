@@ -9,7 +9,7 @@ COLOR_INFO   := \e[36m
 COLOR_SUCCESS:= \e[32m
 COLOR_WARN   := \e[33m
 
-.PHONY: dev dev-only build test test-unit test-integration db-generate migrate-create mock-generate help
+.PHONY: dev dev-only build test test-unit test-integration db-generate migrate-create migrate-up migrate-down db-tables db-describe mock-generate help
 
 # Default target: Display available commands
 help:
@@ -20,8 +20,12 @@ help:
 	@printf "  $(COLOR_SUCCESS)make test$(COLOR_RESET)             - Interactive test menu (unit, integration, all)\n"
 	@printf "  $(COLOR_SUCCESS)make test-unit$(COLOR_RESET)        - Run unit tests only\n"
 	@printf "  $(COLOR_SUCCESS)make test-integration$(COLOR_RESET) - Run integration tests only\n"
-	@printf "  $(COLOR_SUCCESS)make db-generate$(COLOR_RESET)      - Clean & regenerate DB code via sqlc\n"
 	@printf "  $(COLOR_SUCCESS)make migrate-create$(COLOR_RESET)   - Create a new SQL migration file\n"
+	@printf "  $(COLOR_SUCCESS)make migrate-up$(COLOR_RESET)       - Apply all up migrations (credentials from .env)\n"
+	@printf "  $(COLOR_SUCCESS)make migrate-down$(COLOR_RESET)     - Roll back all migrations (credentials from .env)\n"
+	@printf "  $(COLOR_SUCCESS)make db-generate$(COLOR_RESET)      - Clean & regenerate DB code via sqlc\n"
+	@printf "  $(COLOR_SUCCESS)make db-tables$(COLOR_RESET)        - List all tables in the database\n"
+	@printf "  $(COLOR_SUCCESS)make db-describe$(COLOR_RESET)      - Describe a table's structure (prompts for name)\n"
 	@printf "  $(COLOR_SUCCESS)make mock-generate$(COLOR_RESET)    - Generate mock objects using Mockery\n"
 # ==============================================================================
 # DEVELOPMENT
@@ -68,14 +72,6 @@ swagger-generate:
 # DATABASE & MIGRATE
 # ==============================================================================
 
-## db-generate: Clean existing DB files and regenerate using sqlc.
-db-generate:
-	@printf "$(COLOR_WARN)Cleaning up old DB files in internal/db/...$(COLOR_RESET)\n"
-	@rm -f internal/db/*.go
-	@printf "$(COLOR_INFO)Generating DB code using sqlc...$(COLOR_RESET)\n"
-	@sqlc generate
-	@printf "$(COLOR_SUCCESS)✓ DB code generated successfully.$(COLOR_RESET)\n"
-
 ## migrate-create: Interactively create a new SQL migration file.
 migrate-create:
 	@read -p "Enter migration name: " name; \
@@ -85,6 +81,100 @@ migrate-create:
 	fi; \
 	printf "$(COLOR_INFO)Creating migration file in $(MIGRATIONS_DIR)...$(COLOR_RESET)\n"; \
 	migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $$name; \
+
+## migrate-up: Apply all up migrations (all tables) using DB credentials from .env.
+migrate-up:
+	@bash -c '\
+		set -a; \
+		[ -f .env ] && source .env; \
+		set +a; \
+		missing=""; \
+		for var in DATABASE_USERNAME DATABASE_PASSWORD DATABASE_DBNAME DATABASE_PORT; do \
+			if [ -z "$${!var}" ]; then \
+				missing="$$missing $$var"; \
+			fi; \
+		done; \
+		if [ -n "$$missing" ]; then \
+			printf "$(COLOR_WARN)Missing required env variable(s) in .env:$$missing$(COLOR_RESET)\n"; \
+			exit 1; \
+		fi; \
+		printf "$(COLOR_INFO)Applying all up migrations...$(COLOR_RESET)\n"; \
+		migrate -database "postgres://$$DATABASE_USERNAME:$$DATABASE_PASSWORD@localhost:$$DATABASE_PORT/$$DATABASE_DBNAME?sslmode=disable" -path $(MIGRATIONS_DIR) up && \
+		printf "$(COLOR_SUCCESS)✓ Up migrations applied successfully.$(COLOR_RESET)\n" \
+	'
+
+## migrate-down: Roll back all migrations (all tables) using DB credentials from .env.
+migrate-down:
+	@bash -c '\
+		set -a; \
+		[ -f .env ] && source .env; \
+		set +a; \
+		missing=""; \
+		for var in DATABASE_USERNAME DATABASE_PASSWORD DATABASE_DBNAME DATABASE_PORT; do \
+			if [ -z "$${!var}" ]; then \
+				missing="$$missing $$var"; \
+			fi; \
+		done; \
+		if [ -n "$$missing" ]; then \
+			printf "$(COLOR_WARN)Missing required env variable(s) in .env:$$missing$(COLOR_RESET)\n"; \
+			exit 1; \
+		fi; \
+		printf "$(COLOR_WARN)Rolling back ALL migrations...$(COLOR_RESET)\n"; \
+		migrate -database "postgres://$$DATABASE_USERNAME:$$DATABASE_PASSWORD@localhost:$$DATABASE_PORT/$$DATABASE_DBNAME?sslmode=disable" -path $(MIGRATIONS_DIR) down -all && \
+		printf "$(COLOR_SUCCESS)✓ Down migrations applied successfully.$(COLOR_RESET)\n" \
+	'
+
+## db-generate: Clean existing DB files and regenerate using sqlc.
+db-generate:
+	@printf "$(COLOR_WARN)Cleaning up old DB files in internal/db/...$(COLOR_RESET)\n"
+	@rm -f internal/db/*.go
+	@printf "$(COLOR_INFO)Generating DB code using sqlc...$(COLOR_RESET)\n"
+	@sqlc generate
+	@printf "$(COLOR_SUCCESS)✓ DB code generated successfully.$(COLOR_RESET)\n"
+
+## db-tables: List all tables in the database (runs psql inside the Postgres container from `make dev`).
+db-tables:
+	@bash -c '\
+		set -a; \
+		[ -f .env ] && source .env; \
+		set +a; \
+		missing=""; \
+		for var in DATABASE_USERNAME DATABASE_DBNAME; do \
+			if [ -z "$${!var}" ]; then \
+				missing="$$missing $$var"; \
+			fi; \
+		done; \
+		if [ -n "$$missing" ]; then \
+			printf "$(COLOR_WARN)Missing required env variable(s) in .env:$$missing$(COLOR_RESET)\n"; \
+			exit 1; \
+		fi; \
+		printf "$(COLOR_INFO)Listing tables in \"$$DATABASE_DBNAME\"...$(COLOR_RESET)\n"; \
+		docker-compose -f docker-compose.dev.yaml exec -T postgres psql -U "$$DATABASE_USERNAME" -d "$$DATABASE_DBNAME" --pset pager=off -c "\dt" \
+	'
+
+## db-describe: Describe a table (columns, indexes, constraints); prompts for the table name.
+db-describe:
+	@bash -c '\
+		set -a; \
+		[ -f .env ] && source .env; \
+		set +a; \
+		missing=""; \
+		for var in DATABASE_USERNAME DATABASE_DBNAME; do \
+			if [ -z "$${!var}" ]; then \
+				missing="$$missing $$var"; \
+			fi; \
+		done; \
+		if [ -n "$$missing" ]; then \
+			printf "$(COLOR_WARN)Missing required env variable(s) in .env:$$missing$(COLOR_RESET)\n"; \
+			exit 1; \
+		fi; \
+		read -p "Enter table name: " table; \
+		if [ -z "$$table" ]; then \
+			printf "$(COLOR_WARN)Table name cannot be empty!$(COLOR_RESET)\n"; \
+			exit 1; \
+		fi; \
+		docker-compose -f docker-compose.dev.yaml exec -T postgres psql -U "$$DATABASE_USERNAME" -d "$$DATABASE_DBNAME" --pset pager=off -c "\d $$table" \
+	'
 
 # ==============================================================================
 # TEST & MOCK

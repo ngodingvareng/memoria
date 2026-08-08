@@ -12,10 +12,30 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const archiveThread = `-- name: ArchiveThread :exec
+UPDATE threads
+SET archived_at = NOW(),
+    updated_at = NOW()
+WHERE id = $1
+    AND user_id = $2
+    AND deleted_at IS NULL
+`
+
+type ArchiveThreadParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) ArchiveThread(ctx context.Context, arg ArchiveThreadParams) error {
+	_, err := q.db.Exec(ctx, archiveThread, arg.ID, arg.UserID)
+	return err
+}
+
 const countSearchThreads = `-- name: CountSearchThreads :one
 SELECT COUNT(*)
 FROM threads
 WHERE user_id = $1
+    AND circle_id IS NULL
     AND deleted_at IS NULL
     AND (
         $2::text IS NULL
@@ -23,63 +43,63 @@ WHERE user_id = $1
     )
     AND (
         $3::bool IS NULL
-        OR has_commitment = $3::bool
+        OR (archived_at IS NOT NULL) = $3::bool
     )
 `
 
 type CountSearchThreadsParams struct {
-	UserID        uuid.UUID
-	Name          pgtype.Text
-	HasCommitment pgtype.Bool
+	UserID   uuid.UUID
+	Name     pgtype.Text
+	Archived pgtype.Bool
 }
 
 // Total matching row count for SearchThreads, ignoring
 // page_limit/page_offset — used to compute pagination metadata.
 func (q *Queries) CountSearchThreads(ctx context.Context, arg CountSearchThreadsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countSearchThreads, arg.UserID, arg.Name, arg.HasCommitment)
+	row := q.db.QueryRow(ctx, countSearchThreads, arg.UserID, arg.Name, arg.Archived)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const createThread = `-- name: CreateThread :one
-INSERT INTO threads(
-    user_id, name, description, has_commitment,
-    color_hex, confirmation_timeout_minutes
-) VALUES (
-    $1, $2, $3, $4,
-    $5, $6
+INSERT INTO threads(user_id, circle_id, name, description, color_hex)
+VALUES (
+    $1, $2, $3,
+    $4, $5
 )
-RETURNING id, user_id, name, description, has_commitment, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+RETURNING id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
 `
 
 type CreateThreadParams struct {
-	UserID                     uuid.UUID
-	Name                       string
-	Description                pgtype.Text
-	HasCommitment              bool
-	ColorHex                   pgtype.Text
-	ConfirmationTimeoutMinutes pgtype.Int4
+	UserID      uuid.UUID
+	CircleID    pgtype.UUID
+	Name        string
+	Description pgtype.Text
+	ColorHex    pgtype.Text
 }
 
+// circle_id NULL creates a personal Thread owned by user_id; setting it
+// creates a collaborative Thread owned by the Circle instead (see the
+// header comment on the threads table).
 func (q *Queries) CreateThread(ctx context.Context, arg CreateThreadParams) (Thread, error) {
 	row := q.db.QueryRow(ctx, createThread,
 		arg.UserID,
+		arg.CircleID,
 		arg.Name,
 		arg.Description,
-		arg.HasCommitment,
 		arg.ColorHex,
-		arg.ConfirmationTimeoutMinutes,
 	)
 	var i Thread
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.CircleID,
 		&i.Name,
 		&i.Description,
-		&i.HasCommitment,
 		&i.ColorHex,
-		&i.ConfirmationTimeoutMinutes,
+		&i.SortOrder,
+		&i.ArchivedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -88,30 +108,70 @@ func (q *Queries) CreateThread(ctx context.Context, arg CreateThreadParams) (Thr
 }
 
 const getThreadByID = `-- name: GetThreadByID :one
-SELECT id, user_id, name, description, has_commitment, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+SELECT id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
 FROM threads
 WHERE id = $1
-    AND user_id = $2
     AND deleted_at IS NULL
 `
 
-type GetThreadByIDParams struct {
-	ID     uuid.UUID
-	UserID uuid.UUID
-}
-
-// user_id in the WHERE clause doubles as an ownership check.
-func (q *Queries) GetThreadByID(ctx context.Context, arg GetThreadByIDParams) (Thread, error) {
-	row := q.db.QueryRow(ctx, getThreadByID, arg.ID, arg.UserID)
+// No ownership/membership filter — callers on a collaborative Thread
+// must authorize separately (see GetThreadWithAccess) since access
+// there is governed by circle_members, not user_id.
+func (q *Queries) GetThreadByID(ctx context.Context, id uuid.UUID) (Thread, error) {
+	row := q.db.QueryRow(ctx, getThreadByID, id)
 	var i Thread
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.CircleID,
 		&i.Name,
 		&i.Description,
-		&i.HasCommitment,
 		&i.ColorHex,
-		&i.ConfirmationTimeoutMinutes,
+		&i.SortOrder,
+		&i.ArchivedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const getThreadWithAccess = `-- name: GetThreadWithAccess :one
+SELECT threads.id, threads.user_id, threads.circle_id, threads.name, threads.description, threads.color_hex, threads.sort_order, threads.archived_at, threads.created_at, threads.updated_at, threads.deleted_at
+FROM threads
+WHERE threads.id = $1
+    AND threads.deleted_at IS NULL
+    AND (
+        threads.user_id = $2
+        OR threads.circle_id IN (
+            SELECT circle_id
+            FROM circle_members
+            WHERE user_id = $2
+                AND left_at IS NULL
+        )
+    )
+`
+
+type GetThreadWithAccessParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+// "Can this viewer reach this Thread at all" — true for the Thread's
+// creator, and for any active member of the Circle that owns it when
+// it's collaborative.
+func (q *Queries) GetThreadWithAccess(ctx context.Context, arg GetThreadWithAccessParams) (Thread, error) {
+	row := q.db.QueryRow(ctx, getThreadWithAccess, arg.ID, arg.UserID)
+	var i Thread
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.CircleID,
+		&i.Name,
+		&i.Description,
+		&i.ColorHex,
+		&i.SortOrder,
+		&i.ArchivedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -135,16 +195,19 @@ func (q *Queries) HardDeleteThread(ctx context.Context, arg HardDeleteThreadPara
 	return err
 }
 
-const listThreadsByUserID = `-- name: ListThreadsByUserID :many
-SELECT id, user_id, name, description, has_commitment, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+const listPersonalThreadsByUserID = `-- name: ListPersonalThreadsByUserID :many
+SELECT id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
 FROM threads
 WHERE user_id = $1
+    AND circle_id IS NULL
     AND deleted_at IS NULL
-ORDER BY created_at DESC
+ORDER BY sort_order, created_at DESC
 `
 
-func (q *Queries) ListThreadsByUserID(ctx context.Context, userID uuid.UUID) ([]Thread, error) {
-	rows, err := q.db.Query(ctx, listThreadsByUserID, userID)
+// The "My Threads" list: Threads this user created that are not owned
+// by a Circle.
+func (q *Queries) ListPersonalThreadsByUserID(ctx context.Context, userID uuid.UUID) ([]Thread, error) {
+	rows, err := q.db.Query(ctx, listPersonalThreadsByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -155,11 +218,53 @@ func (q *Queries) ListThreadsByUserID(ctx context.Context, userID uuid.UUID) ([]
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
+			&i.CircleID,
 			&i.Name,
 			&i.Description,
-			&i.HasCommitment,
 			&i.ColorHex,
-			&i.ConfirmationTimeoutMinutes,
+			&i.SortOrder,
+			&i.ArchivedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listThreadsByCircleID = `-- name: ListThreadsByCircleID :many
+SELECT id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
+FROM threads
+WHERE circle_id = $1
+    AND deleted_at IS NULL
+ORDER BY created_at DESC
+`
+
+// A Circle's collaborative Threads.
+func (q *Queries) ListThreadsByCircleID(ctx context.Context, circleID pgtype.UUID) ([]Thread, error) {
+	rows, err := q.db.Query(ctx, listThreadsByCircleID, circleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Thread{}
+	for rows.Next() {
+		var i Thread
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.CircleID,
+			&i.Name,
+			&i.Description,
+			&i.ColorHex,
+			&i.SortOrder,
+			&i.ArchivedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -192,9 +297,10 @@ func (q *Queries) RestoreThread(ctx context.Context, arg RestoreThreadParams) er
 }
 
 const searchThreads = `-- name: SearchThreads :many
-SELECT id, user_id, name, description, has_commitment, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+SELECT id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
 FROM threads
 WHERE user_id = $1
+    AND circle_id IS NULL
     AND deleted_at IS NULL
     AND (
         $2::text IS NULL
@@ -202,32 +308,33 @@ WHERE user_id = $1
     )
     AND (
         $3::bool IS NULL
-        OR has_commitment = $3::bool
+        OR (archived_at IS NOT NULL) = $3::bool
     )
-ORDER BY created_at DESC
+ORDER BY sort_order, created_at DESC
 LIMIT $5
 OFFSET $4
 `
 
 type SearchThreadsParams struct {
-	UserID        uuid.UUID
-	Name          pgtype.Text
-	HasCommitment pgtype.Bool
-	PageOffset    int32
-	PageLimit     int32
+	UserID     uuid.UUID
+	Name       pgtype.Text
+	Archived   pgtype.Bool
+	PageOffset int32
+	PageLimit  int32
 }
 
-// Search & filter threads for the authenticated user's thread list.
-// All filters are optional (NULL = "don't filter on this"):
+// Search & filter personal threads for the authenticated user's thread
+// list. All filters are optional (NULL = "don't filter on this"):
 //   - name: case-insensitive partial match (ILIKE) against threads.name
-//   - has_commitment: exact boolean match
+//   - archived: exact match against (archived_at IS NOT NULL)
 //
-// Ordered newest-first; paginated via page_limit / page_offset.
+// Ordered by sort_order then newest-first; paginated via
+// page_limit / page_offset.
 func (q *Queries) SearchThreads(ctx context.Context, arg SearchThreadsParams) ([]Thread, error) {
 	rows, err := q.db.Query(ctx, searchThreads,
 		arg.UserID,
 		arg.Name,
-		arg.HasCommitment,
+		arg.Archived,
 		arg.PageOffset,
 		arg.PageLimit,
 	)
@@ -241,11 +348,12 @@ func (q *Queries) SearchThreads(ctx context.Context, arg SearchThreadsParams) ([
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
+			&i.CircleID,
 			&i.Name,
 			&i.Description,
-			&i.HasCommitment,
 			&i.ColorHex,
-			&i.ConfirmationTimeoutMinutes,
+			&i.SortOrder,
+			&i.ArchivedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -258,28 +366,6 @@ func (q *Queries) SearchThreads(ctx context.Context, arg SearchThreadsParams) ([
 		return nil, err
 	}
 	return items, nil
-}
-
-const setThreadHasCommitment = `-- name: SetThreadHasCommitment :exec
-UPDATE threads
-SET has_commitment = $1,
-    updated_at = NOW()
-WHERE id = $2
-    AND user_id = $3
-`
-
-type SetThreadHasCommitmentParams struct {
-	HasCommitment bool
-	ID            uuid.UUID
-	UserID        uuid.UUID
-}
-
-// Toggling this does NOT itself touch commitments — if flipping to
-// false, the app should separately retire/archive existing commitments
-// (see commitments.sql) so the generator job actually stops.
-func (q *Queries) SetThreadHasCommitment(ctx context.Context, arg SetThreadHasCommitmentParams) error {
-	_, err := q.db.Exec(ctx, setThreadHasCommitment, arg.HasCommitment, arg.ID, arg.UserID)
-	return err
 }
 
 const softDeleteThread = `-- name: SoftDeleteThread :exec
@@ -300,26 +386,43 @@ func (q *Queries) SoftDeleteThread(ctx context.Context, arg SoftDeleteThreadPara
 	return err
 }
 
+const unarchiveThread = `-- name: UnarchiveThread :exec
+UPDATE threads
+SET archived_at = NULL,
+    updated_at = NOW()
+WHERE id = $1
+    AND user_id = $2
+    AND deleted_at IS NULL
+`
+
+type UnarchiveThreadParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) UnarchiveThread(ctx context.Context, arg UnarchiveThreadParams) error {
+	_, err := q.db.Exec(ctx, unarchiveThread, arg.ID, arg.UserID)
+	return err
+}
+
 const updateThread = `-- name: UpdateThread :one
 UPDATE threads
 SET name = $1,
     description = $2,
     color_hex = $3,
-    confirmation_timeout_minutes = $4,
     updated_at = NOW()
-WHERE id = $5
-    AND user_id = $6
+WHERE id = $4
+    AND user_id = $5
     AND deleted_at IS NULL
-    RETURNING id, user_id, name, description, has_commitment, color_hex, confirmation_timeout_minutes, created_at, updated_at, deleted_at
+    RETURNING id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
 `
 
 type UpdateThreadParams struct {
-	Name                       string
-	Description                pgtype.Text
-	ColorHex                   pgtype.Text
-	ConfirmationTimeoutMinutes pgtype.Int4
-	ID                         uuid.UUID
-	UserID                     uuid.UUID
+	Name        string
+	Description pgtype.Text
+	ColorHex    pgtype.Text
+	ID          uuid.UUID
+	UserID      uuid.UUID
 }
 
 func (q *Queries) UpdateThread(ctx context.Context, arg UpdateThreadParams) (Thread, error) {
@@ -327,7 +430,6 @@ func (q *Queries) UpdateThread(ctx context.Context, arg UpdateThreadParams) (Thr
 		arg.Name,
 		arg.Description,
 		arg.ColorHex,
-		arg.ConfirmationTimeoutMinutes,
 		arg.ID,
 		arg.UserID,
 	)
@@ -335,14 +437,37 @@ func (q *Queries) UpdateThread(ctx context.Context, arg UpdateThreadParams) (Thr
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.CircleID,
 		&i.Name,
 		&i.Description,
-		&i.HasCommitment,
 		&i.ColorHex,
-		&i.ConfirmationTimeoutMinutes,
+		&i.SortOrder,
+		&i.ArchivedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const updateThreadSortOrder = `-- name: UpdateThreadSortOrder :exec
+UPDATE threads
+SET sort_order = $1,
+    updated_at = NOW()
+WHERE id = $2
+    AND user_id = $3
+    AND deleted_at IS NULL
+`
+
+type UpdateThreadSortOrderParams struct {
+	SortOrder int32
+	ID        uuid.UUID
+	UserID    uuid.UUID
+}
+
+// Manual reordering on the Thread list; the archive itself always
+// stays ordered by occurred_at regardless of this value.
+func (q *Queries) UpdateThreadSortOrder(ctx context.Context, arg UpdateThreadSortOrderParams) error {
+	_, err := q.db.Exec(ctx, updateThreadSortOrder, arg.SortOrder, arg.ID, arg.UserID)
+	return err
 }

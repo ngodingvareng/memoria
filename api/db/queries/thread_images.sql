@@ -7,7 +7,7 @@ RETURNING *;
 SELECT *
 FROM thread_images
 WHERE thread_id = sqlc.arg(thread_id)
-ORDER BY created_at;
+ORDER BY sort_order, created_at;
 
 -- name: DeleteThreadImage :exec
 DELETE FROM thread_images

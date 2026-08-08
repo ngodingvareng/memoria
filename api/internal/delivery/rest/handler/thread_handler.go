@@ -52,12 +52,10 @@ func (h *ThreadHandler) CreateThread(c fiber.Ctx) error {
 	}
 
 	response, err := h.usecase.CreateThread(c, usecase.CreateThreadInput{
-		UserID:                     userID,
-		Name:                       req.Name,
-		Description:                req.Description,
-		HasCommitment:              req.HasCommitment,
-		ColorHex:                   req.ColorHex,
-		ConfirmationTimeoutMinutes: req.ConfirmationTimeoutMinutes,
+		UserID:      userID,
+		Name:        req.Name,
+		Description: req.Description,
+		ColorHex:    req.ColorHex,
 	})
 	if err != nil {
 		return err
@@ -110,12 +108,11 @@ func (h *ThreadHandler) UpdateThread(c fiber.Ctx) error {
 	}
 
 	response, err := h.usecase.UpdateThread(c, usecase.UpdateThreadInput{
-		ID:                         threadID,
-		UserID:                     userID,
-		Name:                       req.Name,
-		Description:                req.Description,
-		ColorHex:                   req.ColorHex,
-		ConfirmationTimeoutMinutes: req.ConfirmationTimeoutMinutes,
+		ID:          threadID,
+		UserID:      userID,
+		Name:        req.Name,
+		Description: req.Description,
+		ColorHex:    req.ColorHex,
 	})
 	if err != nil {
 		return err
@@ -203,7 +200,7 @@ func (h *ThreadHandler) GetThread(c fiber.Ctx) error {
 // @Tags         threads
 // @Produce      json
 // @Param        name           query string false "Filter by name (partial, case-insensitive)"
-// @Param        has_commitment query bool   false "Filter by whether the thread carries a commitment"
+// @Param        archived       query bool   false "Filter by whether the thread is archived"
 // @Param        page           query int    false "Page number (default 1)"
 // @Param        page_size      query int    false "Threads per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.SearchThreadsResponse]
@@ -223,11 +220,11 @@ func (h *ThreadHandler) SearchThreads(c fiber.Ctx) error {
 	}
 
 	result, err := h.usecase.SearchThreads(c, usecase.SearchThreadsInput{
-		UserID:        userID,
-		Name:          query.Name,
-		HasCommitment: query.HasCommitment,
-		Page:          query.Page,
-		PageSize:      query.PageSize,
+		UserID:   userID,
+		Name:     query.Name,
+		Archived: query.Archived,
+		Page:     query.Page,
+		PageSize: query.PageSize,
 	})
 	if err != nil {
 		return err

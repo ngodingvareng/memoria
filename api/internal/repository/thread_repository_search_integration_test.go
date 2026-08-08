@@ -15,15 +15,15 @@ import (
 	"github.com/ngodingvareng/memoria/internal/usecase"
 )
 
-// seedTestThreadFull inserts an thread with full control over
-// name/has_commitment — unlike seedTestThread in
-// thread_image_repository_integration_test.go, which hardcodes both.
-func seedTestThreadFull(t *testing.T, pool *pgxpool.Pool, userID uuid.UUID, name string, hasCommitment bool) uuid.UUID {
+// seedTestThreadFull inserts a thread with full control over
+// name/archived_at — unlike seedTestThread in
+// thread_image_repository_integration_test.go, which hardcodes name.
+func seedTestThreadFull(t *testing.T, pool *pgxpool.Pool, userID uuid.UUID, name string, archived bool) uuid.UUID {
 	t.Helper()
 	var id uuid.UUID
 	err := pool.QueryRow(context.Background(),
-		`INSERT INTO threads (user_id, name, has_commitment) VALUES ($1, $2, $3) RETURNING id`,
-		userID, name, hasCommitment,
+		`INSERT INTO threads (user_id, name, archived_at) VALUES ($1, $2, CASE WHEN $3 THEN NOW() ELSE NULL END) RETURNING id`,
+		userID, name, archived,
 	).Scan(&id)
 	require.NoError(t, err)
 	return id
@@ -34,7 +34,7 @@ func seedTestThreadFull(t *testing.T, pool *pgxpool.Pool, userID uuid.UUID, name
 func TestThreadRepository_GetByID_Success(t *testing.T) {
 	pool := setupTestDB(t)
 	userID := seedTestUser(t, pool)
-	threadID := seedTestThreadFull(t, pool, userID, "Morning run", true)
+	threadID := seedTestThreadFull(t, pool, userID, "Morning run", false)
 	repo := repository.NewThreadRepository(pool)
 
 	found, err := repo.GetByID(context.Background(), threadID, userID)
@@ -50,7 +50,7 @@ func TestThreadRepository_GetByID_NotFound_WrongOwner(t *testing.T) {
 	pool := setupTestDB(t)
 	ownerID := seedTestUser(t, pool)
 	otherUserID := seedTestUser(t, pool)
-	threadID := seedTestThreadFull(t, pool, ownerID, "Private thread", true)
+	threadID := seedTestThreadFull(t, pool, ownerID, "Private thread", false)
 	repo := repository.NewThreadRepository(pool)
 
 	_, err := repo.GetByID(context.Background(), threadID, otherUserID)
@@ -71,7 +71,7 @@ func TestThreadRepository_GetByID_NotFound_DoesNotExist(t *testing.T) {
 func TestThreadRepository_GetByID_NotFound_SoftDeleted(t *testing.T) {
 	pool := setupTestDB(t)
 	userID := seedTestUser(t, pool)
-	threadID := seedTestThreadFull(t, pool, userID, "Soon deleted", true)
+	threadID := seedTestThreadFull(t, pool, userID, "Soon deleted", false)
 	repo := repository.NewThreadRepository(pool)
 
 	_, err := pool.Exec(context.Background(),
@@ -88,8 +88,8 @@ func TestThreadRepository_GetByID_NotFound_SoftDeleted(t *testing.T) {
 func TestThreadRepository_Search_ByNamePartialCaseInsensitive(t *testing.T) {
 	pool := setupTestDB(t)
 	userID := seedTestUser(t, pool)
-	seedTestThreadFull(t, pool, userID, "Morning Run", true)
-	seedTestThreadFull(t, pool, userID, "Evening Walk", true)
+	seedTestThreadFull(t, pool, userID, "Morning Run", false)
+	seedTestThreadFull(t, pool, userID, "Evening Walk", false)
 	repo := repository.NewThreadRepository(pool)
 
 	name := "run" // lowercase, partial — should still match "Morning Run"
@@ -103,31 +103,31 @@ func TestThreadRepository_Search_ByNamePartialCaseInsensitive(t *testing.T) {
 	require.Equal(t, "Morning Run", threads[0].Name)
 }
 
-func TestThreadRepository_Search_ByIsFixedSchedule(t *testing.T) {
+func TestThreadRepository_Search_ByArchived(t *testing.T) {
 	pool := setupTestDB(t)
 	userID := seedTestUser(t, pool)
-	seedTestThreadFull(t, pool, userID, "Fixed one", true)
-	seedTestThreadFull(t, pool, userID, "Flexible one", false)
+	seedTestThreadFull(t, pool, userID, "Archived one", true)
+	seedTestThreadFull(t, pool, userID, "Active one", false)
 	repo := repository.NewThreadRepository(pool)
 
-	fixed := false
+	archived := true
 	threads, total, err := repo.Search(context.Background(), usecase.SearchThreadsParams{
-		UserID: userID, HasCommitment: &fixed, Limit: 20, Offset: 0,
+		UserID: userID, Archived: &archived, Limit: 20, Offset: 0,
 	})
 
 	require.NoError(t, err)
 	require.EqualValues(t, 1, total)
 	require.Len(t, threads, 1)
-	require.Equal(t, "Flexible one", threads[0].Name)
+	require.Equal(t, "Archived one", threads[0].Name)
 }
 
 func TestThreadRepository_Search_NoFilters_ReturnsAllOwnedByUser(t *testing.T) {
 	pool := setupTestDB(t)
 	userID := seedTestUser(t, pool)
 	otherUserID := seedTestUser(t, pool)
-	seedTestThreadFull(t, pool, userID, "Mine A", true)
-	seedTestThreadFull(t, pool, userID, "Mine B", false)
-	seedTestThreadFull(t, pool, otherUserID, "Not mine", true) // must not leak across users
+	seedTestThreadFull(t, pool, userID, "Mine A", false)
+	seedTestThreadFull(t, pool, userID, "Mine B", true)
+	seedTestThreadFull(t, pool, otherUserID, "Not mine", false) // must not leak across users
 	repo := repository.NewThreadRepository(pool)
 
 	threads, total, err := repo.Search(context.Background(), usecase.SearchThreadsParams{
@@ -142,8 +142,8 @@ func TestThreadRepository_Search_NoFilters_ReturnsAllOwnedByUser(t *testing.T) {
 func TestThreadRepository_Search_ExcludesSoftDeleted(t *testing.T) {
 	pool := setupTestDB(t)
 	userID := seedTestUser(t, pool)
-	deletedID := seedTestThreadFull(t, pool, userID, "Deleted thread", true)
-	seedTestThreadFull(t, pool, userID, "Live thread", true)
+	deletedID := seedTestThreadFull(t, pool, userID, "Deleted thread", false)
+	seedTestThreadFull(t, pool, userID, "Live thread", false)
 	repo := repository.NewThreadRepository(pool)
 
 	_, err := pool.Exec(context.Background(),
@@ -164,7 +164,7 @@ func TestThreadRepository_Search_Pagination(t *testing.T) {
 	pool := setupTestDB(t)
 	userID := seedTestUser(t, pool)
 	for i := 0; i < 5; i++ {
-		seedTestThreadFull(t, pool, userID, "Paged thread", true)
+		seedTestThreadFull(t, pool, userID, "Paged thread", false)
 	}
 	repo := repository.NewThreadRepository(pool)
 

@@ -13,25 +13,51 @@ import (
 )
 
 const addMomentImage = `-- name: AddMomentImage :one
-INSERT INTO moment_images(moment_id, image_path, image_alt)
-VALUES ($1, $2, $3)
-RETURNING id, moment_id, image_path, image_alt, created_at
+INSERT INTO moment_images(
+    moment_id, image_path, image_alt,
+    content_type, byte_size, width, height, metadata_stripped
+) VALUES (
+    $1, $2, $3,
+    $4, $5, $6, $7,
+    $8
+)
+RETURNING id, moment_id, image_path, image_alt, content_type, byte_size, width, height, metadata_stripped, sort_order, created_at
 `
 
 type AddMomentImageParams struct {
-	MomentID  uuid.UUID
-	ImagePath string
-	ImageAlt  pgtype.Text
+	MomentID         uuid.UUID
+	ImagePath        string
+	ImageAlt         pgtype.Text
+	ContentType      pgtype.Text
+	ByteSize         pgtype.Int8
+	Width            pgtype.Int4
+	Height           pgtype.Int4
+	MetadataStripped bool
 }
 
 func (q *Queries) AddMomentImage(ctx context.Context, arg AddMomentImageParams) (MomentImage, error) {
-	row := q.db.QueryRow(ctx, addMomentImage, arg.MomentID, arg.ImagePath, arg.ImageAlt)
+	row := q.db.QueryRow(ctx, addMomentImage,
+		arg.MomentID,
+		arg.ImagePath,
+		arg.ImageAlt,
+		arg.ContentType,
+		arg.ByteSize,
+		arg.Width,
+		arg.Height,
+		arg.MetadataStripped,
+	)
 	var i MomentImage
 	err := row.Scan(
 		&i.ID,
 		&i.MomentID,
 		&i.ImagePath,
 		&i.ImageAlt,
+		&i.ContentType,
+		&i.ByteSize,
+		&i.Width,
+		&i.Height,
+		&i.MetadataStripped,
+		&i.SortOrder,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -54,10 +80,10 @@ func (q *Queries) DeleteMomentImage(ctx context.Context, arg DeleteMomentImagePa
 }
 
 const listMomentImagesByMomentID = `-- name: ListMomentImagesByMomentID :many
-SELECT id, moment_id, image_path, image_alt, created_at
+SELECT id, moment_id, image_path, image_alt, content_type, byte_size, width, height, metadata_stripped, sort_order, created_at
 FROM moment_images
 WHERE moment_id = $1
-ORDER BY created_at
+ORDER BY sort_order, created_at
 `
 
 func (q *Queries) ListMomentImagesByMomentID(ctx context.Context, momentID uuid.UUID) ([]MomentImage, error) {
@@ -74,6 +100,12 @@ func (q *Queries) ListMomentImagesByMomentID(ctx context.Context, momentID uuid.
 			&i.MomentID,
 			&i.ImagePath,
 			&i.ImageAlt,
+			&i.ContentType,
+			&i.ByteSize,
+			&i.Width,
+			&i.Height,
+			&i.MetadataStripped,
+			&i.SortOrder,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err

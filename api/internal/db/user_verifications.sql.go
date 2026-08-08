@@ -15,7 +15,7 @@ import (
 const createUserVerification = `-- name: CreateUserVerification :one
 INSERT INTO user_verifications(identifier, value, expires_at)
 VALUES ($1, $2, $3)
-RETURNING id, identifier, value, expires_at, created_at, updated_at
+RETURNING id, identifier, value, expires_at, consumed_at, created_at, updated_at
 `
 
 type CreateUserVerificationParams struct {
@@ -32,6 +32,7 @@ func (q *Queries) CreateUserVerification(ctx context.Context, arg CreateUserVeri
 		&i.Identifier,
 		&i.Value,
 		&i.ExpiresAt,
+		&i.ConsumedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -43,7 +44,8 @@ DELETE FROM user_verifications
 WHERE expires_at <= NOW()
 `
 
-// Periodic cleanup job.
+// Periodic cleanup job, same pattern as
+// refresh_tokens.idx_refresh_tokens_expires_at.
 func (q *Queries) DeleteExpiredUserVerifications(ctx context.Context) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteExpiredUserVerifications)
 	if err != nil {
@@ -75,7 +77,7 @@ func (q *Queries) DeleteUserVerificationsByIdentifier(ctx context.Context, ident
 }
 
 const getValidUserVerification = `-- name: GetValidUserVerification :one
-SELECT id, identifier, value, expires_at, created_at, updated_at
+SELECT id, identifier, value, expires_at, consumed_at, created_at, updated_at
 FROM user_verifications
 WHERE identifier = $1
     AND value = $2
@@ -97,6 +99,7 @@ func (q *Queries) GetValidUserVerification(ctx context.Context, arg GetValidUser
 		&i.Identifier,
 		&i.Value,
 		&i.ExpiresAt,
+		&i.ConsumedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

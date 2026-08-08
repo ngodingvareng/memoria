@@ -5,16 +5,10 @@ definitions:
       color_hex:
         example: '#FF5733'
         type: string
-      confirmation_timeout_minutes:
-        example: 1440
-        type: integer
       description:
         example: Push-ups and a run every weekday morning
         maxLength: 2000
         type: string
-      has_commitment:
-        example: true
-        type: boolean
       name:
         example: Morning workout
         maxLength: 255
@@ -85,10 +79,19 @@ definitions:
         maxLength: 256
         minLength: 8
         type: string
+      username:
+        description: |-
+          Matches users.chk_users_username_format — lowercase letters,
+          digits, underscore, and dot only. Stored as typed, matched
+          case-insensitively for uniqueness. See the "username" custom
+          validator registered in AuthHandler.
+        example: budisantoso
+        type: string
     required:
     - email
     - name
     - password
+    - username
     type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SearchThreadsResponse:
     properties:
@@ -110,23 +113,28 @@ definitions:
     type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ThreadResponse:
     properties:
+      archived_at:
+        example: "2026-07-20T10:00:00Z"
+        type: string
+      circle_id:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
       color_hex:
         type: string
-      confirmation_timeout_minutes:
-        type: integer
       created_at:
         example: "2026-07-20T10:00:00Z"
         type: string
       description:
         type: string
-      has_commitment:
-        type: boolean
       id:
         example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
         type: string
       name:
         example: Morning workout
         type: string
+      sort_order:
+        example: 0
+        type: integer
       updated_at:
         example: "2026-07-20T10:00:00Z"
         type: string
@@ -139,9 +147,6 @@ definitions:
       color_hex:
         example: '#FF5733'
         type: string
-      confirmation_timeout_minutes:
-        example: 1440
-        type: integer
       description:
         example: Push-ups and a run every weekday morning
         maxLength: 2000
@@ -170,6 +175,9 @@ definitions:
         type: string
       name:
         example: Budi Santoso
+        type: string
+      username:
+        example: budisantoso
         type: string
     type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any:
@@ -356,9 +364,9 @@ paths:
         in: query
         name: name
         type: string
-      - description: Filter by whether the thread carries a commitment
+      - description: Filter by whether the thread is archived
         in: query
-        name: has_commitment
+        name: archived
         type: boolean
       - description: Page number (default 1)
         in: query

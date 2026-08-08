@@ -20,8 +20,8 @@ func seedTestThread(t *testing.T, pool *pgxpool.Pool, userID uuid.UUID) uuid.UUI
 	t.Helper()
 	var id uuid.UUID
 	err := pool.QueryRow(context.Background(),
-		`INSERT INTO threads (user_id, name, has_commitment) VALUES ($1, $2, $3) RETURNING id`,
-		userID, "Test Thread", true,
+		`INSERT INTO threads (user_id, name) VALUES ($1, $2) RETURNING id`,
+		userID, "Test Thread",
 	).Scan(&id)
 	require.NoError(t, err)
 	return id

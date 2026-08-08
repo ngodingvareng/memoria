@@ -2,6 +2,7 @@ package handler
 
 import (
 	"log/slog"
+	"regexp"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -12,6 +13,10 @@ import (
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	"github.com/ngodingvareng/memoria/internal/validate"
 )
+
+// usernameFormat mirrors users.chk_users_username_format exactly —
+// lowercase letters, digits, underscore, and dot, 3-30 characters.
+var usernameFormat = regexp.MustCompile(`^[a-z0-9_.]{3,30}$`)
 
 type AuthHandler struct {
 	usecase  usecase.AuthUsecase
@@ -25,9 +30,14 @@ type AuthHandler struct {
 }
 
 func NewAuthHandler(uc usecase.AuthUsecase, secureCookies bool) *AuthHandler {
+	v := validator.New()
+	_ = v.RegisterValidation("username", func(fl validator.FieldLevel) bool {
+		return usernameFormat.MatchString(fl.Field().String())
+	})
+
 	return &AuthHandler{
 		usecase:       uc,
-		validate:      validator.New(),
+		validate:      v,
 		secureCookies: secureCookies,
 	}
 }
@@ -53,6 +63,7 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 
 	user, err := h.usecase.Register(c, usecase.RegisterInput{
 		Name:     req.Name,
+		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
 	})

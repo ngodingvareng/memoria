@@ -11,6 +11,7 @@ func toEntityThreadImage(row db.ThreadImage) *entity.ThreadImage {
 		ThreadID:  row.ThreadID,
 		ImagePath: row.ImagePath,
 		ImageAlt:  pgTextToPtr(row.ImageAlt),
+		SortOrder: row.SortOrder,
 		CreatedAt: row.CreatedAt.Time,
 	}
 }

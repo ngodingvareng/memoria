@@ -25,6 +25,7 @@ func TestAuthUnitOfWork_WithTransaction_CommitsBothTablesTogether(t *testing.T) 
 	err := uow.WithTransaction(context.Background(), func(repos usecase.AuthRepositories) error {
 		user, err := repos.User.Create(context.Background(), &entity.User{
 			Name:     "UoW Test",
+			Username: testUsername(),
 			Email:    email,
 			Timezone: "UTC",
 		})
@@ -61,6 +62,7 @@ func TestAuthUnitOfWork_WithTransaction_RollsBackBothTablesOnFailure(t *testing.
 	err := uow.WithTransaction(context.Background(), func(repos usecase.AuthRepositories) error {
 		_, err := repos.User.Create(context.Background(), &entity.User{
 			Name:     "UoW Rollback Test",
+			Username: testUsername(),
 			Email:    email,
 			Timezone: "UTC",
 		})

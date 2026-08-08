@@ -7,39 +7,35 @@ import (
 )
 
 type CreateThreadRequest struct {
-	Name                       string  `json:"name" validate:"required,min=1,max=255" example:"Morning workout"`
-	Description                *string `json:"description,omitempty" validate:"omitempty,max=2000" example:"Push-ups and a run every weekday morning"`
-	HasCommitment              bool    `json:"has_commitment" example:"true"`
-	ColorHex                   *string `json:"color_hex,omitempty" validate:"omitempty,hexcolor" example:"#FF5733"`
-	ConfirmationTimeoutMinutes *int32  `json:"confirmation_timeout_minutes,omitempty" validate:"omitempty,gt=0" example:"1440"`
+	Name        string  `json:"name" validate:"required,min=1,max=255" example:"Morning workout"`
+	Description *string `json:"description,omitempty" validate:"omitempty,max=2000" example:"Push-ups and a run every weekday morning"`
+	ColorHex    *string `json:"color_hex,omitempty" validate:"omitempty,hexcolor" example:"#FF5733"`
 }
 
-// UpdateThreadRequest has no has_commitment — see the comment on
-// usecase.UpdateThreadInput for why that's a separate endpoint.
 type UpdateThreadRequest struct {
-	Name                       string  `json:"name" validate:"required,min=1,max=255" example:"Morning workout"`
-	Description                *string `json:"description,omitempty" validate:"omitempty,max=2000" example:"Push-ups and a run every weekday morning"`
-	ColorHex                   *string `json:"color_hex,omitempty" validate:"omitempty,hexcolor" example:"#FF5733"`
-	ConfirmationTimeoutMinutes *int32  `json:"confirmation_timeout_minutes,omitempty" validate:"omitempty,gt=0" example:"1440"`
+	Name        string  `json:"name" validate:"required,min=1,max=255" example:"Morning workout"`
+	Description *string `json:"description,omitempty" validate:"omitempty,max=2000" example:"Push-ups and a run every weekday morning"`
+	ColorHex    *string `json:"color_hex,omitempty" validate:"omitempty,hexcolor" example:"#FF5733"`
 }
 
 type SearchThreadsQuery struct {
-	Name          *string `query:"name" validate:"omitempty,max=255"`
-	HasCommitment *bool   `query:"has_commitment"`
-	Page          int32   `query:"page" validate:"omitempty,gt=0"`
-	PageSize      int32   `query:"page_size" validate:"omitempty,gt=0,lte=100"`
+	Name     *string `query:"name" validate:"omitempty,max=255"`
+	Archived *bool   `query:"archived"`
+	Page     int32   `query:"page" validate:"omitempty,gt=0"`
+	PageSize int32   `query:"page_size" validate:"omitempty,gt=0,lte=100"`
 }
 
 type ThreadResponse struct {
-	ID                         string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	UserID                     string  `json:"user_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	Name                       string  `json:"name" example:"Morning workout"`
-	Description                *string `json:"description,omitempty"`
-	HasCommitment              bool    `json:"has_commitment"`
-	ColorHex                   *string `json:"color_hex,omitempty"`
-	ConfirmationTimeoutMinutes *int32  `json:"confirmation_timeout_minutes,omitempty"`
-	CreatedAt                  string  `json:"created_at" example:"2026-07-20T10:00:00Z"`
-	UpdatedAt                  string  `json:"updated_at" example:"2026-07-20T10:00:00Z"`
+	ID          string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	UserID      string  `json:"user_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	CircleID    *string `json:"circle_id,omitempty" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	Name        string  `json:"name" example:"Morning workout"`
+	Description *string `json:"description,omitempty"`
+	ColorHex    *string `json:"color_hex,omitempty"`
+	SortOrder   int32   `json:"sort_order" example:"0"`
+	ArchivedAt  *string `json:"archived_at,omitempty" example:"2026-07-20T10:00:00Z"`
+	CreatedAt   string  `json:"created_at" example:"2026-07-20T10:00:00Z"`
+	UpdatedAt   string  `json:"updated_at" example:"2026-07-20T10:00:00Z"`
 }
 
 type PaginationResponse struct {
@@ -54,16 +50,29 @@ type SearchThreadsResponse struct {
 }
 
 func NewThreadResponse(e *entity.Thread) ThreadResponse {
+	var circleID *string
+	if e.CircleID != nil {
+		id := e.CircleID.String()
+		circleID = &id
+	}
+
+	var archivedAt *string
+	if e.ArchivedAt != nil {
+		formatted := e.ArchivedAt.Format(time.RFC3339)
+		archivedAt = &formatted
+	}
+
 	return ThreadResponse{
-		ID:                         e.ID.String(),
-		UserID:                     e.UserID.String(),
-		Name:                       e.Name,
-		Description:                e.Description,
-		HasCommitment:              e.HasCommitment,
-		ColorHex:                   e.ColorHex,
-		ConfirmationTimeoutMinutes: e.ConfirmationTimeoutMinutes,
-		CreatedAt:                  e.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:                  e.UpdatedAt.Format(time.RFC3339),
+		ID:          e.ID.String(),
+		UserID:      e.UserID.String(),
+		CircleID:    circleID,
+		Name:        e.Name,
+		Description: e.Description,
+		ColorHex:    e.ColorHex,
+		SortOrder:   e.SortOrder,
+		ArchivedAt:  archivedAt,
+		CreatedAt:   e.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   e.UpdatedAt.Format(time.RFC3339),
 	}
 
 }

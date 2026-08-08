@@ -5,6 +5,7 @@ package repository_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -22,6 +23,13 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
+
+// testUsername generates a unique value matching
+// chk_users_username_format (^[a-z0-9_.]{3,30}$) — uuid.NewString()'s
+// dashes aren't allowed there, so they're stripped.
+func testUsername() string {
+	return "user_" + strings.ReplaceAll(uuid.NewString(), "-", "")[:20]
+}
 
 func setupTestDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
@@ -58,8 +66,8 @@ func seedTestUser(t *testing.T, pool *pgxpool.Pool) uuid.UUID {
 	t.Helper()
 	var id uuid.UUID
 	err := pool.QueryRow(context.Background(),
-		`INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id`,
-		"Test User", uuid.NewString()+"@example.com",
+		`INSERT INTO users (name, username, email) VALUES ($1, $2, $3) RETURNING id`,
+		"Test User", testUsername(), uuid.NewString()+"@example.com",
 	).Scan(&id)
 	require.NoError(t, err)
 	return id
@@ -74,9 +82,8 @@ func TestThreadRepository_WithTransaction_CommitsOnSuccess(t *testing.T) {
 	err := repo.WithTransaction(context.Background(), func(tx usecase.ThreadRepository) error {
 		var err error
 		created, err = tx.Create(context.Background(), &entity.Thread{
-			UserID:        userID,
-			Name:          "Morning cook",
-			HasCommitment: true,
+			UserID: userID,
+			Name:   "Morning cook",
 		})
 		return err
 	})
@@ -102,9 +109,8 @@ func TestThreadRepository_WithTransaction_RollsBackOnError(t *testing.T) {
 
 	err := repo.WithTransaction(context.Background(), func(tx usecase.ThreadRepository) error {
 		_, err := tx.Create(context.Background(), &entity.Thread{
-			UserID:        userID,
-			Name:          "Should not persist",
-			HasCommitment: true,
+			UserID: userID,
+			Name:   "Should not persist",
 		})
 		if err != nil {
 			return err
@@ -128,7 +134,7 @@ func TestThreadRepository_Update_Success(t *testing.T) {
 	repo := repository.NewThreadRepository(pool)
 
 	created, err := repo.Create(context.Background(), &entity.Thread{
-		UserID: userID, Name: "Original name", HasCommitment: true,
+		UserID: userID, Name: "Original name",
 	})
 	require.NoError(t, err)
 
@@ -140,9 +146,6 @@ func TestThreadRepository_Update_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Updated name", updated.Name)
 	require.Equal(t, "#123456", *updated.ColorHex)
-	// has_commitment must be untouched by Update — it's not part of
-	// UpdateThreadParams.
-	require.True(t, updated.HasCommitment)
 }
 
 func TestThreadRepository_Update_WrongUserID_NotFound(t *testing.T) {
@@ -154,7 +157,7 @@ func TestThreadRepository_Update_WrongUserID_NotFound(t *testing.T) {
 	repo := repository.NewThreadRepository(pool)
 
 	created, err := repo.Create(context.Background(), &entity.Thread{
-		UserID: userID, Name: "Mine", HasCommitment: true,
+		UserID: userID, Name: "Mine",
 	})
 	require.NoError(t, err)
 
@@ -171,7 +174,7 @@ func TestThreadRepository_SoftDelete_Success(t *testing.T) {
 	repo := repository.NewThreadRepository(pool)
 
 	created, err := repo.Create(context.Background(), &entity.Thread{
-		UserID: userID, Name: "To delete", HasCommitment: true,
+		UserID: userID, Name: "To delete",
 	})
 	require.NoError(t, err)
 
@@ -197,7 +200,7 @@ func TestThreadRepository_SoftDelete_WrongUserID_NoOp(t *testing.T) {
 	repo := repository.NewThreadRepository(pool)
 
 	created, err := repo.Create(context.Background(), &entity.Thread{
-		UserID: userID, Name: "Not yours", HasCommitment: true,
+		UserID: userID, Name: "Not yours",
 	})
 	require.NoError(t, err)
 

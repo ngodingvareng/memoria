@@ -80,8 +80,14 @@ func (r *threadRepository) SoftDelete(ctx context.Context, id, userID uuid.UUID)
 // GetByID implements [usecase.ThreadRepository] and [usecase.ThreadAccessChecker] —
 // both interfaces declare this method with an identical name and signature,
 // so this single implementation satisfies both without a second method.
+//
+// Backed by GetThreadWithAccess rather than the plain GetThreadByID
+// query: a Thread can now be collaborative (circle_id set), and access
+// to those is governed by circle_members, not user_id alone — see the
+// header comment on the threads table. For a personal Thread (the only
+// kind this app currently creates) the two are equivalent.
 func (r *threadRepository) GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Thread, error) {
-	row, err := r.q.GetThreadByID(ctx, db.GetThreadByIDParams{ID: id, UserID: userID})
+	row, err := r.q.GetThreadWithAccess(ctx, db.GetThreadWithAccessParams{ID: id, UserID: userID})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFound
@@ -94,20 +100,20 @@ func (r *threadRepository) GetByID(ctx context.Context, id, userID uuid.UUID) (*
 // Search implements [usecase.ThreadRepository].
 func (r *threadRepository) Search(ctx context.Context, params usecase.SearchThreadsParams) ([]*entity.Thread, int64, error) {
 	rows, err := r.q.SearchThreads(ctx, db.SearchThreadsParams{
-		UserID:        params.UserID,
-		Name:          ptrToPgText(params.Name),
-		HasCommitment: ptrToPgBool(params.HasCommitment),
-		PageOffset:    params.Offset,
-		PageLimit:     params.Limit,
+		UserID:     params.UserID,
+		Name:       ptrToPgText(params.Name),
+		Archived:   ptrToPgBool(params.Archived),
+		PageOffset: params.Offset,
+		PageLimit:  params.Limit,
 	})
 	if err != nil {
 		return nil, 0, fmt.Errorf("search threads: %w", err)
 	}
 
 	total, err := r.q.CountSearchThreads(ctx, db.CountSearchThreadsParams{
-		UserID:        params.UserID,
-		Name:          ptrToPgText(params.Name),
-		HasCommitment: ptrToPgBool(params.HasCommitment),
+		UserID:   params.UserID,
+		Name:     ptrToPgText(params.Name),
+		Archived: ptrToPgBool(params.Archived),
 	})
 	if err != nil {
 		return nil, 0, fmt.Errorf("count search threads: %w", err)

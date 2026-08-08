@@ -13,36 +13,48 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users(name, email, timezone)
-VALUES ($1, $2, $3)
-RETURNING id, name, email, email_verified, image_path, timezone, created_at, updated_at, deleted_at
+INSERT INTO users(name, username, email, timezone)
+VALUES ($1, $2, $3, $4)
+RETURNING id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
 `
 
 type CreateUserParams struct {
 	Name     string
+	Username string
 	Email    string
 	Timezone string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Name, arg.Email, arg.Timezone)
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Name,
+		arg.Username,
+		arg.Email,
+		arg.Timezone,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Username,
 		&i.Email,
 		&i.EmailVerified,
 		&i.ImagePath,
+		&i.Bio,
 		&i.Timezone,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MentionPolicy,
+		&i.CircleInvitePolicy,
+		&i.DiscoverableByUsername,
+		&i.StripPhotoMetadata,
 		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, email_verified, image_path, timezone, created_at, updated_at, deleted_at
+SELECT id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
 FROM users
 WHERE lower(email) = lower($1)
     AND deleted_at IS NULL
@@ -55,19 +67,25 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Username,
 		&i.Email,
 		&i.EmailVerified,
 		&i.ImagePath,
+		&i.Bio,
 		&i.Timezone,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MentionPolicy,
+		&i.CircleInvitePolicy,
+		&i.DiscoverableByUsername,
+		&i.StripPhotoMetadata,
 		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, email, email_verified, image_path, timezone, created_at, updated_at, deleted_at
+SELECT id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
 FROM users
 WHERE id = $1
     AND deleted_at IS NULL
@@ -79,12 +97,53 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Username,
 		&i.Email,
 		&i.EmailVerified,
 		&i.ImagePath,
+		&i.Bio,
 		&i.Timezone,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MentionPolicy,
+		&i.CircleInvitePolicy,
+		&i.DiscoverableByUsername,
+		&i.StripPhotoMetadata,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const getUserByUsername = `-- name: GetUserByUsername :one
+SELECT id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
+FROM users
+WHERE lower(username) = lower($1)
+    AND deleted_at IS NULL
+`
+
+// Case-insensitive lookup, matches uq_users_username_lower. Backs
+// @mention resolution and "invite by entering their username" (Circle
+// Invite) — callers must additionally check discoverable_by_username
+// for the invite path, since a mentionable user may still opt out of
+// being found by handle.
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Username,
+		&i.Email,
+		&i.EmailVerified,
+		&i.ImagePath,
+		&i.Bio,
+		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.MentionPolicy,
+		&i.CircleInvitePolicy,
+		&i.DiscoverableByUsername,
+		&i.StripPhotoMetadata,
 		&i.DeletedAt,
 	)
 	return i, err
@@ -95,15 +154,16 @@ DELETE FROM users
 WHERE id = $1
 `
 
-// Actually cascades into user_accounts/user_sessions/activities/... Only
-// call this from the purge job, on rows already past their grace period.
+// Actually cascades into user_accounts/refresh_tokens/threads/moments/...
+// Only call this from the purge job, on rows already past their grace
+// period.
 func (q *Queries) HardDeleteUser(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, hardDeleteUser, id)
 	return err
 }
 
 const listUsersPendingPurge = `-- name: ListUsersPendingPurge :many
-SELECT id, name, email, email_verified, image_path, timezone, created_at, updated_at, deleted_at
+SELECT id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
 FROM users
 WHERE deleted_at IS NOT NULL
     AND deleted_at < $1
@@ -123,12 +183,18 @@ func (q *Queries) ListUsersPendingPurge(ctx context.Context, purgeBefore pgtype.
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.Username,
 			&i.Email,
 			&i.EmailVerified,
 			&i.ImagePath,
+			&i.Bio,
 			&i.Timezone,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.MentionPolicy,
+			&i.CircleInvitePolicy,
+			&i.DiscoverableByUsername,
+			&i.StripPhotoMetadata,
 			&i.DeletedAt,
 		); err != nil {
 			return nil, err
@@ -172,27 +238,83 @@ WHERE id = $1
 `
 
 // Starts the recovery grace period. Caller should also revoke all
-// sessions (see user_sessions.DeleteAllSessionsByUserID) in the same
-// transaction.
+// refresh tokens (see refresh_tokens.RevokeAllRefreshTokensByUserID) in
+// the same transaction.
 func (q *Queries) SoftDeleteUser(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, softDeleteUser, id)
 	return err
 }
 
+const updateUserPrivacySettings = `-- name: UpdateUserPrivacySettings :one
+UPDATE users
+SET mention_policy = $1,
+    circle_invite_policy = $2,
+    discoverable_by_username = $3,
+    strip_photo_metadata = $4,
+    updated_at = NOW()
+WHERE id = $5
+    AND deleted_at IS NULL
+    RETURNING id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
+`
+
+type UpdateUserPrivacySettingsParams struct {
+	MentionPolicy          AudiencePolicy
+	CircleInvitePolicy     AudiencePolicy
+	DiscoverableByUsername bool
+	StripPhotoMetadata     bool
+	ID                     uuid.UUID
+}
+
+// Social Interaction Controls + Data Controls (FEATURES.md, Privacy &
+// Control) — the account-level privacy toggles, separate from profile
+// content so a settings screen can save them independently.
+func (q *Queries) UpdateUserPrivacySettings(ctx context.Context, arg UpdateUserPrivacySettingsParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserPrivacySettings,
+		arg.MentionPolicy,
+		arg.CircleInvitePolicy,
+		arg.DiscoverableByUsername,
+		arg.StripPhotoMetadata,
+		arg.ID,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Username,
+		&i.Email,
+		&i.EmailVerified,
+		&i.ImagePath,
+		&i.Bio,
+		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.MentionPolicy,
+		&i.CircleInvitePolicy,
+		&i.DiscoverableByUsername,
+		&i.StripPhotoMetadata,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const updateUserProfile = `-- name: UpdateUserProfile :one
 UPDATE users
 SET name = $1,
-    image_path = $2,
-    timezone = $3,
+    username = $2,
+    image_path = $3,
+    bio = $4,
+    timezone = $5,
     updated_at = NOW()
-WHERE id = $4
+WHERE id = $6
     AND deleted_at IS NULL
-    RETURNING id, name, email, email_verified, image_path, timezone, created_at, updated_at, deleted_at
+    RETURNING id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
 `
 
 type UpdateUserProfileParams struct {
 	Name      string
+	Username  string
 	ImagePath pgtype.Text
+	Bio       pgtype.Text
 	Timezone  string
 	ID        uuid.UUID
 }
@@ -200,7 +322,9 @@ type UpdateUserProfileParams struct {
 func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error) {
 	row := q.db.QueryRow(ctx, updateUserProfile,
 		arg.Name,
+		arg.Username,
 		arg.ImagePath,
+		arg.Bio,
 		arg.Timezone,
 		arg.ID,
 	)
@@ -208,12 +332,18 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.Username,
 		&i.Email,
 		&i.EmailVerified,
 		&i.ImagePath,
+		&i.Bio,
 		&i.Timezone,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MentionPolicy,
+		&i.CircleInvitePolicy,
+		&i.DiscoverableByUsername,
+		&i.StripPhotoMetadata,
 		&i.DeletedAt,
 	)
 	return i, err

@@ -89,6 +89,7 @@ type RefreshTokenGenerator interface {
 
 type RegisterInput struct {
 	Name     string
+	Username string
 	Email    string
 	Password string
 }
@@ -180,7 +181,7 @@ func (u *authUsecase) Register(ctx context.Context, input RegisterInput) (*entit
 	var created *entity.User
 	err = u.uow.WithTransaction(ctx, func(repos AuthRepositories) error {
 		user, err := repos.User.Create(ctx, &entity.User{
-			Name: input.Name, Email: input.Email, Timezone: "UTC",
+			Name: input.Name, Username: input.Username, Email: input.Email, Timezone: "UTC",
 		})
 		if err != nil {
 			return fmt.Errorf("creating user: %w", err)

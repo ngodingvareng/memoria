@@ -158,8 +158,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "Filter by whether the thread carries a commitment",
-                        "name": "has_commitment",
+                        "description": "Filter by whether the thread is archived",
+                        "name": "archived",
                         "in": "query"
                     },
                     {
@@ -471,18 +471,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "#FF5733"
                 },
-                "confirmation_timeout_minutes": {
-                    "type": "integer",
-                    "example": 1440
-                },
                 "description": {
                     "type": "string",
                     "maxLength": 2000,
                     "example": "Push-ups and a run every weekday morning"
-                },
-                "has_commitment": {
-                    "type": "boolean",
-                    "example": true
                 },
                 "name": {
                     "type": "string",
@@ -549,7 +541,8 @@ const docTemplate = `{
             "required": [
                 "email",
                 "name",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
                 "email": {
@@ -569,6 +562,11 @@ const docTemplate = `{
                     "maxLength": 256,
                     "minLength": 8,
                     "example": "correct horse battery staple"
+                },
+                "username": {
+                    "description": "Matches users.chk_users_username_format — lowercase letters,\ndigits, underscore, and dot only. Stored as typed, matched\ncase-insensitively for uniqueness. See the \"username\" custom\nvalidator registered in AuthHandler.",
+                    "type": "string",
+                    "example": "budisantoso"
                 }
             }
         },
@@ -602,11 +600,16 @@ const docTemplate = `{
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ThreadResponse": {
             "type": "object",
             "properties": {
+                "archived_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "circle_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
                 "color_hex": {
                     "type": "string"
-                },
-                "confirmation_timeout_minutes": {
-                    "type": "integer"
                 },
                 "created_at": {
                     "type": "string",
@@ -615,9 +618,6 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "has_commitment": {
-                    "type": "boolean"
-                },
                 "id": {
                     "type": "string",
                     "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
@@ -625,6 +625,10 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Morning workout"
+                },
+                "sort_order": {
+                    "type": "integer",
+                    "example": 0
                 },
                 "updated_at": {
                     "type": "string",
@@ -645,10 +649,6 @@ const docTemplate = `{
                 "color_hex": {
                     "type": "string",
                     "example": "#FF5733"
-                },
-                "confirmation_timeout_minutes": {
-                    "type": "integer",
-                    "example": 1440
                 },
                 "description": {
                     "type": "string",
@@ -685,6 +685,10 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Budi Santoso"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "budisantoso"
                 }
             }
         },

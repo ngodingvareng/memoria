@@ -11,5 +11,6 @@ type ThreadImage struct {
 	ThreadID  uuid.UUID
 	ImagePath string
 	ImageAlt  *string
+	SortOrder int32
 	CreatedAt time.Time
 }

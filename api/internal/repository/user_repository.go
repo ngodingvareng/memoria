@@ -31,17 +31,22 @@ func NewUserRepository(pool *pgxpool.Pool) *userRepository {
 func (r *userRepository) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
 	row, err := r.q.CreateUser(ctx, db.CreateUserParams{
 		Name:     user.Name,
+		Username: user.Username,
 		Email:    user.Email,
 		Timezone: user.Timezone,
 	})
 	if err != nil {
 		// Catches the race where two concurrent registrations for the
-		// same email both pass the usecase's own GetByEmail check before
-		// either commits — uq_users_email_lower is the real guard, this
-		// just translates its violation into a domain-level error
+		// same email/username both pass the usecase's own GetByEmail
+		// check before either commits — uq_users_email_lower and
+		// uq_users_username_lower are the real guards, this just
+		// translates whichever one fired into a domain-level error
 		// instead of a raw pg error leaking upward.
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolationCode {
+			if pgErr.ConstraintName == "uq_users_username_lower" {
+				return nil, errs.ErrUsernameAlreadyExists
+			}
 			return nil, errs.ErrEmailAlreadyExists
 		}
 		return nil, fmt.Errorf("create user: %w", err)

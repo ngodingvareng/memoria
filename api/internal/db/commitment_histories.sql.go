@@ -29,7 +29,7 @@ VALUES (
     $5,
     $6
 )
-RETURNING id, thread_id, commitment_id, cron_expression, timezone, active_from, active_until
+RETURNING id, thread_id, commitment_id, cron_expression, timezone, strictness, confirmation_window_minutes, active_from, active_until, created_at
 `
 
 type CreateCommitmentHistoryParams struct {
@@ -58,14 +58,17 @@ func (q *Queries) CreateCommitmentHistory(ctx context.Context, arg CreateCommitm
 		&i.CommitmentID,
 		&i.CronExpression,
 		&i.Timezone,
+		&i.Strictness,
+		&i.ConfirmationWindowMinutes,
 		&i.ActiveFrom,
 		&i.ActiveUntil,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listCommitmentHistoryByThreadID = `-- name: ListCommitmentHistoryByThreadID :many
-SELECT id, thread_id, commitment_id, cron_expression, timezone, active_from, active_until FROM commitment_histories
+SELECT id, thread_id, commitment_id, cron_expression, timezone, strictness, confirmation_window_minutes, active_from, active_until, created_at FROM commitment_histories
 WHERE thread_id = $1
 ORDER BY active_from DESC
 `
@@ -86,8 +89,11 @@ func (q *Queries) ListCommitmentHistoryByThreadID(ctx context.Context, threadID 
 			&i.CommitmentID,
 			&i.CronExpression,
 			&i.Timezone,
+			&i.Strictness,
+			&i.ConfirmationWindowMinutes,
 			&i.ActiveFrom,
 			&i.ActiveUntil,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

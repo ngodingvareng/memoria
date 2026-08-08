@@ -96,7 +96,7 @@ func TestThreadUsecase_CreateThread_ErrorInsideTransactionPropagates(t *testing.
 	assert.ErrorIs(t, err, wantErr)
 }
 
-func TestThreadUsecase_CreateThread_DefaultConfirmationTimeout(t *testing.T) {
+func TestThreadUsecase_CreateThread_DefaultColorHex(t *testing.T) {
 	repo := mocks.NewMockThreadRepository(t)
 	uc := usecase.NewThreadUsecase(repo)
 
@@ -113,23 +113,21 @@ func TestThreadUsecase_CreateThread_DefaultConfirmationTimeout(t *testing.T) {
 	_, err := uc.CreateThread(context.Background(), usecase.CreateThreadInput{
 		UserID: uuid.New(),
 		Name:   "Test",
-		// ConfirmationTimeoutMinutes intentionally omitted (nil), to
-		// verify the usecase applies the 1440-minute default itself —
-		// see the comment on defaultConfirmationTimeoutMinutes for why
-		// this can't just be left to the DB's own column DEFAULT.
+		// ColorHex intentionally omitted (nil), to verify the usecase
+		// applies the default gray itself.
 	})
 
 	assert.NoError(t, err)
-	if assert.NotNil(t, captured.ConfirmationTimeoutMinutes) {
-		assert.EqualValues(t, 1440, *captured.ConfirmationTimeoutMinutes)
+	if assert.NotNil(t, captured.ColorHex) {
+		assert.Equal(t, "#374151", *captured.ColorHex)
 	}
 }
 
-func TestThreadUsecase_CreateThread_ExplicitConfirmationTimeout(t *testing.T) {
+func TestThreadUsecase_CreateThread_ExplicitColorHex(t *testing.T) {
 	repo := mocks.NewMockThreadRepository(t)
 	uc := usecase.NewThreadUsecase(repo)
 
-	customTimeout := int32(60)
+	customColor := "#FF5733"
 	var captured *entity.Thread
 
 	expectPassthroughTransaction(repo)
@@ -141,14 +139,14 @@ func TestThreadUsecase_CreateThread_ExplicitConfirmationTimeout(t *testing.T) {
 		Return(&entity.Thread{}, nil)
 
 	_, err := uc.CreateThread(context.Background(), usecase.CreateThreadInput{
-		UserID:                     uuid.New(),
-		Name:                       "Test",
-		ConfirmationTimeoutMinutes: &customTimeout,
+		UserID:   uuid.New(),
+		Name:     "Test",
+		ColorHex: &customColor,
 	})
 
 	assert.NoError(t, err)
-	if assert.NotNil(t, captured.ConfirmationTimeoutMinutes) {
-		assert.EqualValues(t, 60, *captured.ConfirmationTimeoutMinutes)
+	if assert.NotNil(t, captured.ColorHex) {
+		assert.Equal(t, "#FF5733", *captured.ColorHex)
 	}
 }
 
@@ -216,14 +214,11 @@ func TestThreadUsecase_UpdateThread_DefaultsAppliedLikeCreate(t *testing.T) {
 		ID:     uuid.New(),
 		UserID: uuid.New(),
 		Name:   "Test",
-		// ColorHex and ConfirmationTimeoutMinutes intentionally omitted
-		// (nil) — same defaulting behavior as CreateThread.
+		// ColorHex intentionally omitted (nil) — same defaulting
+		// behavior as CreateThread.
 	})
 
 	assert.NoError(t, err)
-	if assert.NotNil(t, captured.ConfirmationTimeoutMinutes) {
-		assert.EqualValues(t, 1440, *captured.ConfirmationTimeoutMinutes)
-	}
 	if assert.NotNil(t, captured.ColorHex) {
 		assert.Equal(t, "#374151", *captured.ColorHex)
 	}
@@ -369,20 +364,20 @@ func TestThreadUsecase_SearchThreads_PassesFiltersThrough(t *testing.T) {
 
 	userID := uuid.New()
 	name := "run"
-	fixed := true
+	archived := true
 
 	repo.EXPECT().
 		Search(mock.Anything, mock.MatchedBy(func(p usecase.SearchThreadsParams) bool {
 			return p.UserID == userID &&
 				p.Name != nil && *p.Name == name &&
-				p.HasCommitment != nil && *p.HasCommitment == fixed
+				p.Archived != nil && *p.Archived == archived
 		})).
 		Return([]*entity.Thread{}, int64(0), nil)
 
 	_, err := uc.SearchThreads(context.Background(), usecase.SearchThreadsInput{
-		UserID:        userID,
-		Name:          &name,
-		HasCommitment: &fixed,
+		UserID:   userID,
+		Name:     &name,
+		Archived: &archived,
 	})
 
 	assert.NoError(t, err)

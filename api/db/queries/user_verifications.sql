@@ -23,6 +23,7 @@ DELETE FROM user_verifications
 WHERE identifier = sqlc.arg(identifier);
 
 -- name: DeleteExpiredUserVerifications :execrows
--- Periodic cleanup job.
+-- Periodic cleanup job, same pattern as
+-- refresh_tokens.idx_refresh_tokens_expires_at.
 DELETE FROM user_verifications
 WHERE expires_at <= NOW();

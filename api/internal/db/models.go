@@ -12,11 +12,53 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AudiencePolicy string
+
+const (
+	AudiencePolicyAnyone        AudiencePolicy = "anyone"
+	AudiencePolicyCircleMembers AudiencePolicy = "circle_members"
+	AudiencePolicyNobody        AudiencePolicy = "nobody"
+)
+
+func (e *AudiencePolicy) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AudiencePolicy(s)
+	case string:
+		*e = AudiencePolicy(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AudiencePolicy: %T", src)
+	}
+	return nil
+}
+
+type NullAudiencePolicy struct {
+	AudiencePolicy AudiencePolicy
+	Valid          bool // Valid is true if AudiencePolicy is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAudiencePolicy) Scan(value interface{}) error {
+	if value == nil {
+		ns.AudiencePolicy, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AudiencePolicy.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAudiencePolicy) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AudiencePolicy), nil
+}
+
 type AuthProviderID string
 
 const (
 	AuthProviderIDGoogle     AuthProviderID = "google"
-	AuthProviderIDGithub     AuthProviderID = "github"
 	AuthProviderIDCredential AuthProviderID = "credential"
 )
 
@@ -55,88 +97,955 @@ func (ns NullAuthProviderID) Value() (driver.Value, error) {
 	return string(ns.AuthProviderID), nil
 }
 
-type MomentStatus string
+type CircleInviteKind string
 
 const (
-	MomentStatusDue    MomentStatus = "due"
-	MomentStatusKept   MomentStatus = "kept"
-	MomentStatusMissed MomentStatus = "missed"
+	CircleInviteKindUsername CircleInviteKind = "username"
+	CircleInviteKindLink     CircleInviteKind = "link"
 )
 
-func (e *MomentStatus) Scan(src interface{}) error {
+func (e *CircleInviteKind) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = MomentStatus(s)
+		*e = CircleInviteKind(s)
 	case string:
-		*e = MomentStatus(s)
+		*e = CircleInviteKind(s)
 	default:
-		return fmt.Errorf("unsupported scan type for MomentStatus: %T", src)
+		return fmt.Errorf("unsupported scan type for CircleInviteKind: %T", src)
 	}
 	return nil
 }
 
-type NullMomentStatus struct {
-	MomentStatus MomentStatus
-	Valid        bool // Valid is true if MomentStatus is not NULL
+type NullCircleInviteKind struct {
+	CircleInviteKind CircleInviteKind
+	Valid            bool // Valid is true if CircleInviteKind is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullMomentStatus) Scan(value interface{}) error {
+func (ns *NullCircleInviteKind) Scan(value interface{}) error {
 	if value == nil {
-		ns.MomentStatus, ns.Valid = "", false
+		ns.CircleInviteKind, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.MomentStatus.Scan(value)
+	return ns.CircleInviteKind.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullMomentStatus) Value() (driver.Value, error) {
+func (ns NullCircleInviteKind) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.MomentStatus), nil
+	return string(ns.CircleInviteKind), nil
+}
+
+type CircleInviteStatus string
+
+const (
+	CircleInviteStatusPending  CircleInviteStatus = "pending"
+	CircleInviteStatusAccepted CircleInviteStatus = "accepted"
+	CircleInviteStatusDeclined CircleInviteStatus = "declined"
+	CircleInviteStatusRevoked  CircleInviteStatus = "revoked"
+	CircleInviteStatusExpired  CircleInviteStatus = "expired"
+)
+
+func (e *CircleInviteStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CircleInviteStatus(s)
+	case string:
+		*e = CircleInviteStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CircleInviteStatus: %T", src)
+	}
+	return nil
+}
+
+type NullCircleInviteStatus struct {
+	CircleInviteStatus CircleInviteStatus
+	Valid              bool // Valid is true if CircleInviteStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCircleInviteStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.CircleInviteStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CircleInviteStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCircleInviteStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CircleInviteStatus), nil
+}
+
+type CircleJoinRequestStatus string
+
+const (
+	CircleJoinRequestStatusPending   CircleJoinRequestStatus = "pending"
+	CircleJoinRequestStatusApproved  CircleJoinRequestStatus = "approved"
+	CircleJoinRequestStatusRejected  CircleJoinRequestStatus = "rejected"
+	CircleJoinRequestStatusCancelled CircleJoinRequestStatus = "cancelled"
+)
+
+func (e *CircleJoinRequestStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CircleJoinRequestStatus(s)
+	case string:
+		*e = CircleJoinRequestStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CircleJoinRequestStatus: %T", src)
+	}
+	return nil
+}
+
+type NullCircleJoinRequestStatus struct {
+	CircleJoinRequestStatus CircleJoinRequestStatus
+	Valid                   bool // Valid is true if CircleJoinRequestStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCircleJoinRequestStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.CircleJoinRequestStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CircleJoinRequestStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCircleJoinRequestStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CircleJoinRequestStatus), nil
+}
+
+type CircleRole string
+
+const (
+	CircleRoleAdmin  CircleRole = "admin"
+	CircleRoleMember CircleRole = "member"
+)
+
+func (e *CircleRole) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CircleRole(s)
+	case string:
+		*e = CircleRole(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CircleRole: %T", src)
+	}
+	return nil
+}
+
+type NullCircleRole struct {
+	CircleRole CircleRole
+	Valid      bool // Valid is true if CircleRole is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCircleRole) Scan(value interface{}) error {
+	if value == nil {
+		ns.CircleRole, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CircleRole.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCircleRole) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CircleRole), nil
+}
+
+type CommitmentOutcome string
+
+const (
+	CommitmentOutcomeDue    CommitmentOutcome = "due"
+	CommitmentOutcomeKept   CommitmentOutcome = "kept"
+	CommitmentOutcomeMissed CommitmentOutcome = "missed"
+)
+
+func (e *CommitmentOutcome) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CommitmentOutcome(s)
+	case string:
+		*e = CommitmentOutcome(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CommitmentOutcome: %T", src)
+	}
+	return nil
+}
+
+type NullCommitmentOutcome struct {
+	CommitmentOutcome CommitmentOutcome
+	Valid             bool // Valid is true if CommitmentOutcome is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCommitmentOutcome) Scan(value interface{}) error {
+	if value == nil {
+		ns.CommitmentOutcome, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CommitmentOutcome.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCommitmentOutcome) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CommitmentOutcome), nil
+}
+
+type CommitmentStrictness string
+
+const (
+	CommitmentStrictnessGentle   CommitmentStrictness = "gentle"
+	CommitmentStrictnessStandard CommitmentStrictness = "standard"
+	CommitmentStrictnessStrict   CommitmentStrictness = "strict"
+)
+
+func (e *CommitmentStrictness) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CommitmentStrictness(s)
+	case string:
+		*e = CommitmentStrictness(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CommitmentStrictness: %T", src)
+	}
+	return nil
+}
+
+type NullCommitmentStrictness struct {
+	CommitmentStrictness CommitmentStrictness
+	Valid                bool // Valid is true if CommitmentStrictness is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCommitmentStrictness) Scan(value interface{}) error {
+	if value == nil {
+		ns.CommitmentStrictness, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CommitmentStrictness.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCommitmentStrictness) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CommitmentStrictness), nil
+}
+
+type DataExportStatus string
+
+const (
+	DataExportStatusPending DataExportStatus = "pending"
+	DataExportStatusRunning DataExportStatus = "running"
+	DataExportStatusReady   DataExportStatus = "ready"
+	DataExportStatusFailed  DataExportStatus = "failed"
+	DataExportStatusExpired DataExportStatus = "expired"
+)
+
+func (e *DataExportStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DataExportStatus(s)
+	case string:
+		*e = DataExportStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DataExportStatus: %T", src)
+	}
+	return nil
+}
+
+type NullDataExportStatus struct {
+	DataExportStatus DataExportStatus
+	Valid            bool // Valid is true if DataExportStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDataExportStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.DataExportStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DataExportStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDataExportStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DataExportStatus), nil
+}
+
+type DevicePlatform string
+
+const (
+	DevicePlatformIos     DevicePlatform = "ios"
+	DevicePlatformAndroid DevicePlatform = "android"
+	DevicePlatformWeb     DevicePlatform = "web"
+)
+
+func (e *DevicePlatform) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DevicePlatform(s)
+	case string:
+		*e = DevicePlatform(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DevicePlatform: %T", src)
+	}
+	return nil
+}
+
+type NullDevicePlatform struct {
+	DevicePlatform DevicePlatform
+	Valid          bool // Valid is true if DevicePlatform is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDevicePlatform) Scan(value interface{}) error {
+	if value == nil {
+		ns.DevicePlatform, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DevicePlatform.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDevicePlatform) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DevicePlatform), nil
+}
+
+type LensKind string
+
+const (
+	LensKindPerson LensKind = "person"
+	LensKindPlace  LensKind = "place"
+	LensKindPeriod LensKind = "period"
+	LensKindQuery  LensKind = "query"
+)
+
+func (e *LensKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LensKind(s)
+	case string:
+		*e = LensKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LensKind: %T", src)
+	}
+	return nil
+}
+
+type NullLensKind struct {
+	LensKind LensKind
+	Valid    bool // Valid is true if LensKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLensKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.LensKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LensKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLensKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LensKind), nil
+}
+
+type MomentOrigin string
+
+const (
+	MomentOriginManual     MomentOrigin = "manual"
+	MomentOriginCommitment MomentOrigin = "commitment"
+	MomentOriginImport     MomentOrigin = "import"
+)
+
+func (e *MomentOrigin) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MomentOrigin(s)
+	case string:
+		*e = MomentOrigin(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MomentOrigin: %T", src)
+	}
+	return nil
+}
+
+type NullMomentOrigin struct {
+	MomentOrigin MomentOrigin
+	Valid        bool // Valid is true if MomentOrigin is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMomentOrigin) Scan(value interface{}) error {
+	if value == nil {
+		ns.MomentOrigin, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MomentOrigin.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMomentOrigin) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MomentOrigin), nil
+}
+
+type NotificationKind string
+
+const (
+	NotificationKindCommitmentUpcoming   NotificationKind = "commitment_upcoming"
+	NotificationKindMomentDue            NotificationKind = "moment_due"
+	NotificationKindMomentMissed         NotificationKind = "moment_missed"
+	NotificationKindEchoReady            NotificationKind = "echo_ready"
+	NotificationKindRecapGenerated       NotificationKind = "recap_generated"
+	NotificationKindCircleInviteReceived NotificationKind = "circle_invite_received"
+	NotificationKindMentionedInMoment    NotificationKind = "mentioned_in_moment"
+	NotificationKindResponseDigest       NotificationKind = "response_digest"
+)
+
+func (e *NotificationKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = NotificationKind(s)
+	case string:
+		*e = NotificationKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for NotificationKind: %T", src)
+	}
+	return nil
+}
+
+type NullNotificationKind struct {
+	NotificationKind NotificationKind
+	Valid            bool // Valid is true if NotificationKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullNotificationKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.NotificationKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.NotificationKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullNotificationKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.NotificationKind), nil
+}
+
+type ReactionKind string
+
+const (
+	ReactionKindHeart  ReactionKind = "heart"
+	ReactionKindJoy    ReactionKind = "joy"
+	ReactionKindTender ReactionKind = "tender"
+)
+
+func (e *ReactionKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ReactionKind(s)
+	case string:
+		*e = ReactionKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ReactionKind: %T", src)
+	}
+	return nil
+}
+
+type NullReactionKind struct {
+	ReactionKind ReactionKind
+	Valid        bool // Valid is true if ReactionKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullReactionKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.ReactionKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ReactionKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullReactionKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ReactionKind), nil
+}
+
+type RecapPeriod string
+
+const (
+	RecapPeriodMonthly RecapPeriod = "monthly"
+	RecapPeriodYearly  RecapPeriod = "yearly"
+)
+
+func (e *RecapPeriod) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = RecapPeriod(s)
+	case string:
+		*e = RecapPeriod(s)
+	default:
+		return fmt.Errorf("unsupported scan type for RecapPeriod: %T", src)
+	}
+	return nil
+}
+
+type NullRecapPeriod struct {
+	RecapPeriod RecapPeriod
+	Valid       bool // Valid is true if RecapPeriod is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRecapPeriod) Scan(value interface{}) error {
+	if value == nil {
+		ns.RecapPeriod, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.RecapPeriod.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRecapPeriod) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.RecapPeriod), nil
+}
+
+type ResponseEventKind string
+
+const (
+	ResponseEventKindComment  ResponseEventKind = "comment"
+	ResponseEventKindReaction ResponseEventKind = "reaction"
+)
+
+func (e *ResponseEventKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ResponseEventKind(s)
+	case string:
+		*e = ResponseEventKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ResponseEventKind: %T", src)
+	}
+	return nil
+}
+
+type NullResponseEventKind struct {
+	ResponseEventKind ResponseEventKind
+	Valid             bool // Valid is true if ResponseEventKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullResponseEventKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.ResponseEventKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ResponseEventKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullResponseEventKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ResponseEventKind), nil
+}
+
+type ResurfacingReason string
+
+const (
+	ResurfacingReasonSameDay ResurfacingReason = "same_day"
+	ResurfacingReasonDormant ResurfacingReason = "dormant"
+	ResurfacingReasonNearby  ResurfacingReason = "nearby"
+	ResurfacingReasonPerson  ResurfacingReason = "person"
+)
+
+func (e *ResurfacingReason) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ResurfacingReason(s)
+	case string:
+		*e = ResurfacingReason(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ResurfacingReason: %T", src)
+	}
+	return nil
+}
+
+type NullResurfacingReason struct {
+	ResurfacingReason ResurfacingReason
+	Valid             bool // Valid is true if ResurfacingReason is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullResurfacingReason) Scan(value interface{}) error {
+	if value == nil {
+		ns.ResurfacingReason, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ResurfacingReason.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullResurfacingReason) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ResurfacingReason), nil
+}
+
+type ResurfacingScope string
+
+const (
+	ResurfacingScopeMoment    ResurfacingScope = "moment"
+	ResurfacingScopePerson    ResurfacingScope = "person"
+	ResurfacingScopeDateRange ResurfacingScope = "date_range"
+)
+
+func (e *ResurfacingScope) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ResurfacingScope(s)
+	case string:
+		*e = ResurfacingScope(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ResurfacingScope: %T", src)
+	}
+	return nil
+}
+
+type NullResurfacingScope struct {
+	ResurfacingScope ResurfacingScope
+	Valid            bool // Valid is true if ResurfacingScope is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullResurfacingScope) Scan(value interface{}) error {
+	if value == nil {
+		ns.ResurfacingScope, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ResurfacingScope.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullResurfacingScope) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ResurfacingScope), nil
+}
+
+type Circle struct {
+	ID              uuid.UUID
+	Name            string
+	Description     pgtype.Text
+	ColorHex        pgtype.Text
+	ImagePath       pgtype.Text
+	CreatedByUserID pgtype.UUID
+	CreatedAt       pgtype.Timestamptz
+	UpdatedAt       pgtype.Timestamptz
+	DissolvedAt     pgtype.Timestamptz
+}
+
+type CircleInvite struct {
+	ID              uuid.UUID
+	CircleID        uuid.UUID
+	InvitedByUserID pgtype.UUID
+	Kind            CircleInviteKind
+	InviteeUserID   pgtype.UUID
+	TokenHash       pgtype.Text
+	Status          CircleInviteStatus
+	MaxUses         pgtype.Int4
+	UseCount        int32
+	ExpiresAt       pgtype.Timestamptz
+	RespondedAt     pgtype.Timestamptz
+	CreatedAt       pgtype.Timestamptz
+}
+
+type CircleJoinRequest struct {
+	ID              uuid.UUID
+	CircleID        uuid.UUID
+	UserID          uuid.UUID
+	InviteID        pgtype.UUID
+	Status          CircleJoinRequestStatus
+	DecidedByUserID pgtype.UUID
+	DecidedAt       pgtype.Timestamptz
+	CreatedAt       pgtype.Timestamptz
+}
+
+type CircleMember struct {
+	CircleID   uuid.UUID
+	UserID     uuid.UUID
+	Role       CircleRole
+	CanInvite  bool
+	CanCapture bool
+	JoinedAt   pgtype.Timestamptz
+	LeftAt     pgtype.Timestamptz
+}
+
+type Comment struct {
+	ID        uuid.UUID
+	MomentID  uuid.UUID
+	UserID    pgtype.UUID
+	CircleID  pgtype.UUID
+	Body      string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	DeletedAt pgtype.Timestamptz
 }
 
 type Commitment struct {
-	ID             uuid.UUID
-	ThreadID       uuid.UUID
-	CronExpression string
-	Timezone       pgtype.Text
-	CreatedAt      pgtype.Timestamptz
+	ID                        uuid.UUID
+	ThreadID                  uuid.UUID
+	Name                      string
+	CronExpression            string
+	Timezone                  string
+	Strictness                CommitmentStrictness
+	ConfirmationWindowMinutes int32
+	ConsentedAt               pgtype.Timestamptz
+	ConsentVersion            int16
+	NotifyUpcoming            bool
+	NotifyDue                 bool
+	NotifyMissed              bool
+	PausedAt                  pgtype.Timestamptz
+	ArchivedAt                pgtype.Timestamptz
+	LastGeneratedAt           pgtype.Timestamptz
+	CreatedAt                 pgtype.Timestamptz
+	UpdatedAt                 pgtype.Timestamptz
+	Version                   int32
 }
 
 type CommitmentHistory struct {
-	ID             uuid.UUID
-	ThreadID       uuid.UUID
-	CommitmentID   pgtype.UUID
-	CronExpression string
-	Timezone       pgtype.Text
-	ActiveFrom     pgtype.Timestamptz
-	ActiveUntil    pgtype.Timestamptz
+	ID                        uuid.UUID
+	ThreadID                  uuid.UUID
+	CommitmentID              pgtype.UUID
+	CronExpression            string
+	Timezone                  string
+	Strictness                CommitmentStrictness
+	ConfirmationWindowMinutes int32
+	ActiveFrom                pgtype.Timestamptz
+	ActiveUntil               pgtype.Timestamptz
+	CreatedAt                 pgtype.Timestamptz
 }
 
-type Moment struct {
+type CommitmentOccurrence struct {
+	ID                  uuid.UUID
+	CommitmentID        uuid.UUID
+	ThreadID            uuid.UUID
+	UserID              uuid.UUID
+	Outcome             CommitmentOutcome
+	DueAt               pgtype.Timestamptz
+	DueLocal            pgtype.Timestamp
+	DueUtcOffsetMinutes int16
+	DueOn               pgtype.Date
+	ExpiresAt           pgtype.Timestamptz
+	StrictnessAtDue     CommitmentStrictness
+	CapturedAt          pgtype.Timestamptz
+	WasLate             pgtype.Bool
+	MomentID            pgtype.UUID
+	CreatedAt           pgtype.Timestamptz
+	UpdatedAt           pgtype.Timestamptz
+}
+
+type DataExport struct {
 	ID           uuid.UUID
-	ThreadID     uuid.UUID
-	CommitmentID pgtype.UUID
-	Status       MomentStatus
-	DueAt        pgtype.Timestamptz
-	CapturedAt   pgtype.Timestamptz
-	OccurredAt   pgtype.Timestamptz
-	Content      pgtype.Text
+	UserID       uuid.UUID
+	Status       DataExportStatus
+	FilePath     pgtype.Text
+	ByteSize     pgtype.Int8
+	ErrorMessage pgtype.Text
+	RequestedAt  pgtype.Timestamptz
+	CompletedAt  pgtype.Timestamptz
+	ExpiresAt    pgtype.Timestamptz
+}
+
+type Lense struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	Name         string
+	Kind         LensKind
 	ColorHex     pgtype.Text
+	PersonUserID pgtype.UUID
+	PlaceName    pgtype.Text
+	Latitude     pgtype.Numeric
+	Longitude    pgtype.Numeric
+	RadiusMeters pgtype.Int4
+	FromDate     pgtype.Date
+	ToDate       pgtype.Date
+	QueryText    pgtype.Text
+	PinnedAt     pgtype.Timestamptz
 	CreatedAt    pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
 	DeletedAt    pgtype.Timestamptz
 }
 
+type Moment struct {
+	ID                       uuid.UUID
+	UserID                   uuid.UUID
+	ThreadID                 pgtype.UUID
+	Origin                   MomentOrigin
+	OccurredAt               pgtype.Timestamptz
+	OccurredLocal            pgtype.Timestamp
+	OccurredUtcOffsetMinutes int16
+	OccurredOn               pgtype.Date
+	RecordedAt               pgtype.Timestamptz
+	SettlingTime             pgtype.Interval
+	Note                     pgtype.Text
+	ColorHex                 pgtype.Text
+	PlaceName                pgtype.Text
+	Latitude                 pgtype.Numeric
+	Longitude                pgtype.Numeric
+	SearchDocument           interface{}
+	ClientID                 pgtype.UUID
+	LastViewedAt             pgtype.Timestamptz
+	CreatedAt                pgtype.Timestamptz
+	UpdatedAt                pgtype.Timestamptz
+	DeletedAt                pgtype.Timestamptz
+}
+
+type MomentCircle struct {
+	MomentID       uuid.UUID
+	CircleID       uuid.UUID
+	SharedByUserID pgtype.UUID
+	SharedAt       pgtype.Timestamptz
+}
+
 type MomentImage struct {
+	ID               uuid.UUID
+	MomentID         uuid.UUID
+	ImagePath        string
+	ImageAlt         pgtype.Text
+	ContentType      pgtype.Text
+	ByteSize         pgtype.Int8
+	Width            pgtype.Int4
+	Height           pgtype.Int4
+	MetadataStripped bool
+	SortOrder        int32
+	CreatedAt        pgtype.Timestamptz
+}
+
+type MomentMention struct {
+	ID              uuid.UUID
+	MomentID        uuid.UUID
+	MentionedUserID pgtype.UUID
+	DisplayName     string
+	RemovedAt       pgtype.Timestamptz
+	CreatedAt       pgtype.Timestamptz
+}
+
+type Notification struct {
+	ID                     uuid.UUID
+	UserID                 uuid.UUID
+	Kind                   NotificationKind
+	ActorUserID            pgtype.UUID
+	MomentID               pgtype.UUID
+	ThreadID               pgtype.UUID
+	CommitmentID           pgtype.UUID
+	CommitmentOccurrenceID pgtype.UUID
+	CircleID               pgtype.UUID
+	CircleInviteID         pgtype.UUID
+	RecapID                pgtype.UUID
+	ResurfacingID          pgtype.UUID
+	Payload                []byte
+	DeliverAfter           pgtype.Timestamptz
+	DeliveredAt            pgtype.Timestamptz
+	ReadAt                 pgtype.Timestamptz
+	CreatedAt              pgtype.Timestamptz
+}
+
+type NotificationPreference struct {
+	UserID                      uuid.UUID
+	CommitmentUpcomingEnabled   bool
+	MomentDueEnabled            bool
+	MomentMissedEnabled         bool
+	EchoReadyEnabled            bool
+	RecapGeneratedEnabled       bool
+	CircleInviteReceivedEnabled bool
+	MentionedInMomentEnabled    bool
+	ResponseDigestEnabled       bool
+	ResponseDigestHour          int16
+	QuietHoursStart             pgtype.Time
+	QuietHoursEnd               pgtype.Time
+	CreatedAt                   pgtype.Timestamptz
+	UpdatedAt                   pgtype.Timestamptz
+}
+
+type Reaction struct {
 	ID        uuid.UUID
 	MomentID  uuid.UUID
-	ImagePath string
-	ImageAlt  pgtype.Text
+	UserID    pgtype.UUID
+	CircleID  pgtype.UUID
+	Kind      ReactionKind
 	CreatedAt pgtype.Timestamptz
+}
+
+type Recap struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	Period      RecapPeriod
+	PeriodStart pgtype.Date
+	PeriodEnd   pgtype.Date
+	Payload     []byte
+	GeneratedAt pgtype.Timestamptz
+	OpenedAt    pgtype.Timestamptz
 }
 
 type RefreshToken struct {
@@ -153,17 +1062,53 @@ type RefreshToken struct {
 	UpdatedAt    pgtype.Timestamptz
 }
 
+type ResponseEvent struct {
+	ID              uuid.UUID
+	RecipientUserID uuid.UUID
+	ActorUserID     pgtype.UUID
+	MomentID        uuid.UUID
+	Kind            ResponseEventKind
+	CommentID       pgtype.UUID
+	ReactionID      pgtype.UUID
+	CreatedAt       pgtype.Timestamptz
+	DigestedAt      pgtype.Timestamptz
+}
+
+type Resurfacing struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	MomentID    uuid.UUID
+	Reason      ResurfacingReason
+	SurfacedOn  pgtype.Date
+	OpenedAt    pgtype.Timestamptz
+	DismissedAt pgtype.Timestamptz
+	CreatedAt   pgtype.Timestamptz
+}
+
+type ResurfacingExclusion struct {
+	ID                   uuid.UUID
+	UserID               uuid.UUID
+	Scope                ResurfacingScope
+	MomentID             pgtype.UUID
+	PersonUserID         pgtype.UUID
+	IncludeSharedCircles bool
+	FromDate             pgtype.Date
+	ToDate               pgtype.Date
+	CreatedAt            pgtype.Timestamptz
+}
+
 type Thread struct {
-	ID                         uuid.UUID
-	UserID                     uuid.UUID
-	Name                       string
-	Description                pgtype.Text
-	HasCommitment              bool
-	ColorHex                   pgtype.Text
-	ConfirmationTimeoutMinutes pgtype.Int4
-	CreatedAt                  pgtype.Timestamptz
-	UpdatedAt                  pgtype.Timestamptz
-	DeletedAt                  pgtype.Timestamptz
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	CircleID    pgtype.UUID
+	Name        string
+	Description pgtype.Text
+	ColorHex    pgtype.Text
+	SortOrder   int32
+	ArchivedAt  pgtype.Timestamptz
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	DeletedAt   pgtype.Timestamptz
 }
 
 type ThreadImage struct {
@@ -171,19 +1116,26 @@ type ThreadImage struct {
 	ThreadID  uuid.UUID
 	ImagePath string
 	ImageAlt  pgtype.Text
+	SortOrder int32
 	CreatedAt pgtype.Timestamptz
 }
 
 type User struct {
-	ID            uuid.UUID
-	Name          string
-	Email         string
-	EmailVerified bool
-	ImagePath     pgtype.Text
-	Timezone      string
-	CreatedAt     pgtype.Timestamptz
-	UpdatedAt     pgtype.Timestamptz
-	DeletedAt     pgtype.Timestamptz
+	ID                     uuid.UUID
+	Name                   string
+	Username               string
+	Email                  string
+	EmailVerified          bool
+	ImagePath              pgtype.Text
+	Bio                    pgtype.Text
+	Timezone               string
+	CreatedAt              pgtype.Timestamptz
+	UpdatedAt              pgtype.Timestamptz
+	MentionPolicy          AudiencePolicy
+	CircleInvitePolicy     AudiencePolicy
+	DiscoverableByUsername bool
+	StripPhotoMetadata     bool
+	DeletedAt              pgtype.Timestamptz
 }
 
 type UserAccount struct {
@@ -204,11 +1156,35 @@ type UserAccount struct {
 	UpdatedAt             pgtype.Timestamptz
 }
 
+type UserBlock struct {
+	BlockerUserID uuid.UUID
+	BlockedUserID uuid.UUID
+	CreatedAt     pgtype.Timestamptz
+}
+
+type UserDevice struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	Platform   DevicePlatform
+	PushToken  string
+	Timezone   pgtype.Text
+	LastSeenAt pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+	RevokedAt  pgtype.Timestamptz
+}
+
+type UserMute struct {
+	MuterUserID uuid.UUID
+	MutedUserID uuid.UUID
+	CreatedAt   pgtype.Timestamptz
+}
+
 type UserVerification struct {
 	ID         uuid.UUID
 	Identifier string
 	Value      string
 	ExpiresAt  pgtype.Timestamptz
+	ConsumedAt pgtype.Timestamptz
 	CreatedAt  pgtype.Timestamptz
 	UpdatedAt  pgtype.Timestamptz
 }
