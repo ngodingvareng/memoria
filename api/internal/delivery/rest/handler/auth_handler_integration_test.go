@@ -182,7 +182,6 @@ func TestAuthHandler_Refresh_Success(t *testing.T) {
 
 	loginResp := loginUser(t, testApp, email)
 	require.Equal(t, http.StatusOK, loginResp.StatusCode)
-	loginBody := decodeBody[dto.WebResponse[dto.LoginResponse]](t, loginResp)
 	originalToken := refreshCookieValue(t, loginResp)
 
 	resp := testApp.doRequest(t, http.MethodPost, "/auth/refresh", nil, refreshCookieHeader(originalToken))
@@ -190,7 +189,12 @@ func TestAuthHandler_Refresh_Success(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	body := decodeBody[dto.WebResponse[dto.LoginResponse]](t, resp)
 	require.NotEmpty(t, body.Data.AccessToken)
-	require.NotEqual(t, loginBody.Data.AccessToken, body.Data.AccessToken)
+	// Not asserting body.Data.AccessToken != loginBody.Data.AccessToken:
+	// access token claims (sub, iss, iat, exp) are second-granularity
+	// (jwt.NewNumericDate) and HS256 signing is deterministic, so a login
+	// immediately followed by a refresh within the same wall-clock second
+	// legitimately produces a byte-identical JWT. The refresh token cookie
+	// below is the actual rotation guarantee this endpoint makes.
 
 	rotatedToken := refreshCookieValue(t, resp)
 	require.NotEmpty(t, rotatedToken)
