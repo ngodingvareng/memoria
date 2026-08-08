@@ -20,10 +20,10 @@ Both Commitment workers below are **deferred on purpose** — see `COMMITMENT.md
 
 ## Tier 4 — Operational readiness
 
-- [ ] Health check endpoint (`/healthz`) for container orchestration.
-- [ ] `Dockerfile` + a deployment `docker-compose.yml` (app + Postgres) — `api/docker-compose.dev.yaml` only covers local Postgres/RustFS for `make dev`, not shipping the app itself.
-- [ ] CI: check mocks aren't stale — run `mockery` then `git diff --exit-code internal/usecase/mocks/` as a step in `.github/workflows/api-test.yaml`, failing if someone forgot to regenerate after changing an interface.
-- [ ] CI: `PREPARE` every generated query against a real Postgres. `sqlc generate` validates table/column names but **not operators**, which is how a broken `||` (written as `| |`) survived in `ListDueMomentsPastDeadline` and `MarkOverdueMomentsAsMissed` — both would have failed at runtime, and neither is covered by a test because the workers that call them don't exist yet. Extracting the `const` SQL from `internal/db/*.sql.go` and running `PREPARE` on each against the migrated schema catches this class outright.
+- [x] ~~Health check endpoint (`/healthz`) for container orchestration.~~ — done: `HealthHandler` pings the DB pool and is registered unauthenticated at `GET /healthz`.
+- [x] ~~`Dockerfile` + a deployment `docker-compose.yml` (app + Postgres)~~ — done: multi-stage `api/Dockerfile` plus `api/docker-compose.yml` (postgres + a one-shot `migrate` service + the app, healthchecked). `docker-compose.dev.yaml` is unchanged and still covers local Postgres/RustFS for `make dev`. Added `DATABASE_HOST` (`internal/config/config.go`, defaults to `localhost`) since `GetDSN` could no longer hardcode it once the app itself runs in a container and must reach Postgres by service name.
+- [x] ~~CI: check mocks aren't stale~~ — done: `check-mocks` job in `.github/workflows/api-test.yaml` runs `mockery` then `git diff --exit-code internal/usecase/mocks/`.
+- [x] ~~CI: `PREPARE` every generated query against a real Postgres.~~ — done: `api/cmd/checksql` extracts every sqlc `const` from `internal/db/*.sql.go` via `go/parser` and `PREPARE`s each against a migrated Postgres (also runnable locally as `make check-sql`); wired into a `check-sql` job in `.github/workflows/api-test.yaml`. Running it surfaced one real breakage — `ListCommitmentsForGeneration` still referenced `threads.has_commitment`, dropped by migration 000004 in favor of `commitments.paused_at`/`archived_at` — now fixed in `db/queries/commitments.sql` and regenerated.
 
 ## Tier 5 — Open design decisions (full detail in `SCHEMA_REVIEW.md`)
 

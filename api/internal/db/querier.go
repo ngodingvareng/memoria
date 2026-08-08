@@ -324,8 +324,9 @@ type Querier interface {
 	// recurrence rule.
 	ListCommitmentsByThreadID(ctx context.Context, threadID uuid.UUID) ([]Commitment, error)
 	// Feed for the scheduler worker: every Commitment belonging to a
-	// non-deleted Thread. The worker evaluates cron_expression/timezone
-	// itself and calls moments.CreateCommittedMoment when a slot fires.
+	// non-deleted Thread that isn't paused or archived. The worker evaluates
+	// cron_expression/timezone itself and calls moments.CreateCommittedMoment
+	// when a slot fires.
 	ListCommitmentsForGeneration(ctx context.Context) ([]Commitment, error)
 	// Export history, newest first.
 	ListDataExportsByUserID(ctx context.Context, userID uuid.UUID) ([]DataExport, error)

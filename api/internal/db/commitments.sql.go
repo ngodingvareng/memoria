@@ -158,12 +158,15 @@ func (q *Queries) ListCommitmentsByThreadID(ctx context.Context, threadID uuid.U
 const listCommitmentsForGeneration = `-- name: ListCommitmentsForGeneration :many
 SELECT commitments.id, commitments.thread_id, commitments.name, commitments.cron_expression, commitments.timezone, commitments.strictness, commitments.confirmation_window_minutes, commitments.consented_at, commitments.consent_version, commitments.notify_upcoming, commitments.notify_due, commitments.notify_missed, commitments.paused_at, commitments.archived_at, commitments.last_generated_at, commitments.created_at, commitments.updated_at, commitments.version FROM commitments
     JOIN threads ON threads.id = commitments.thread_id
-WHERE threads.deleted_at IS NULL AND threads.has_commitment = TRUE
+WHERE threads.deleted_at IS NULL
+    AND commitments.paused_at IS NULL
+    AND commitments.archived_at IS NULL
 `
 
 // Feed for the scheduler worker: every Commitment belonging to a
-// non-deleted Thread. The worker evaluates cron_expression/timezone
-// itself and calls moments.CreateCommittedMoment when a slot fires.
+// non-deleted Thread that isn't paused or archived. The worker evaluates
+// cron_expression/timezone itself and calls moments.CreateCommittedMoment
+// when a slot fires.
 func (q *Queries) ListCommitmentsForGeneration(ctx context.Context) ([]Commitment, error) {
 	rows, err := q.db.Query(ctx, listCommitmentsForGeneration)
 	if err != nil {

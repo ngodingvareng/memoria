@@ -54,6 +54,8 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 
 	// 3. Wiring: repository -> usecase -> handler
 
+	healthHandler := handler.NewHealthHandler(conn)
+
 	// 3a. Auth
 	userRepo := repository.NewUserRepository(conn)
 	userAccountRepo := repository.NewUserAccountRepository(conn)
@@ -162,6 +164,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 
 	// 5. Router
 	rest.SetupRoutes(fiberApp, accessTokenIssuer, authRateLimiter, rest.Handlers{
+		Health:            healthHandler,
 		Auth:              authHandler,
 		Thread:            threadHandler,
 		ThreadImage:       threadImageHandler,

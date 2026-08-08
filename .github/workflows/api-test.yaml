@@ -41,3 +41,79 @@ jobs:
         # concurrently on a standard GH-hosted runner has caused sporadic
         # Docker/Ryuk-reaper connection resets (see PR discussion).
         run: go test -tags=integration -p=1 ./... -v
+
+  check-mocks:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.5"
+          cache: true
+          cache-dependency-path: api/go.sum
+
+      - name: Install mockery
+        run: go install github.com/vektra/mockery/v3@v3.7.2
+
+      - name: Regenerate mocks and fail on drift
+        # Interfaces live in internal/usecase/*.go; their mocks are
+        # generated into internal/usecase/mocks/ (see .mockery.yaml). If
+        # someone changes an interface and forgets `make mock-generate`,
+        # this diff catches it instead of letting a stale mock merge.
+        run: |
+          mockery
+          git diff --exit-code -- internal/usecase/mocks/
+
+  check-sql:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: api
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: memoria
+          POSTGRES_PASSWORD: memoria
+          POSTGRES_DB: memoria
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U memoria -d memoria"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.5"
+          cache: true
+          cache-dependency-path: api/go.sum
+
+      - name: Install golang-migrate
+        run: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.19.1
+
+      - name: Apply migrations
+        run: migrate -database "postgres://memoria:memoria@localhost:5432/memoria?sslmode=disable" -path db/migrations up
+
+      - name: PREPARE every generated query against Postgres
+        # sqlc generate validates table/column names but not operators (a
+        # broken `||` written as `| |` still generates cleanly) — PREPARE
+        # parses and analyzes each query for real, catching that class of
+        # error even for queries with no caller/test yet.
+        run: go run ./cmd/checksql -dsn "postgres://memoria:memoria@localhost:5432/memoria?sslmode=disable"

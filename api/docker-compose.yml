@@ -1,0 +1,82 @@
+# Deployment compose: the app + Postgres, built from the Dockerfile in
+# this directory. Unlike docker-compose.dev.yaml (Postgres/RustFS only,
+# used by `make dev` while the app runs on the host via `go run`), this
+# file runs the app itself in a container too, so Postgres is reached at
+# the "postgres" service name instead of localhost — see DATABASE_HOST
+# in .env.example. Object storage (STORAGE_* in .env) is expected to
+# point at a real S3-compatible backend and isn't bundled here.
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: memoria-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_DBNAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_DBNAME}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Applies db/migrations against postgres and exits; app waits for this
+  # to succeed before starting so it never runs against an unmigrated schema.
+  migrate:
+    image: migrate/migrate:v4.18.2
+    container_name: memoria-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./db/migrations:/migrations:ro
+    command:
+      - "-path=/migrations"
+      - "-database=postgres://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_DBNAME}?sslmode=disable"
+      - "up"
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: memoria-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    environment:
+      # Overrides whatever DATABASE_HOST is in .env — inside this
+      # compose network Postgres is only reachable via the service name
+      # above, never localhost.
+      DATABASE_HOST: postgres
+    ports:
+      - "${SERVER_PORT:-3000}:${SERVER_PORT:-3000}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:${SERVER_PORT:-3000}/healthz",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
+    driver: local
