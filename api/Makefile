@@ -9,7 +9,7 @@ COLOR_INFO   := \e[36m
 COLOR_SUCCESS:= \e[32m
 COLOR_WARN   := \e[33m
 
-.PHONY: dev dev-only build test test-unit test-integration db-generate migrate-create migrate-up migrate-down db-tables db-describe mock-generate help
+.PHONY: dev dev-only build test test-unit test-integration test-e2e db-generate migrate-create migrate-up migrate-down db-tables db-describe mock-generate help
 
 # Default target: Display available commands
 help:
@@ -17,9 +17,10 @@ help:
 	@printf "  $(COLOR_SUCCESS)make dev$(COLOR_RESET)              - Start Docker Compose & Go app (Auto docker-down on Ctrl+C)\n"
 	@printf "  $(COLOR_SUCCESS)make dev-only$(COLOR_RESET)         - Run Go app only (without Docker)\n"
 	@printf "  $(COLOR_SUCCESS)make build$(COLOR_RESET)            - Build all Go packages\n"
-	@printf "  $(COLOR_SUCCESS)make test$(COLOR_RESET)             - Interactive test menu (unit, integration, all)\n"
+	@printf "  $(COLOR_SUCCESS)make test$(COLOR_RESET)             - Interactive test menu (unit, integration, e2e, all)\n"
 	@printf "  $(COLOR_SUCCESS)make test-unit$(COLOR_RESET)        - Run unit tests only\n"
-	@printf "  $(COLOR_SUCCESS)make test-integration$(COLOR_RESET) - Run integration tests only\n"
+	@printf "  $(COLOR_SUCCESS)make test-integration$(COLOR_RESET) - Run integration tests only (repository/storage against real Postgres/RustFS)\n"
+	@printf "  $(COLOR_SUCCESS)make test-e2e$(COLOR_RESET)         - Run e2e tests only (HTTP-level, full route tree against real Postgres)\n"
 	@printf "  $(COLOR_SUCCESS)make migrate-create$(COLOR_RESET)   - Create a new SQL migration file\n"
 	@printf "  $(COLOR_SUCCESS)make migrate-up$(COLOR_RESET)       - Apply all up migrations (credentials from .env)\n"
 	@printf "  $(COLOR_SUCCESS)make migrate-down$(COLOR_RESET)     - Roll back all migrations (credentials from .env)\n"
@@ -191,10 +192,12 @@ test:
 	@printf "$(COLOR_INFO)Select the test suite to run:$(COLOR_RESET)\n"
 	@printf "  1) Unit Tests\n"
 	@printf "  2) Integration Tests\n"
-	@read -p "Enter choice [1-2]: " choice; \
+	@printf "  3) E2E Tests\n"
+	@read -p "Enter choice [1-3]: " choice; \
 	case "$$choice" in \
 		1) $(MAKE) test-unit ;; \
 		2) $(MAKE) test-integration ;; \
+		3) $(MAKE) test-e2e ;; \
 		*) printf "$(COLOR_WARN)Invalid choice. Aborting.$(COLOR_RESET)\n"; exit 1 ;; \
 	esac
 
@@ -203,7 +206,12 @@ test-unit:
 	@printf "$(COLOR_INFO)Running unit tests...$(COLOR_RESET)\n"
 	@go test -tags=unit ./... -v
 
-## test-integration: Run integration tests only.
+## test-integration: Run integration tests only (repository/storage layer against real Postgres/RustFS).
 test-integration:
 	@printf "$(COLOR_INFO)Running integration tests...$(COLOR_RESET)\n"
 	@go test -tags=integration ./... -v
+
+## test-e2e: Run e2e tests only (HTTP-level, full route tree against real Postgres).
+test-e2e:
+	@printf "$(COLOR_INFO)Running e2e tests...$(COLOR_RESET)\n"
+	@go test -tags=e2e ./... -v

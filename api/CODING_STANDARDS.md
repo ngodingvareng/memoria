@@ -557,14 +557,19 @@ func NewDomainResponse(e *entity.Domain) DomainResponse {
 ## 11. Testing Conventions
 
 - Unit tests are gated behind `-tags=unit`; integration tests behind
-  `-tags=integration` (the latter use `testcontainers-go` and need
-  Docker). A plain `go test ./...` intentionally runs neither.
+  `-tags=integration`; e2e tests behind `-tags=e2e` (the latter two use
+  `testcontainers-go` and need Docker). A plain `go test ./...`
+  intentionally runs none of them.
 - Usecase unit tests mock repository interfaces via Mockery
   (`internal/usecase/mocks/`, `.EXPECT()` builder style) — never hit a
   real DB from a usecase test.
-- Repository tests are integration tests against a real (containerized)
-  Postgres — never mocked, since their entire job is verifying SQL
-  behavior.
+- Repository and storage tests are integration tests (`_integration_test.go`,
+  `-tags=integration`) against a real (containerized) Postgres/RustFS —
+  never mocked, since their entire job is verifying SQL/storage behavior.
+- Handler tests are e2e tests (`_e2e_test.go`, `-tags=e2e`) that exercise
+  the full route tree (`rest.SetupRoutes`) through `app.Test` against a
+  real containerized Postgres, to verify routing/auth/DTO/usecase wiring
+  end-to-end over HTTP rather than the SQL or storage layer itself.
 - After changing any interface listed in `.mockery.yaml`, run `make
   mock-generate` and commit the regenerated mock in the same PR — a
   stale mock that still compiles against an old method signature is

@@ -29,15 +29,16 @@ There is no root-level build; always `cd` into the relevant project directory fi
 make dev              # starts Postgres + RustFS via Docker, regenerates Swagger, runs the API (Ctrl+C tears Docker down too)
 make dev-only         # run the Go app without touching Docker (DB/storage must already be up)
 make build             # go build ./...
-make test              # interactive prompt: unit, integration, or exits
+make test              # interactive prompt: unit, integration, e2e, or exits
 make test-unit          # go test -tags=unit ./... -v
-make test-integration   # go test -tags=integration ./... -v (needs Docker; uses testcontainers-go)
+make test-integration   # go test -tags=integration ./... -v (needs Docker; uses testcontainers-go; repository/storage layer)
+make test-e2e            # go test -tags=e2e ./... -v (needs Docker; uses testcontainers-go; HTTP-level handler tests)
 make db-generate        # wipes internal/db/*.go and regenerates from db/queries via sqlc
 make migrate-create      # interactively scaffold a new golang-migrate file under db/migrations/
 make mock-generate       # regenerates internal/usecase/mocks/ via Mockery (config: .mockery.yaml)
 ```
 
-Run a single Go test: `go test -tags=unit ./internal/usecase/... -run TestThreadUsecase_Create -v` (swap the tag/path/pattern as needed; most tests are gated behind `-tags=unit` or `-tags=integration` build tags — a plain `go test ./...` will skip them).
+Run a single Go test: `go test -tags=unit ./internal/usecase/... -run TestThreadUsecase_Create -v` (swap the tag/path/pattern as needed; most tests are gated behind `-tags=unit`, `-tags=integration` (repository/storage), or `-tags=e2e` (HTTP-level handler) build tags — a plain `go test ./...` will skip them).
 
 First-time setup requires `cp .env.example .env` and installing `sqlc`, `golang-migrate`, `swag`, and `mockery` (see root `README.md` for exact install commands).
 
@@ -65,7 +66,7 @@ delivery/rest (handler, dto, middleware) → usecase → repository → db (sqlc
 
 `api/TODO.md` tracks in-flight and planned work in detail (auth refresh-token split, OAuth, scheduler/timeout workers, ownership-check gaps, etc.) — check it before assuming a feature is finished or unstarted.
 
-CI (`.github/workflows/api-test.yaml`) runs `go test -tags=unit` then `-tags=integration` on every push/PR touching `api/**`.
+CI (`.github/workflows/api-test.yaml`) runs `go test -tags=unit`, then `-tags=integration`, then `-tags=e2e` on every push/PR touching `api/**`.
 
 ## web/ (React frontend)
 
