@@ -6,6 +6,18 @@ INSERT INTO moment_mentions(moment_id, mentioned_user_id, display_name)
 VALUES (sqlc.arg(moment_id), sqlc.arg(mentioned_user_id), sqlc.arg(display_name))
 RETURNING *;
 
+-- name: IsUserActivelyMentioned :one
+-- Backs the mention-context half of ResponseAccessChecker.ResolveAudience:
+-- whether userID may act/read in a Moment's mention context (circle_id
+-- IS NULL comments/reactions) as something other than its owner.
+SELECT EXISTS(
+    SELECT 1
+    FROM moment_mentions
+    WHERE moment_id = sqlc.arg(moment_id)
+        AND mentioned_user_id = sqlc.arg(mentioned_user_id)
+        AND removed_at IS NULL
+) AS mentioned;
+
 -- name: ListMomentMentionsByMomentID :many
 SELECT *
 FROM moment_mentions

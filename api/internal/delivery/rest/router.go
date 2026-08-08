@@ -12,11 +12,17 @@ import (
 // Handlers groups every handler the router needs. Add a field here each
 // time a new domain's handler is wired up in app.go.
 type Handlers struct {
-	Auth        *handler.AuthHandler
-	Thread      *handler.ThreadHandler
-	ThreadImage *handler.ThreadImageHandler
-	Moment      *handler.MomentHandler
-	MomentImage *handler.MomentImageHandler
+	Auth              *handler.AuthHandler
+	Thread            *handler.ThreadHandler
+	ThreadImage       *handler.ThreadImageHandler
+	Moment            *handler.MomentHandler
+	MomentImage       *handler.MomentImageHandler
+	Circle            *handler.CircleHandler
+	CircleInvite      *handler.CircleInviteHandler
+	CircleJoinRequest *handler.CircleJoinRequestHandler
+	Mention           *handler.MentionHandler
+	Comment           *handler.CommentHandler
+	Reaction          *handler.ReactionHandler
 }
 
 // SetupRoutes wires every route. authRateLimiter is built in app.go
@@ -65,4 +71,53 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	moments.Post("/:id/images", h.MomentImage.UploadMomentImage)
 	moments.Get("/:id/images", h.MomentImage.ListMomentImages)
 	moments.Delete("/:id/images/:imageId", h.MomentImage.DeleteMomentImage)
+
+	moments.Get("/:id/mentions", h.Mention.ListMentions)
+	moments.Post("/:id/mentions", h.Mention.CreateMention)
+	moments.Delete("/:id/mentions/:mentionId", h.Mention.DeleteMention)
+	moments.Post("/:id/mentions/leave", h.Mention.LeaveMention)
+	moments.Post("/:id/share", h.Mention.ShareToCircle)
+	moments.Delete("/:id/share/:circleId", h.Mention.UnshareFromCircle)
+
+	moments.Get("/:id/comments", h.Comment.ListComments)
+	moments.Post("/:id/comments", h.Comment.CreateComment)
+	moments.Put("/:id/comments/:commentId", h.Comment.UpdateComment)
+	moments.Delete("/:id/comments/:commentId", h.Comment.DeleteComment)
+
+	moments.Get("/:id/reactions", h.Reaction.ListReactions)
+	moments.Put("/:id/reactions", h.Reaction.SetReaction)
+	moments.Delete("/:id/reactions", h.Reaction.RemoveReaction)
+
+	mentioned := app.Group("/mentions", middleware.RequireAuth(issuer))
+	mentioned.Get("/", h.Mention.ListMentionedMoments)
+
+	circles := app.Group("/circles", middleware.RequireAuth(issuer))
+	circles.Post("/", h.Circle.CreateCircle)
+	circles.Get("/", h.Circle.ListMyCircles)
+	circles.Get("/:id", h.Circle.GetCircle)
+	circles.Put("/:id", h.Circle.UpdateCircle)
+	circles.Delete("/:id", h.Circle.DissolveCircle)
+	circles.Get("/:id/members", h.Circle.ListMembers)
+	circles.Delete("/:id/members/:userId", h.Circle.RemoveMember)
+	circles.Patch("/:id/members/:userId", h.Circle.UpdateMemberPermissions)
+	circles.Patch("/:id/members/:userId/role", h.Circle.UpdateMemberRole)
+
+	circles.Post("/:id/members/direct", h.CircleInvite.InviteDirect)
+	circles.Get("/:id/invite-link", h.CircleInvite.GetInviteLink)
+	circles.Post("/:id/invite-link", h.CircleInvite.CreateOrRotateInviteLink)
+	circles.Patch("/:id/invite-link/approval", h.CircleInvite.SetInviteLinkRequiresApproval)
+	circles.Post("/:id/invites/:inviteId/revoke", h.CircleInvite.RevokeInvite)
+
+	circles.Get("/:id/join-requests", h.CircleJoinRequest.ListPending)
+	circles.Post("/:id/join-requests/:requestId/approve", h.CircleJoinRequest.Approve)
+	circles.Post("/:id/join-requests/:requestId/reject", h.CircleJoinRequest.Reject)
+
+	circleInvites := app.Group("/circle-invites", middleware.RequireAuth(issuer))
+	circleInvites.Get("/", h.CircleInvite.ListMyPendingInvites)
+	circleInvites.Post("/:id/accept", h.CircleInvite.AcceptInvite)
+	circleInvites.Post("/:id/decline", h.CircleInvite.DeclineInvite)
+
+	circleJoinRequests := app.Group("/circle-join-requests", middleware.RequireAuth(issuer))
+	circleJoinRequests.Post("/", h.CircleJoinRequest.FollowInviteLink)
+	circleJoinRequests.Post("/:id/cancel", h.CircleJoinRequest.Cancel)
 }

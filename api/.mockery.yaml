@@ -22,3 +22,22 @@ packages:
 
       ThreadAccessChecker:
       MomentAccessChecker:
+      MomentReader:
+
+      CircleRepository:
+      CircleAccessChecker:
+      CircleShareChecker:
+      CircleInviteRepository:
+      CircleInviteLinkResolver:
+      CircleJoinRequestRepository:
+
+      MentionRepository:
+
+      CommentRepository:
+      ResponseEventRepository:
+      ReactionRepository:
+
+      UserBlockChecker:
+      UserKnownChecker:
+      UserMuteChecker:
+      UserPolicyReader:

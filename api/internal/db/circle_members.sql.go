@@ -11,8 +11,42 @@ import (
 	"github.com/google/uuid"
 )
 
-const addCircleMembers = `-- name: AddCircleMembers :many
+const addCircleCreatorAsAdmin = `-- name: AddCircleCreatorAsAdmin :one
 
+INSERT INTO circle_members(circle_id, user_id, role, can_invite, can_capture)
+VALUES ($1, $2, 'admin', TRUE, TRUE)
+RETURNING circle_id, user_id, role, can_invite, can_capture, joined_at, left_at
+`
+
+type AddCircleCreatorAsAdminParams struct {
+	CircleID uuid.UUID
+	UserID   uuid.UUID
+}
+
+// Beyond the Circle Invite flow queries, this file also carries general
+// membership management: role changes, permission edits, leaving, and
+// listing a Circle's roster.
+// The one write CreateCircle's caller must run in the same transaction
+// right after inserting the Circle row (FEATURES.md, Circle
+// Permissions: "The user who creates a circle becomes its admin").
+// Deliberately separate from AddCircleMembers, which is the invite
+// flow's admit path and always seats people as plain members.
+func (q *Queries) AddCircleCreatorAsAdmin(ctx context.Context, arg AddCircleCreatorAsAdminParams) (CircleMember, error) {
+	row := q.db.QueryRow(ctx, addCircleCreatorAsAdmin, arg.CircleID, arg.UserID)
+	var i CircleMember
+	err := row.Scan(
+		&i.CircleID,
+		&i.UserID,
+		&i.Role,
+		&i.CanInvite,
+		&i.CanCapture,
+		&i.JoinedAt,
+		&i.LeftAt,
+	)
+	return i, err
+}
+
+const addCircleMembers = `-- name: AddCircleMembers :many
 INSERT INTO circle_members(circle_id, user_id)
 SELECT $1::uuid, member_id
 FROM unnest($2::uuid[]) AS member_id
@@ -31,9 +65,6 @@ type AddCircleMembersParams struct {
 	UserIds  []uuid.UUID
 }
 
-// Only the queries the Circle Invite flow needs; general membership
-// management (role changes, permission edits, leaving, listing a
-// Circle's roster) is not written yet.
 // The single write that admits people, whichever path they came in by:
 // a direct add, an accepted username invite, or an approved join
 // request. Takes a set because a direct add names several users at once
@@ -156,6 +187,193 @@ type GetActiveCircleMemberParams struct {
 // the migration's comment on circle_members.
 func (q *Queries) GetActiveCircleMember(ctx context.Context, arg GetActiveCircleMemberParams) (CircleMember, error) {
 	row := q.db.QueryRow(ctx, getActiveCircleMember, arg.CircleID, arg.UserID)
+	var i CircleMember
+	err := row.Scan(
+		&i.CircleID,
+		&i.UserID,
+		&i.Role,
+		&i.CanInvite,
+		&i.CanCapture,
+		&i.JoinedAt,
+		&i.LeftAt,
+	)
+	return i, err
+}
+
+const leaveCircle = `-- name: LeaveCircle :exec
+UPDATE circle_members
+SET left_at = NOW()
+WHERE circle_id = $1
+    AND user_id = $2
+    AND left_at IS NULL
+`
+
+type LeaveCircleParams struct {
+	CircleID uuid.UUID
+	UserID   uuid.UUID
+}
+
+// Self-service departure. :exec — a mismatched WHERE (not a member,
+// already left) is a silent no-op; the caller already knows the actor's
+// own membership state without re-checking here.
+func (q *Queries) LeaveCircle(ctx context.Context, arg LeaveCircleParams) error {
+	_, err := q.db.Exec(ctx, leaveCircle, arg.CircleID, arg.UserID)
+	return err
+}
+
+const listActiveCircleMembers = `-- name: ListActiveCircleMembers :many
+SELECT circle_id, user_id, role, can_invite, can_capture, joined_at, left_at
+FROM circle_members
+WHERE circle_id = $1
+    AND left_at IS NULL
+ORDER BY joined_at
+`
+
+// The Circle's roster.
+func (q *Queries) ListActiveCircleMembers(ctx context.Context, circleID uuid.UUID) ([]CircleMember, error) {
+	rows, err := q.db.Query(ctx, listActiveCircleMembers, circleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CircleMember{}
+	for rows.Next() {
+		var i CircleMember
+		if err := rows.Scan(
+			&i.CircleID,
+			&i.UserID,
+			&i.Role,
+			&i.CanInvite,
+			&i.CanCapture,
+			&i.JoinedAt,
+			&i.LeftAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const removeCircleMember = `-- name: RemoveCircleMember :exec
+UPDATE circle_members AS target
+SET left_at = NOW()
+WHERE target.circle_id = $1
+    AND target.user_id = $2
+    AND target.left_at IS NULL
+    AND EXISTS (
+        SELECT 1 FROM circle_members AS remover
+        WHERE remover.circle_id = $1
+            AND remover.user_id = $3
+            AND remover.left_at IS NULL
+            AND remover.role = 'admin'
+    )
+`
+
+type RemoveCircleMemberParams struct {
+	CircleID        uuid.UUID
+	UserID          uuid.UUID
+	RemovedByUserID uuid.UUID
+}
+
+// Admin-forced removal of someone else. Requires the actor to be an
+// active admin, checked in the same statement so a non-admin's attempt
+// and a foreign circle_id/user_id are indistinguishable — same
+// no-row-is-a-no-op reasoning as LeaveCircle. The target row is aliased
+// explicitly since the EXISTS subquery below also scans circle_members —
+// an unaliased target reads as ambiguous to sqlc's analyzer otherwise.
+func (q *Queries) RemoveCircleMember(ctx context.Context, arg RemoveCircleMemberParams) error {
+	_, err := q.db.Exec(ctx, removeCircleMember, arg.CircleID, arg.UserID, arg.RemovedByUserID)
+	return err
+}
+
+const updateCircleMemberPermissions = `-- name: UpdateCircleMemberPermissions :one
+UPDATE circle_members AS target
+SET can_invite = $1,
+    can_capture = $2
+WHERE target.circle_id = $3
+    AND target.user_id = $4
+    AND target.left_at IS NULL
+    AND EXISTS (
+        SELECT 1 FROM circle_members AS actor
+        WHERE actor.circle_id = $3
+            AND actor.user_id = $5
+            AND actor.left_at IS NULL
+            AND actor.role = 'admin'
+    )
+RETURNING circle_id, user_id, role, can_invite, can_capture, joined_at, left_at
+`
+
+type UpdateCircleMemberPermissionsParams struct {
+	CanInvite       bool
+	CanCapture      bool
+	CircleID        uuid.UUID
+	UserID          uuid.UUID
+	ChangedByUserID uuid.UUID
+}
+
+// Admin-only. Setting can_invite = FALSE on an active admin row would
+// violate chk_circle_members_admin_can_invite and fails at the database
+// level — callers should only offer this control for 'member' rows.
+func (q *Queries) UpdateCircleMemberPermissions(ctx context.Context, arg UpdateCircleMemberPermissionsParams) (CircleMember, error) {
+	row := q.db.QueryRow(ctx, updateCircleMemberPermissions,
+		arg.CanInvite,
+		arg.CanCapture,
+		arg.CircleID,
+		arg.UserID,
+		arg.ChangedByUserID,
+	)
+	var i CircleMember
+	err := row.Scan(
+		&i.CircleID,
+		&i.UserID,
+		&i.Role,
+		&i.CanInvite,
+		&i.CanCapture,
+		&i.JoinedAt,
+		&i.LeftAt,
+	)
+	return i, err
+}
+
+const updateCircleMemberRole = `-- name: UpdateCircleMemberRole :one
+UPDATE circle_members AS target
+SET role = $1,
+    can_invite = CASE WHEN $1::circle_role = 'admin' THEN TRUE ELSE target.can_invite END
+WHERE target.circle_id = $2
+    AND target.user_id = $3
+    AND target.left_at IS NULL
+    AND EXISTS (
+        SELECT 1 FROM circle_members AS actor
+        WHERE actor.circle_id = $2
+            AND actor.user_id = $4
+            AND actor.left_at IS NULL
+            AND actor.role = 'admin'
+    )
+RETURNING circle_id, user_id, role, can_invite, can_capture, joined_at, left_at
+`
+
+type UpdateCircleMemberRoleParams struct {
+	Role            CircleRole
+	CircleID        uuid.UUID
+	UserID          uuid.UUID
+	ChangedByUserID uuid.UUID
+}
+
+// Admin-only, same actor-check shape as RemoveCircleMember. Promoting to
+// 'admin' also forces can_invite = TRUE in the same statement —
+// chk_circle_members_admin_can_invite requires it, and leaving that to a
+// second call would let the row violate the constraint in between.
+func (q *Queries) UpdateCircleMemberRole(ctx context.Context, arg UpdateCircleMemberRoleParams) (CircleMember, error) {
+	row := q.db.QueryRow(ctx, updateCircleMemberRole,
+		arg.Role,
+		arg.CircleID,
+		arg.UserID,
+		arg.ChangedByUserID,
+	)
 	var i CircleMember
 	err := row.Scan(
 		&i.CircleID,

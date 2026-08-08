@@ -17,6 +17,7 @@ import (
 
 var _ usecase.MomentRepository = (*momentRepository)(nil)
 var _ usecase.MomentAccessChecker = (*momentRepository)(nil)
+var _ usecase.MomentReader = (*momentRepository)(nil)
 
 type momentRepository struct {
 	pool *pgxpool.Pool
@@ -132,6 +133,47 @@ func (r *momentRepository) Search(ctx context.Context, userID uuid.UUID, query s
 		return nil, fmt.Errorf("search moments: %w", err)
 	}
 	return toEntityMoments(rows), nil
+}
+
+// GetWithAccess implements [usecase.MomentReader]. Unlike GetByID, the
+// viewer here is frequently not the owner — access is granted through
+// ownership, an active mention, a Circle share, or membership in the
+// Circle that natively owns the Moment's Thread. Used by Mention and
+// Response.
+func (r *momentRepository) GetWithAccess(ctx context.Context, id, viewerID uuid.UUID) (*entity.Moment, error) {
+	row, err := r.q.GetMomentWithAccess(ctx, db.GetMomentWithAccessParams{ID: id, UserID: viewerID})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("get moment with access: %w", err)
+	}
+	return toEntityMoment(row), nil
+}
+
+// ListVisibleCircleIDs implements [usecase.MomentReader].
+func (r *momentRepository) ListVisibleCircleIDs(ctx context.Context, momentID, viewerID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := r.q.ListMomentVisibleCircleIDs(ctx, db.ListMomentVisibleCircleIDsParams{MomentID: momentID, UserID: viewerID})
+	if err != nil {
+		return nil, fmt.Errorf("list moment visible circle ids: %w", err)
+	}
+	ids := make([]uuid.UUID, len(rows))
+	for i, row := range rows {
+		ids[i] = uuid.UUID(row.Bytes)
+	}
+	return ids, nil
+}
+
+// IsActivelyMentioned implements [usecase.MomentReader].
+func (r *momentRepository) IsActivelyMentioned(ctx context.Context, momentID, viewerID uuid.UUID) (bool, error) {
+	mentioned, err := r.q.IsUserActivelyMentioned(ctx, db.IsUserActivelyMentionedParams{
+		MomentID:        momentID,
+		MentionedUserID: ptrToPgUUID(&viewerID),
+	})
+	if err != nil {
+		return false, fmt.Errorf("checking active mention: %w", err)
+	}
+	return mentioned, nil
 }
 
 // WithTransaction implements [usecase.MomentRepository].

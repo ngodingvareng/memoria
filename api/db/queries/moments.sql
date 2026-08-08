@@ -159,6 +159,67 @@ WHERE user_id = sqlc.arg(user_id)
 GROUP BY occurred_on
 ORDER BY occurred_on;
 
+-- name: GetMomentWithAccess :one
+-- "Can this viewer reach this Moment at all" — true for the owner, an
+-- active (non-removed) mentioned user, an active member of a Circle it
+-- was shared into, or an active member of the Circle that natively owns
+-- its Thread. Mirrors threads.GetThreadWithAccess. Used by Mention and
+-- Response, where the actor is frequently not the owner — GetMomentByID
+-- deliberately doesn't cover that (see its own comment).
+SELECT moments.*
+FROM moments
+WHERE moments.id = sqlc.arg(id)
+    AND moments.deleted_at IS NULL
+    AND (
+        moments.user_id = sqlc.arg(user_id)
+        OR EXISTS (
+            SELECT 1 FROM moment_mentions
+            WHERE moment_id = moments.id
+                AND mentioned_user_id = sqlc.arg(user_id)
+                AND removed_at IS NULL
+        )
+        OR EXISTS (
+            SELECT 1 FROM moment_circles mc
+                JOIN circle_members cm ON cm.circle_id = mc.circle_id
+            WHERE mc.moment_id = moments.id
+                AND cm.user_id = sqlc.arg(user_id)
+                AND cm.left_at IS NULL
+        )
+        OR (
+            moments.thread_id IS NOT NULL
+            AND EXISTS (
+                SELECT 1 FROM threads t
+                    JOIN circle_members cm ON cm.circle_id = t.circle_id
+                WHERE t.id = moments.thread_id
+                    AND cm.user_id = sqlc.arg(user_id)
+                    AND cm.left_at IS NULL
+            )
+        )
+    );
+
+-- name: ListMomentVisibleCircleIDs :many
+-- Which Circle audiences sqlc.arg(user_id) actually shares with this
+-- Moment: the intersection of {its native Thread's Circle, every Circle
+-- it's been shared into} with the Circles the viewer is currently an
+-- active member of. Backs both authorizing a specific circle_id on
+-- Comment/Reaction create, and scoping ListComments/ListReactions.
+WITH candidate_circles AS (
+    SELECT t.circle_id AS circle_id
+    FROM moments m
+        JOIN threads t ON t.id = m.thread_id
+    WHERE m.id = sqlc.arg(moment_id)
+        AND t.circle_id IS NOT NULL
+    UNION
+    SELECT mc.circle_id AS circle_id
+    FROM moment_circles mc
+    WHERE mc.moment_id = sqlc.arg(moment_id)
+)
+SELECT DISTINCT cc.circle_id
+FROM candidate_circles cc
+    JOIN circle_members cm ON cm.circle_id = cc.circle_id
+WHERE cm.user_id = sqlc.arg(user_id)
+    AND cm.left_at IS NULL;
+
 -- name: GetSettlingTimeStats :many
 -- Raw data for the Time to Tell chart (FEATURES.md, Rhythms): how long
 -- a Moment took to settle into a record. Scoped to origin = 'manual'

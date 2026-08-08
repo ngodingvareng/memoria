@@ -139,6 +139,897 @@ const docTemplate = `{
                 }
             }
         },
+        "/circle-invites": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-invites"
+                ],
+                "summary": "List my pending circle invites",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCircleInvitesResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/circle-invites/{id}/accept": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-invites"
+                ],
+                "summary": "Accept a circle invite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Invite ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleMemberResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circle-invites/{id}/decline": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-invites"
+                ],
+                "summary": "Decline a circle invite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Invite ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleInviteResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circle-join-requests": {
+            "post": {
+                "description": "Joins immediately if the link doesn't require approval, otherwise opens a join request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-join-requests"
+                ],
+                "summary": "Follow a circle invite link",
+                "parameters": [
+                    {
+                        "description": "Invite link token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.FollowInviteLinkRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_FollowInviteLinkResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circle-join-requests/{id}/cancel": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-join-requests"
+                ],
+                "summary": "Cancel my own circle join request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Join request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleJoinRequestResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles": {
+            "get": {
+                "description": "Every Circle the authenticated user is currently an active member of",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circles"
+                ],
+                "summary": "List my circles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCirclesResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new private Circle; the caller becomes its admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circles"
+                ],
+                "summary": "Create a circle",
+                "parameters": [
+                    {
+                        "description": "Create circle request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateCircleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}": {
+            "get": {
+                "description": "Get a single Circle; requires the caller to be an active member",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circles"
+                ],
+                "summary": "Get a circle by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Full-representation update of a Circle; admin-only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circles"
+                ],
+                "summary": "Update a circle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update circle request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateCircleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Soft-deletes a Circle; admin-only",
+                "tags": [
+                    "circles"
+                ],
+                "summary": "Dissolve a circle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/invite-link": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-invites"
+                ],
+                "summary": "Get a circle's active invite link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleInviteResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "The old link (if any) stops working the moment the new one exists; the raw token is only ever returned here",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-invites"
+                ],
+                "summary": "Create or rotate a circle's invite link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Link options",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateOrRotateInviteLinkRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleInviteLinkResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/invite-link/approval": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-invites"
+                ],
+                "summary": "Toggle whether a circle's invite link requires approval",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New approval requirement",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SetInviteLinkRequiresApprovalRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleInviteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/invites/{inviteId}/revoke": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-invites"
+                ],
+                "summary": "Revoke a circle invite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Invite ID",
+                        "name": "inviteId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleInviteResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/join-requests": {
+            "get": {
+                "description": "The approval queue; requires the caller to have invite privileges",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-join-requests"
+                ],
+                "summary": "List a circle's pending join requests",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Requests per page (default 20, max 100)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCircleJoinRequestsResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/join-requests/{requestId}/approve": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-join-requests"
+                ],
+                "summary": "Approve a circle join request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Join request ID",
+                        "name": "requestId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleMemberResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/join-requests/{requestId}/reject": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-join-requests"
+                ],
+                "summary": "Reject a circle join request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Join request ID",
+                        "name": "requestId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleJoinRequestResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/members": {
+            "get": {
+                "description": "The Circle's active roster; requires the caller to be an active member",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circles"
+                ],
+                "summary": "List a circle's members",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCircleMembersResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/members/direct": {
+            "post": {
+                "description": "Add users by username; joins immediately unless the recipient's own privacy setting holds it back as a pending invite",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circle-invites"
+                ],
+                "summary": "Directly invite users to a circle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Usernames to invite",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.InviteDirectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_InviteDirectResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/members/{userId}": {
+            "delete": {
+                "description": "Self-leave when userId is the caller's own id, otherwise an admin-forced removal",
+                "tags": [
+                    "circles"
+                ],
+                "summary": "Remove a circle member",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Target user ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Admin-only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circles"
+                ],
+                "summary": "Change a circle member's permissions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Target user ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update permissions request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateCircleMemberPermissionsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleMemberResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/members/{userId}/role": {
+            "patch": {
+                "description": "Admin-only",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "circles"
+                ],
+                "summary": "Change a circle member's role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Target user ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update role request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateCircleMemberRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleMemberResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/mentions": {
+            "get": {
+                "description": "\"Mentioned Moments\" — every Moment the authenticated user has ever been mentioned in",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mentions"
+                ],
+                "summary": "List moments I'm mentioned in",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Moments per page (default 20, max 100)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMomentsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/moments": {
             "get": {
                 "description": "The authenticated user's personal archive timeline, newest occurrence first",
@@ -389,6 +1280,184 @@ const docTemplate = `{
                 }
             }
         },
+        "/moments/{id}/comments": {
+            "get": {
+                "description": "Every comment visible to the caller across every context they have access to",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "comments"
+                ],
+                "summary": "List a moment's comments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCommentsResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "A flat contextual discussion space under a Moment — never threaded",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "comments"
+                ],
+                "summary": "Comment on a moment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Comment body and audience",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateCommentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CommentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/moments/{id}/comments/{commentId}": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "comments"
+                ],
+                "summary": "Edit a comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comment ID",
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateCommentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CommentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "comments"
+                ],
+                "summary": "Delete a comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comment ID",
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/moments/{id}/images": {
             "get": {
                 "produces": [
@@ -490,6 +1559,356 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/moments/{id}/mentions": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mentions"
+                ],
+                "summary": "List a moment's mentions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMentionsResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Names another user present in a personal Moment; automatically shares the Moment with them",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mentions"
+                ],
+                "summary": "Mention a user on a moment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Username to mention",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateMentionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_MentionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/moments/{id}/mentions/leave": {
+            "post": {
+                "description": "The mentioned user removing themselves; the Moment stays with its owner, unchanged, and no notification is sent",
+                "tags": [
+                    "mentions"
+                ],
+                "summary": "Leave a mention (mentioned user)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/moments/{id}/mentions/{mentionId}": {
+            "delete": {
+                "description": "The Moment owner removing a mention they added by mistake",
+                "tags": [
+                    "mentions"
+                ],
+                "summary": "Delete a mention (owner)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mention ID",
+                        "name": "mentionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/moments/{id}/reactions": {
+            "get": {
+                "description": "Who reacted, never how many (FEATURES.md, Response)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reactions"
+                ],
+                "summary": "List a moment's reactions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListReactionsResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Reacting again with a different kind just changes it; there is no separate update endpoint",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reactions"
+                ],
+                "summary": "React to a moment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reaction kind and audience",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SetReactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ReactionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "reactions"
+                ],
+                "summary": "Remove my reaction from a moment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Circle audience (omit for the mention context)",
+                        "name": "circle_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/moments/{id}/share": {
+            "post": {
+                "description": "The mention flow's optional \"Share to circle too?\" step — never a standalone share action",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mentions"
+                ],
+                "summary": "Share a moment to a circle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Target circle",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ShareMomentToCircleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_MomentCircleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/moments/{id}/share/{circleId}": {
+            "delete": {
+                "tags": [
+                    "mentions"
+                ],
+                "summary": "Unshare a moment from a circle",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "circleId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
                     }
                 }
             }
@@ -857,6 +2276,241 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleInviteLinkResponse": {
+            "type": "object",
+            "properties": {
+                "invite": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleInviteResponse"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "a1b2c3..."
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleInviteResponse": {
+            "type": "object",
+            "properties": {
+                "circle_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "invited_by_user_id": {
+                    "type": "string"
+                },
+                "invitee_user_id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string",
+                    "example": "username"
+                },
+                "requires_approval": {
+                    "type": "boolean"
+                },
+                "responded_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "pending"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleJoinRequestResponse": {
+            "type": "object",
+            "properties": {
+                "circle_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "decided_at": {
+                    "type": "string"
+                },
+                "decided_by_user_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "invite_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "pending"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleMemberResponse": {
+            "type": "object",
+            "properties": {
+                "can_capture": {
+                    "type": "boolean"
+                },
+                "can_invite": {
+                    "type": "boolean"
+                },
+                "circle_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "joined_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "admin"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleResponse": {
+            "type": "object",
+            "properties": {
+                "color_hex": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "created_by_user_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dissolved_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "image_path": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "NgodingVareng"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CommentResponse": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "example": "Oh man, I remember this!"
+                },
+                "circle_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "moment_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateCircleRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "color_hex": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "image_path": {
+                    "type": "string",
+                    "maxLength": 1024
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "example": "NgodingVareng"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateCommentRequest": {
+            "type": "object",
+            "required": [
+                "body"
+            ],
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "maxLength": 10000,
+                    "minLength": 1
+                },
+                "circle_id": {
+                    "description": "CircleID omitted means the mention context; set, it names which\nCircle audience the comment is posted in (FEATURES.md, Response).",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateMentionRequest": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "maxLength": 30,
+                    "minLength": 3
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateMomentRequest": {
             "type": "object",
             "required": [
@@ -916,6 +2570,14 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateOrRotateInviteLinkRequest": {
+            "type": "object",
+            "properties": {
+                "requires_approval": {
+                    "type": "boolean"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CreateThreadRequest": {
             "type": "object",
             "required": [
@@ -939,6 +2601,133 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.FollowInviteLinkRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.FollowInviteLinkResponse": {
+            "type": "object",
+            "properties": {
+                "join_request": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleJoinRequestResponse"
+                },
+                "member": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleMemberResponse"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.InviteDirectRequest": {
+            "type": "object",
+            "required": [
+                "usernames"
+            ],
+            "properties": {
+                "usernames": {
+                    "type": "array",
+                    "maxItems": 50,
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.InviteDirectResponse": {
+            "type": "object",
+            "properties": {
+                "added_members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleMemberResponse"
+                    }
+                },
+                "pending_invites": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleInviteResponse"
+                    }
+                },
+                "skipped_usernames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCircleInvitesResponse": {
+            "type": "object",
+            "properties": {
+                "invites": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleInviteResponse"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCircleJoinRequestsResponse": {
+            "type": "object",
+            "properties": {
+                "join_requests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleJoinRequestResponse"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCircleMembersResponse": {
+            "type": "object",
+            "properties": {
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleMemberResponse"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCirclesResponse": {
+            "type": "object",
+            "properties": {
+                "circles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleResponse"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCommentsResponse": {
+            "type": "object",
+            "properties": {
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CommentResponse"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMentionsResponse": {
+            "type": "object",
+            "properties": {
+                "mentions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MentionResponse"
+                    }
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMomentsResponse": {
             "type": "object",
             "properties": {
@@ -950,6 +2739,17 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListReactionsResponse": {
+            "type": "object",
+            "properties": {
+                "reactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ReactionResponse"
+                    }
                 }
             }
         },
@@ -985,6 +2785,50 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UserResponse"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MentionResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "display_name": {
+                    "type": "string",
+                    "example": "Gede"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "mentioned_user_id": {
+                    "type": "string"
+                },
+                "moment_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentCircleResponse": {
+            "type": "object",
+            "properties": {
+                "circle_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "moment_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "shared_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "shared_by_user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -1082,6 +2926,33 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ReactionResponse": {
+            "type": "object",
+            "properties": {
+                "circle_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "kind": {
+                    "type": "string",
+                    "example": "heart"
+                },
+                "moment_id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.RegisterRequest": {
             "type": "object",
             "required": [
@@ -1127,6 +2998,46 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ThreadResponse"
                     }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SetInviteLinkRequiresApprovalRequest": {
+            "type": "object",
+            "properties": {
+                "requires_approval": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SetReactionRequest": {
+            "type": "object",
+            "required": [
+                "kind"
+            ],
+            "properties": {
+                "circle_id": {
+                    "description": "CircleID omitted means the mention context — see CreateCommentRequest.",
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "heart",
+                        "joy",
+                        "tender"
+                    ],
+                    "example": "heart"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ShareMomentToCircleRequest": {
+            "type": "object",
+            "required": [
+                "circle_id"
+            ],
+            "properties": {
+                "circle_id": {
+                    "type": "string"
                 }
             }
         },
@@ -1183,6 +3094,71 @@ const docTemplate = `{
                 "user_id": {
                     "type": "string",
                     "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateCircleMemberPermissionsRequest": {
+            "type": "object",
+            "properties": {
+                "can_capture": {
+                    "type": "boolean"
+                },
+                "can_invite": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateCircleMemberRoleRequest": {
+            "type": "object",
+            "required": [
+                "role"
+            ],
+            "properties": {
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "member"
+                    ],
+                    "example": "admin"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateCircleRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "color_hex": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "image_path": {
+                    "type": "string",
+                    "maxLength": 1024
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "example": "NgodingVareng"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateCommentRequest": {
+            "type": "object",
+            "required": [
+                "body"
+            ],
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "maxLength": 10000,
+                    "minLength": 1
                 }
             }
         },
@@ -1335,6 +3311,244 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleInviteLinkResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleInviteLinkResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleInviteResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleInviteResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleJoinRequestResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleJoinRequestResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleMemberResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleMemberResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CircleResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CircleResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_CommentResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CommentResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_FollowInviteLinkResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.FollowInviteLinkResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_InviteDirectResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.InviteDirectResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCircleInvitesResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCircleInvitesResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCircleJoinRequestsResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCircleJoinRequestsResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCircleMembersResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCircleMembersResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCirclesResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCirclesResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCommentsResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCommentsResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMentionsResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMentionsResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMomentsResponse": {
             "type": "object",
             "properties": {
@@ -1352,6 +3566,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListReactionsResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListReactionsResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_LoginResponse": {
             "type": "object",
             "properties": {
@@ -1361,6 +3592,40 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.LoginResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_MentionResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MentionResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_MomentCircleResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentCircleResponse"
                 },
                 "errors": {},
                 "message": {
@@ -1395,6 +3660,23 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ReactionResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ReactionResponse"
                 },
                 "errors": {},
                 "message": {

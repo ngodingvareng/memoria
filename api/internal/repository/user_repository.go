@@ -80,3 +80,15 @@ func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Use
 	return toEntityUser(row), nil
 
 }
+
+// GetByUsername implements [usecase.UserRepository].
+func (r *userRepository) GetByUsername(ctx context.Context, username string) (*entity.User, error) {
+	row, err := r.q.GetUserByUsername(ctx, username)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("get user by username: %w", err)
+	}
+	return toEntityUser(row), nil
+}

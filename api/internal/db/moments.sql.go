@@ -238,6 +238,79 @@ func (q *Queries) GetMomentByUserAndClientID(ctx context.Context, arg GetMomentB
 	return i, err
 }
 
+const getMomentWithAccess = `-- name: GetMomentWithAccess :one
+SELECT moments.id, moments.user_id, moments.thread_id, moments.origin, moments.occurred_at, moments.occurred_local, moments.occurred_utc_offset_minutes, moments.occurred_on, moments.recorded_at, moments.settling_time, moments.note, moments.color_hex, moments.place_name, moments.latitude, moments.longitude, moments.search_document, moments.client_id, moments.last_viewed_at, moments.created_at, moments.updated_at, moments.deleted_at
+FROM moments
+WHERE moments.id = $1
+    AND moments.deleted_at IS NULL
+    AND (
+        moments.user_id = $2
+        OR EXISTS (
+            SELECT 1 FROM moment_mentions
+            WHERE moment_id = moments.id
+                AND mentioned_user_id = $2
+                AND removed_at IS NULL
+        )
+        OR EXISTS (
+            SELECT 1 FROM moment_circles mc
+                JOIN circle_members cm ON cm.circle_id = mc.circle_id
+            WHERE mc.moment_id = moments.id
+                AND cm.user_id = $2
+                AND cm.left_at IS NULL
+        )
+        OR (
+            moments.thread_id IS NOT NULL
+            AND EXISTS (
+                SELECT 1 FROM threads t
+                    JOIN circle_members cm ON cm.circle_id = t.circle_id
+                WHERE t.id = moments.thread_id
+                    AND cm.user_id = $2
+                    AND cm.left_at IS NULL
+            )
+        )
+    )
+`
+
+type GetMomentWithAccessParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+// "Can this viewer reach this Moment at all" — true for the owner, an
+// active (non-removed) mentioned user, an active member of a Circle it
+// was shared into, or an active member of the Circle that natively owns
+// its Thread. Mirrors threads.GetThreadWithAccess. Used by Mention and
+// Response, where the actor is frequently not the owner — GetMomentByID
+// deliberately doesn't cover that (see its own comment).
+func (q *Queries) GetMomentWithAccess(ctx context.Context, arg GetMomentWithAccessParams) (Moment, error) {
+	row := q.db.QueryRow(ctx, getMomentWithAccess, arg.ID, arg.UserID)
+	var i Moment
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ThreadID,
+		&i.Origin,
+		&i.OccurredAt,
+		&i.OccurredLocal,
+		&i.OccurredUtcOffsetMinutes,
+		&i.OccurredOn,
+		&i.RecordedAt,
+		&i.SettlingTime,
+		&i.Note,
+		&i.ColorHex,
+		&i.PlaceName,
+		&i.Latitude,
+		&i.Longitude,
+		&i.SearchDocument,
+		&i.ClientID,
+		&i.LastViewedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const getSettlingTimeStats = `-- name: GetSettlingTimeStats :many
 SELECT
     id,
@@ -282,6 +355,55 @@ func (q *Queries) GetSettlingTimeStats(ctx context.Context, userID uuid.UUID) ([
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMomentVisibleCircleIDs = `-- name: ListMomentVisibleCircleIDs :many
+WITH candidate_circles AS (
+    SELECT t.circle_id AS circle_id
+    FROM moments m
+        JOIN threads t ON t.id = m.thread_id
+    WHERE m.id = $2
+        AND t.circle_id IS NOT NULL
+    UNION
+    SELECT mc.circle_id AS circle_id
+    FROM moment_circles mc
+    WHERE mc.moment_id = $2
+)
+SELECT DISTINCT cc.circle_id
+FROM candidate_circles cc
+    JOIN circle_members cm ON cm.circle_id = cc.circle_id
+WHERE cm.user_id = $1
+    AND cm.left_at IS NULL
+`
+
+type ListMomentVisibleCircleIDsParams struct {
+	UserID   uuid.UUID
+	MomentID uuid.UUID
+}
+
+// Which Circle audiences sqlc.arg(user_id) actually shares with this
+// Moment: the intersection of {its native Thread's Circle, every Circle
+// it's been shared into} with the Circles the viewer is currently an
+// active member of. Backs both authorizing a specific circle_id on
+// Comment/Reaction create, and scoping ListComments/ListReactions.
+func (q *Queries) ListMomentVisibleCircleIDs(ctx context.Context, arg ListMomentVisibleCircleIDsParams) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, listMomentVisibleCircleIDs, arg.UserID, arg.MomentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.UUID{}
+	for rows.Next() {
+		var circle_id pgtype.UUID
+		if err := rows.Scan(&circle_id); err != nil {
+			return nil, err
+		}
+		items = append(items, circle_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

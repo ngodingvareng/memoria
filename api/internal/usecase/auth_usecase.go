@@ -18,6 +18,11 @@ type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) (*entity.User, error)
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
+	// GetByUsername backs @mention resolution and Circle Invite's
+	// "invite by username" path. Callers doing the latter must
+	// additionally check DiscoverableByUsername — see the
+	// GetUserByUsername query comment.
+	GetByUsername(ctx context.Context, username string) (*entity.User, error)
 }
 
 type UserAccountRepository interface {

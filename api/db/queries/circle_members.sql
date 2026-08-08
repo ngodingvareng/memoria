@@ -1,6 +1,93 @@
--- Only the queries the Circle Invite flow needs; general membership
--- management (role changes, permission edits, leaving, listing a
--- Circle's roster) is not written yet.
+-- Beyond the Circle Invite flow queries, this file also carries general
+-- membership management: role changes, permission edits, leaving, and
+-- listing a Circle's roster.
+
+-- name: AddCircleCreatorAsAdmin :one
+-- The one write CreateCircle's caller must run in the same transaction
+-- right after inserting the Circle row (FEATURES.md, Circle
+-- Permissions: "The user who creates a circle becomes its admin").
+-- Deliberately separate from AddCircleMembers, which is the invite
+-- flow's admit path and always seats people as plain members.
+INSERT INTO circle_members(circle_id, user_id, role, can_invite, can_capture)
+VALUES (sqlc.arg(circle_id), sqlc.arg(user_id), 'admin', TRUE, TRUE)
+RETURNING *;
+
+-- name: ListActiveCircleMembers :many
+-- The Circle's roster.
+SELECT *
+FROM circle_members
+WHERE circle_id = sqlc.arg(circle_id)
+    AND left_at IS NULL
+ORDER BY joined_at;
+
+-- name: LeaveCircle :exec
+-- Self-service departure. :exec — a mismatched WHERE (not a member,
+-- already left) is a silent no-op; the caller already knows the actor's
+-- own membership state without re-checking here.
+UPDATE circle_members
+SET left_at = NOW()
+WHERE circle_id = sqlc.arg(circle_id)
+    AND user_id = sqlc.arg(user_id)
+    AND left_at IS NULL;
+
+-- name: RemoveCircleMember :exec
+-- Admin-forced removal of someone else. Requires the actor to be an
+-- active admin, checked in the same statement so a non-admin's attempt
+-- and a foreign circle_id/user_id are indistinguishable — same
+-- no-row-is-a-no-op reasoning as LeaveCircle. The target row is aliased
+-- explicitly since the EXISTS subquery below also scans circle_members —
+-- an unaliased target reads as ambiguous to sqlc's analyzer otherwise.
+UPDATE circle_members AS target
+SET left_at = NOW()
+WHERE target.circle_id = sqlc.arg(circle_id)
+    AND target.user_id = sqlc.arg(user_id)
+    AND target.left_at IS NULL
+    AND EXISTS (
+        SELECT 1 FROM circle_members AS remover
+        WHERE remover.circle_id = sqlc.arg(circle_id)
+            AND remover.user_id = sqlc.arg(removed_by_user_id)
+            AND remover.left_at IS NULL
+            AND remover.role = 'admin'
+    );
+
+-- name: UpdateCircleMemberRole :one
+-- Admin-only, same actor-check shape as RemoveCircleMember. Promoting to
+-- 'admin' also forces can_invite = TRUE in the same statement —
+-- chk_circle_members_admin_can_invite requires it, and leaving that to a
+-- second call would let the row violate the constraint in between.
+UPDATE circle_members AS target
+SET role = sqlc.arg(role),
+    can_invite = CASE WHEN sqlc.arg(role)::circle_role = 'admin' THEN TRUE ELSE target.can_invite END
+WHERE target.circle_id = sqlc.arg(circle_id)
+    AND target.user_id = sqlc.arg(user_id)
+    AND target.left_at IS NULL
+    AND EXISTS (
+        SELECT 1 FROM circle_members AS actor
+        WHERE actor.circle_id = sqlc.arg(circle_id)
+            AND actor.user_id = sqlc.arg(changed_by_user_id)
+            AND actor.left_at IS NULL
+            AND actor.role = 'admin'
+    )
+RETURNING *;
+
+-- name: UpdateCircleMemberPermissions :one
+-- Admin-only. Setting can_invite = FALSE on an active admin row would
+-- violate chk_circle_members_admin_can_invite and fails at the database
+-- level — callers should only offer this control for 'member' rows.
+UPDATE circle_members AS target
+SET can_invite = sqlc.arg(can_invite),
+    can_capture = sqlc.arg(can_capture)
+WHERE target.circle_id = sqlc.arg(circle_id)
+    AND target.user_id = sqlc.arg(user_id)
+    AND target.left_at IS NULL
+    AND EXISTS (
+        SELECT 1 FROM circle_members AS actor
+        WHERE actor.circle_id = sqlc.arg(circle_id)
+            AND actor.user_id = sqlc.arg(changed_by_user_id)
+            AND actor.left_at IS NULL
+            AND actor.role = 'admin'
+    )
+RETURNING *;
 
 -- name: AddCircleMembers :many
 -- The single write that admits people, whichever path they came in by:

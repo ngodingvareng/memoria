@@ -85,6 +85,38 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	momentImageUsecase := usecase.NewMomentImageUsecase(momentImageRepo, objectStorage, momentRepo)
 	momentImageHandler := handler.NewMomentImageHandler(momentImageUsecase)
 
+	// 3d. Circle, Mention, Response (Comment/Reaction). userPrivacyRepo
+	// has no usecase of its own — it's passed directly wherever a
+	// UserBlockChecker/UserKnownChecker/UserMuteChecker is needed.
+	userPrivacyRepo := repository.NewUserPrivacyRepository(conn)
+
+	circleRepo := repository.NewCircleRepository(conn)
+	circleUsecase := usecase.NewCircleUsecase(circleRepo)
+	circleHandler := handler.NewCircleHandler(circleUsecase)
+
+	circleInviteRepo := repository.NewCircleInviteRepository(conn)
+	circleInviteUsecase := usecase.NewCircleInviteUsecase(circleInviteRepo, circleRepo, userRepo, userPrivacyRepo, refreshTokenGenerator)
+	circleInviteHandler := handler.NewCircleInviteHandler(circleInviteUsecase)
+
+	circleJoinRequestRepo := repository.NewCircleJoinRequestRepository(conn)
+	circleJoinRequestUsecase := usecase.NewCircleJoinRequestUsecase(circleJoinRequestRepo, circleRepo, circleInviteRepo, refreshTokenGenerator)
+	circleJoinRequestHandler := handler.NewCircleJoinRequestHandler(circleJoinRequestUsecase)
+
+	mentionRepo := repository.NewMentionRepository(conn)
+	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo)
+	mentionHandler := handler.NewMentionHandler(mentionUsecase)
+
+	responseEventRepo := repository.NewResponseEventRepository(conn)
+	responseAccessChecker := usecase.NewResponseAccessChecker(momentRepo, userPrivacyRepo)
+
+	commentRepo := repository.NewCommentRepository(conn)
+	commentUsecase := usecase.NewCommentUsecase(commentRepo, responseAccessChecker, responseEventRepo)
+	commentHandler := handler.NewCommentHandler(commentUsecase)
+
+	reactionRepo := repository.NewReactionRepository(conn)
+	reactionUsecase := usecase.NewReactionUsecase(reactionRepo, responseAccessChecker, responseEventRepo)
+	reactionHandler := handler.NewReactionHandler(reactionUsecase)
+
 	// 4. Fiber app + global middleware.
 	// Renamed the local var from "app" to "fiberApp" — this file's own
 	// package is named "app", and reusing that name for a variable here
@@ -130,11 +162,17 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 
 	// 5. Router
 	rest.SetupRoutes(fiberApp, accessTokenIssuer, authRateLimiter, rest.Handlers{
-		Auth:        authHandler,
-		Thread:      threadHandler,
-		ThreadImage: threadImageHandler,
-		Moment:      momentHandler,
-		MomentImage: momentImageHandler,
+		Auth:              authHandler,
+		Thread:            threadHandler,
+		ThreadImage:       threadImageHandler,
+		Moment:            momentHandler,
+		MomentImage:       momentImageHandler,
+		Circle:            circleHandler,
+		CircleInvite:      circleInviteHandler,
+		CircleJoinRequest: circleJoinRequestHandler,
+		Mention:           mentionHandler,
+		Comment:           commentHandler,
+		Reaction:          reactionHandler,
 	})
 
 	return &Container{

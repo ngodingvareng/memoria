@@ -60,6 +60,31 @@ func (q *Queries) DeleteMomentMention(ctx context.Context, arg DeleteMomentMenti
 	return err
 }
 
+const isUserActivelyMentioned = `-- name: IsUserActivelyMentioned :one
+SELECT EXISTS(
+    SELECT 1
+    FROM moment_mentions
+    WHERE moment_id = $1
+        AND mentioned_user_id = $2
+        AND removed_at IS NULL
+) AS mentioned
+`
+
+type IsUserActivelyMentionedParams struct {
+	MomentID        uuid.UUID
+	MentionedUserID pgtype.UUID
+}
+
+// Backs the mention-context half of ResponseAccessChecker.ResolveAudience:
+// whether userID may act/read in a Moment's mention context (circle_id
+// IS NULL comments/reactions) as something other than its owner.
+func (q *Queries) IsUserActivelyMentioned(ctx context.Context, arg IsUserActivelyMentionedParams) (bool, error) {
+	row := q.db.QueryRow(ctx, isUserActivelyMentioned, arg.MomentID, arg.MentionedUserID)
+	var mentioned bool
+	err := row.Scan(&mentioned)
+	return mentioned, err
+}
+
 const listMentionedMomentsByUserID = `-- name: ListMentionedMomentsByUserID :many
 SELECT moments.id, moments.user_id, moments.thread_id, moments.origin, moments.occurred_at, moments.occurred_local, moments.occurred_utc_offset_minutes, moments.occurred_on, moments.recorded_at, moments.settling_time, moments.note, moments.color_hex, moments.place_name, moments.latitude, moments.longitude, moments.search_document, moments.client_id, moments.last_viewed_at, moments.created_at, moments.updated_at, moments.deleted_at
 FROM moment_mentions
