@@ -35,11 +35,16 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const { accessToken, headers, ...rest } = options;
 
+  // FormData bodies (file uploads) need the browser to set their own
+  // multipart Content-Type with the boundary — forcing application/json
+  // here would send the wrong header and break the server's form parser.
+  const isFormData = rest.body instanceof FormData;
+
   const res = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
     ...rest,
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...headers,
     },
@@ -49,7 +54,11 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const fieldErrors = Array.isArray(body?.errors) ? body.errors : undefined;
-    throw new ApiError(res.status, body?.message ?? 'Request failed', fieldErrors);
+    throw new ApiError(
+      res.status,
+      body?.message ?? 'Request failed',
+      fieldErrors
+    );
   }
 
   return body?.data as T;

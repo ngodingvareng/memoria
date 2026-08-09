@@ -9,6 +9,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useGetThreads } from '@/lib/api/generated/threads/threads';
 import {
   Activity01Icon,
   Album01Icon,
@@ -19,6 +21,9 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+
+// How many threads to surface in the sidebar's "Recent Threads" section.
+const RECENT_THREADS_LIMIT = 5;
 
 // This is sample data.
 const data = {
@@ -58,29 +63,6 @@ const data = {
       url: '/g/1',
     },
   ],
-
-  recent: [
-    {
-      title: 'What is this?',
-      url: '/thread/1',
-    },
-    {
-      title: 'He is not here anymore, so I should go tomorrow',
-      url: '/thread/2',
-    },
-    {
-      title: 'What',
-      url: '/thread/3',
-    },
-    {
-      title: 'PHOBOS <- Holy gd reference',
-      url: '/thread/4',
-    },
-    {
-      title: "There's weird light in front of my house",
-      url: '/thread/5',
-    },
-  ],
 };
 
 export default function AppSidebar({
@@ -89,6 +71,10 @@ export default function AppSidebar({
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
+  const { data: threadsData, isPending: isThreadsPending } = useGetThreads({
+    page_size: RECENT_THREADS_LIMIT,
+  });
+  const recentThreads = threadsData?.threads ?? [];
 
   return (
     <Sidebar
@@ -141,22 +127,33 @@ export default function AppSidebar({
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Recent Threads</SidebarGroupLabel>
-          <SidebarMenu>
-            {data.recent.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  render={
-                    <Link to={item.url}>
-                      <span className="min-w-0 truncate">{item.title}</span>
-                    </Link>
-                  }
-                />
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        {(isThreadsPending || recentThreads.length > 0) && (
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel>Recent Threads</SidebarGroupLabel>
+            <SidebarMenu>
+              {isThreadsPending
+                ? Array.from({ length: RECENT_THREADS_LIMIT }).map((_, i) => (
+                    <SidebarMenuItem key={i}>
+                      <Skeleton className="h-8 w-full" />
+                    </SidebarMenuItem>
+                  ))
+                : recentThreads.map((thread) => (
+                    <SidebarMenuItem key={thread.id}>
+                      <SidebarMenuButton
+                        isActive={pathname === `/thread/${thread.id}`}
+                        render={
+                          <Link to="/thread/$id" params={{ id: thread.id! }}>
+                            <span className="min-w-0 truncate">
+                              {thread.name}
+                            </span>
+                          </Link>
+                        }
+                      />
+                    </SidebarMenuItem>
+                  ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <div className="text-xs flex flex-col gap-2 px-2 py-1">

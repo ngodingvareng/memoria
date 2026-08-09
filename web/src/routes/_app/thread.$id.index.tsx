@@ -3,13 +3,17 @@ import { DateTimeDialog } from '@/components/dialogs/datetime-dialog';
 import { ShareDialog } from '@/components/dialogs/share-dialog';
 
 import Wrapper from '@/components/wrapper';
-import { ThreadHeader, ThreadHero } from '@/features/threads';
 import {
   MomentInput,
   MomentList,
   type MomentCardParam,
 } from '@/features/moments';
+import { ThreadHeader, ThreadHero } from '@/features/threads';
 import { dummyNotes } from '@/lib/dummies';
+import {
+  useGetThreadsId,
+  useGetThreadsIdImages,
+} from '@/lib/api/generated/threads/threads';
 import { createFileRoute } from '@tanstack/react-router';
 import React from 'react';
 
@@ -203,25 +207,28 @@ export const dummyThreadStories: MomentCardParam[] = [
 ];
 
 function RouteComponent() {
+  const { id } = Route.useParams();
+  const threadQuery = useGetThreadsId(id);
+  const imagesQuery = useGetThreadsIdImages(id);
   const [openCostumizationDialog, setOpenCostumizationDialog] =
     React.useState(false);
   const [openShareDialog, setOpenShareDialog] = React.useState(false);
   const [openTimeDialog, setOpenTimeDialog] = React.useState(false);
   const [isReadMode, setIsReadMode] = React.useState(false);
 
-  const noteCount = dummyNotes.length;
-
   return (
     <>
       <Wrapper>
         <ThreadHero
           isReadMode={isReadMode}
-          imageUrl="https://images.unsplash.com/photo-1604076850742-4c7221f3101b?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          imageAlt="Photo by mymind on Unsplash"
+          imageUrl={imagesQuery.data?.[0]?.url}
+          imageAlt={threadQuery.data?.name ?? ''}
+          colorHex={threadQuery.data?.color_hex}
         />
         <ThreadHeader
+          threadId={id}
+          threadName={threadQuery.data?.name ?? ''}
           isReadMode={isReadMode}
-          noteCount={noteCount}
           onToggleMode={() => setIsReadMode(!isReadMode)}
           onShare={() => setOpenShareDialog(true)}
         />

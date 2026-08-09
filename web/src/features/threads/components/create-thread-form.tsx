@@ -1,3 +1,8 @@
+import {
+  getGetThreadsQueryKey,
+  usePostThreads,
+} from '@/lib/api/generated/threads/threads';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Field,
@@ -11,32 +16,57 @@ import {
   InputGroupInput,
   InputGroupText,
 } from '@/components/ui/input-group';
+import { ApiError } from '@/lib/api-client';
+import { queryClient } from '@/lib/query-client';
 import { useForm } from '@tanstack/react-form';
+import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 import * as z from 'zod';
 
 const formSchema = z.object({
-  title: z
+  name: z
     .string()
     .min(1, 'Name must be at least 1 character.')
-    .max(50, 'Name must be at most 50 characters.'),
+    .max(255, 'Name must be at most 255 characters.'),
 });
 
 export function CreateThreadForm() {
+  const navigate = useNavigate();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const createThreadMutation = usePostThreads();
+
   const form = useForm({
     defaultValues: {
-      title: '',
+      name: '',
     },
     validators: {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
-      console.log(value);
+      setSubmitError(null);
+      try {
+        const thread = await createThreadMutation.mutateAsync({
+          data: { name: value.name },
+        });
+        await queryClient.invalidateQueries({
+          queryKey: getGetThreadsQueryKey(),
+        });
+        navigate({ to: '/thread/$id', params: { id: thread.id! } });
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setSubmitError(
+            err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message
+          );
+        } else {
+          setSubmitError('Something went wrong. Please try again.');
+        }
+      }
     },
   });
   return (
     <>
       <form
-        id="create-circle-form"
+        id="create-thread-form"
         onSubmit={(e) => {
           e.preventDefault();
           form.handleSubmit();
@@ -44,7 +74,7 @@ export function CreateThreadForm() {
       >
         <FieldGroup>
           <form.Field
-            name="title"
+            name="name"
             children={(field) => {
               const isInvalid =
                 field.state.meta.isTouched && !field.state.meta.isValid;
@@ -58,7 +88,7 @@ export function CreateThreadForm() {
                       <InputGroupText>Name</InputGroupText>
 
                       <InputGroupText className="ml-auto tabular-nums text-xs text-muted-foreground">
-                        {field.state.value.length}/50
+                        {field.state.value.length}/255
                       </InputGroupText>
                     </InputGroupAddon>
                     <InputGroupInput
@@ -79,13 +109,19 @@ export function CreateThreadForm() {
             }}
           />
 
+          {submitError && (
+            <Alert variant="destructive">
+              <AlertDescription>{submitError}</AlertDescription>
+            </Alert>
+          )}
+
           <Field orientation="horizontal" className="justify-end">
             <form.Subscribe
               selector={(state) => [state.isDefaultValue, state.isSubmitting]}
               children={([isDefaultValue, isSubmitting]) => (
                 <Button
                   type="submit"
-                  form="create-circle-form"
+                  form="create-thread-form"
                   disabled={isDefaultValue || isSubmitting}
                 >
                   Create

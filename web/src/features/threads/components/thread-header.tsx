@@ -4,27 +4,34 @@ import {
   Edit04Icon,
   EyeIcon,
   Search01Icon,
+  Setting06Icon,
   Share01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
 
 interface ThreadHeaderProps {
+  threadId: string;
+  threadName: string;
   isReadMode: boolean;
   onToggleMode: () => void;
   onShare: () => void;
-  noteCount: number;
 }
 
 export function ThreadHeader({
+  threadId,
+  threadName,
   isReadMode,
   onToggleMode,
   onShare,
-  noteCount,
 }: ThreadHeaderProps) {
   return (
     <div className="flex flex-col gap-2 mt-4">
       <div className="flex items-center justify-end gap-1">
+        <div className="grow">
+          <h1 className="text-2xl font-semibold font-heading">{threadName}</h1>
+        </div>
+
         <ButtonGroup>
           <Button variant="outline">
             <HugeiconsIcon icon={Search01Icon} />
@@ -46,17 +53,12 @@ export function ThreadHeader({
           <Button
             variant="outline"
             render={
-              <Link to="/thread/$id/info" params={{ id: '1' }}>
-                Info
+              <Link to="/thread/$id/manage" params={{ id: threadId }}>
+                <HugeiconsIcon icon={Setting06Icon} /> Manage
               </Link>
             }
           />
         </ButtonGroup>
-      </div>
-      <div className="grow">
-        <h1 className="text-3xl font-semibold font-heading">
-          Adalah Pokoknya ({noteCount} items)
-        </h1>
       </div>
     </div>
   );

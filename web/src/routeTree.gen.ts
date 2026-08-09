@@ -38,7 +38,7 @@ import { Route as UserUserNotificationRouteImport } from './routes/_user/user.no
 import { Route as UserUserPrivacyRouteImport } from './routes/_user/user.privacy'
 import { Route as UserUserThreadsRouteImport } from './routes/_user/user.threads'
 import { Route as AppThreadIdIndexRouteImport } from './routes/_app/thread.$id.index'
-import { Route as AppThreadIdInfoRouteImport } from './routes/_app/thread.$id.info'
+import { Route as AppThreadIdManageRouteImport } from './routes/_app/thread.$id.manage'
 import { Route as AppCircleCIdIndexRouteImport } from './routes/_app/_circle/c.$id.index'
 import { Route as AppCircleCIdAlbumRouteImport } from './routes/_app/_circle/c.$id.album'
 import { Route as AppCircleCIdInviteRouteImport } from './routes/_app/_circle/c.$id.invite'
@@ -189,9 +189,9 @@ const AppThreadIdIndexRoute = AppThreadIdIndexRouteImport.update({
   path: '/thread/$id/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppThreadIdInfoRoute = AppThreadIdInfoRouteImport.update({
-  id: '/thread/$id/info',
-  path: '/thread/$id/info',
+const AppThreadIdManageRoute = AppThreadIdManageRouteImport.update({
+  id: '/thread/$id/manage',
+  path: '/thread/$id/manage',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCircleCIdIndexRoute = AppCircleCIdIndexRouteImport.update({
@@ -261,7 +261,7 @@ export interface FileRoutesByFullPath {
   '/circle/': typeof AppCircleIndexRoute
   '/thread/': typeof AppThreadIndexRoute
   '/user/': typeof UserUserIndexRoute
-  '/thread/$id/info': typeof AppThreadIdInfoRoute
+  '/thread/$id/manage': typeof AppThreadIdManageRoute
   '/thread/$id/': typeof AppThreadIdIndexRoute
   '/c/$id/album': typeof AppCircleCIdAlbumRoute
   '/c/$id/invite': typeof AppCircleCIdInviteRoute
@@ -297,7 +297,7 @@ export interface FileRoutesByTo {
   '/circle': typeof AppCircleIndexRoute
   '/thread': typeof AppThreadIndexRoute
   '/user': typeof UserUserIndexRoute
-  '/thread/$id/info': typeof AppThreadIdInfoRoute
+  '/thread/$id/manage': typeof AppThreadIdManageRoute
   '/thread/$id': typeof AppThreadIdIndexRoute
   '/c/$id/album': typeof AppCircleCIdAlbumRoute
   '/c/$id/invite': typeof AppCircleCIdInviteRoute
@@ -338,7 +338,7 @@ export interface FileRoutesById {
   '/_app/circle/': typeof AppCircleIndexRoute
   '/_app/thread/': typeof AppThreadIndexRoute
   '/_user/user/': typeof UserUserIndexRoute
-  '/_app/thread/$id/info': typeof AppThreadIdInfoRoute
+  '/_app/thread/$id/manage': typeof AppThreadIdManageRoute
   '/_app/thread/$id/': typeof AppThreadIdIndexRoute
   '/_app/_circle/c/$id/album': typeof AppCircleCIdAlbumRoute
   '/_app/_circle/c/$id/invite': typeof AppCircleCIdInviteRoute
@@ -376,7 +376,7 @@ export interface FileRouteTypes {
     | '/circle/'
     | '/thread/'
     | '/user/'
-    | '/thread/$id/info'
+    | '/thread/$id/manage'
     | '/thread/$id/'
     | '/c/$id/album'
     | '/c/$id/invite'
@@ -412,7 +412,7 @@ export interface FileRouteTypes {
     | '/circle'
     | '/thread'
     | '/user'
-    | '/thread/$id/info'
+    | '/thread/$id/manage'
     | '/thread/$id'
     | '/c/$id/album'
     | '/c/$id/invite'
@@ -452,7 +452,7 @@ export interface FileRouteTypes {
     | '/_app/circle/'
     | '/_app/thread/'
     | '/_user/user/'
-    | '/_app/thread/$id/info'
+    | '/_app/thread/$id/manage'
     | '/_app/thread/$id/'
     | '/_app/_circle/c/$id/album'
     | '/_app/_circle/c/$id/invite'
@@ -679,11 +679,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppThreadIdIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/thread/$id/info': {
-      id: '/_app/thread/$id/info'
-      path: '/thread/$id/info'
-      fullPath: '/thread/$id/info'
-      preLoaderRoute: typeof AppThreadIdInfoRouteImport
+    '/_app/thread/$id/manage': {
+      id: '/_app/thread/$id/manage'
+      path: '/thread/$id/manage'
+      fullPath: '/thread/$id/manage'
+      preLoaderRoute: typeof AppThreadIdManageRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/_circle/c/$id/': {
@@ -783,7 +783,7 @@ interface AppRouteChildren {
   AppAlbumIndexRoute: typeof AppAlbumIndexRoute
   AppCircleIndexRoute: typeof AppCircleIndexRoute
   AppThreadIndexRoute: typeof AppThreadIndexRoute
-  AppThreadIdInfoRoute: typeof AppThreadIdInfoRoute
+  AppThreadIdManageRoute: typeof AppThreadIdManageRoute
   AppThreadIdIndexRoute: typeof AppThreadIdIndexRoute
   AppThreadIdMomentsMomentIdRoute: typeof AppThreadIdMomentsMomentIdRoute
 }
@@ -802,7 +802,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAlbumIndexRoute: AppAlbumIndexRoute,
   AppCircleIndexRoute: AppCircleIndexRoute,
   AppThreadIndexRoute: AppThreadIndexRoute,
-  AppThreadIdInfoRoute: AppThreadIdInfoRoute,
+  AppThreadIdManageRoute: AppThreadIdManageRoute,
   AppThreadIdIndexRoute: AppThreadIdIndexRoute,
   AppThreadIdMomentsMomentIdRoute: AppThreadIdMomentsMomentIdRoute,
 }
