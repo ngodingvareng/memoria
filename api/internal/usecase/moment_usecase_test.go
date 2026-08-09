@@ -31,7 +31,7 @@ func expectPassthroughMomentTransaction(repo *mocks.MockMomentRepository) {
 func TestMomentUsecase_CreateMoment_Success(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	userID := uuid.New()
 	occurredAt := time.Date(2026, 8, 4, 5, 30, 0, 0, time.UTC)
@@ -59,7 +59,7 @@ func TestMomentUsecase_CreateMoment_Success(t *testing.T) {
 func TestMomentUsecase_CreateMoment_DerivesOccurredLocalFromOffset(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	// 05:30 UTC with a +540 (JST, +9h) offset should read as 14:30 local.
 	occurredAt := time.Date(2026, 8, 4, 5, 30, 0, 0, time.UTC)
@@ -86,7 +86,7 @@ func TestMomentUsecase_CreateMoment_DerivesOccurredLocalFromOffset(t *testing.T)
 func TestMomentUsecase_CreateMoment_DefaultsOriginToManual(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	var captured *entity.Moment
 	expectPassthroughMomentTransaction(repo)
@@ -108,7 +108,7 @@ func TestMomentUsecase_CreateMoment_DefaultsOriginToManual(t *testing.T) {
 func TestMomentUsecase_CreateMoment_WithThread_ChecksOwnership(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	userID := uuid.New()
 	threadID := uuid.New()
@@ -135,7 +135,7 @@ func TestMomentUsecase_CreateMoment_WithThread_ChecksOwnership(t *testing.T) {
 func TestMomentUsecase_CreateMoment_ThreadNotOwned_Rejected(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	threadID := uuid.New()
 	threads.EXPECT().GetByID(mock.Anything, threadID, mock.Anything).
@@ -156,7 +156,7 @@ func TestMomentUsecase_CreateMoment_ThreadNotOwned_Rejected(t *testing.T) {
 func TestMomentUsecase_CreateMoment_RepositoryError(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	wantErr := errors.New("db exploded")
 	repo.EXPECT().
@@ -177,7 +177,7 @@ func TestMomentUsecase_CreateMoment_RepositoryError(t *testing.T) {
 func TestMomentUsecase_UpdateMoment_Success(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	momentID := uuid.New()
 	userID := uuid.New()
@@ -203,7 +203,7 @@ func TestMomentUsecase_UpdateMoment_Success(t *testing.T) {
 func TestMomentUsecase_UpdateMoment_NotFound(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	expectPassthroughMomentTransaction(repo)
 	repo.EXPECT().Update(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
@@ -221,7 +221,7 @@ func TestMomentUsecase_UpdateMoment_NotFound(t *testing.T) {
 func TestMomentUsecase_UpdateMoment_ThreadNotOwned_Rejected(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	threadID := uuid.New()
 	threads.EXPECT().GetByID(mock.Anything, threadID, mock.Anything).Return(nil, errs.ErrNotFound)
@@ -242,7 +242,7 @@ func TestMomentUsecase_UpdateMoment_ThreadNotOwned_Rejected(t *testing.T) {
 func TestMomentUsecase_SoftDeleteMoment_Success(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	momentID, userID := uuid.New(), uuid.New()
 	expectPassthroughMomentTransaction(repo)
@@ -256,7 +256,7 @@ func TestMomentUsecase_SoftDeleteMoment_Success(t *testing.T) {
 func TestMomentUsecase_SoftDeleteMoment_RepositoryError(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	wantErr := errors.New("db exploded")
 	expectPassthroughMomentTransaction(repo)
@@ -272,11 +272,11 @@ func TestMomentUsecase_SoftDeleteMoment_RepositoryError(t *testing.T) {
 func TestMomentUsecase_GetMoment_Success(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	userID, momentID := uuid.New(), uuid.New()
 	expected := &entity.Moment{ID: momentID, UserID: userID}
-	repo.EXPECT().GetByID(mock.Anything, momentID, userID).Return(expected, nil)
+	repo.EXPECT().GetWithAccess(mock.Anything, momentID, userID).Return(expected, nil)
 
 	result, err := uc.GetMoment(context.Background(), userID, momentID)
 
@@ -287,9 +287,9 @@ func TestMomentUsecase_GetMoment_Success(t *testing.T) {
 func TestMomentUsecase_GetMoment_NotFound(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
-	repo.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
+	repo.EXPECT().GetWithAccess(mock.Anything, mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 
 	result, err := uc.GetMoment(context.Background(), uuid.New(), uuid.New())
 
@@ -302,7 +302,7 @@ func TestMomentUsecase_GetMoment_NotFound(t *testing.T) {
 func TestMomentUsecase_ListMoments_DefaultsPagination(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	userID := uuid.New()
 	moments := []*entity.Moment{{ID: uuid.New(), UserID: userID}}
@@ -320,7 +320,7 @@ func TestMomentUsecase_ListMoments_DefaultsPagination(t *testing.T) {
 func TestMomentUsecase_ListMoments_CapsPageSize(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	userID := uuid.New()
 	repo.EXPECT().ListByUserID(mock.Anything, userID, int32(100), int32(200)).Return(nil, nil)
@@ -340,7 +340,7 @@ func TestMomentUsecase_ListMoments_CapsPageSize(t *testing.T) {
 func TestMomentUsecase_ListThreadMoments_Success(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	userID, threadID := uuid.New(), uuid.New()
 	moments := []*entity.Moment{{ID: uuid.New(), ThreadID: &threadID}}
@@ -360,7 +360,7 @@ func TestMomentUsecase_ListThreadMoments_Success(t *testing.T) {
 func TestMomentUsecase_ListThreadMoments_ThreadNotOwned_Rejected(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	threads.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 	// repo.ListByThreadID deliberately not stubbed.
@@ -374,12 +374,51 @@ func TestMomentUsecase_ListThreadMoments_ThreadNotOwned_Rejected(t *testing.T) {
 	assert.ErrorIs(t, err, errs.ErrNotFound)
 }
 
+// --- ListCircleMoments ---
+
+func TestMomentUsecase_ListCircleMoments_Success(t *testing.T) {
+	repo := mocks.NewMockMomentRepository(t)
+	circles := mocks.NewMockCircleAccessChecker(t)
+	uc := usecase.NewMomentUsecase(repo, mocks.NewMockThreadAccessChecker(t), circles)
+
+	userID, circleID := uuid.New(), uuid.New()
+	moments := []*entity.Moment{{ID: uuid.New()}}
+
+	circles.EXPECT().GetActiveMember(mock.Anything, circleID, userID).Return(&entity.CircleMember{}, nil)
+	repo.EXPECT().ListByCircle(mock.Anything, circleID, int32(20), int32(0)).Return(moments, nil)
+
+	result, err := uc.ListCircleMoments(context.Background(), usecase.ListCircleMomentsInput{
+		UserID:   userID,
+		CircleID: circleID,
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, moments, result.Moments)
+}
+
+func TestMomentUsecase_ListCircleMoments_NotAMember_Rejected(t *testing.T) {
+	repo := mocks.NewMockMomentRepository(t)
+	circles := mocks.NewMockCircleAccessChecker(t)
+	uc := usecase.NewMomentUsecase(repo, mocks.NewMockThreadAccessChecker(t), circles)
+
+	circles.EXPECT().GetActiveMember(mock.Anything, mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
+	// repo.ListByCircle deliberately not stubbed.
+
+	result, err := uc.ListCircleMoments(context.Background(), usecase.ListCircleMomentsInput{
+		UserID:   uuid.New(),
+		CircleID: uuid.New(),
+	})
+
+	assert.Nil(t, result)
+	assert.ErrorIs(t, err, errs.ErrNotFound)
+}
+
 // --- SearchMoments ---
 
 func TestMomentUsecase_SearchMoments_Success(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	userID := uuid.New()
 	moments := []*entity.Moment{{ID: uuid.New(), UserID: userID}}
@@ -398,7 +437,7 @@ func TestMomentUsecase_SearchMoments_Success(t *testing.T) {
 func TestMomentUsecase_SearchMoments_RepositoryError(t *testing.T) {
 	repo := mocks.NewMockMomentRepository(t)
 	threads := mocks.NewMockThreadAccessChecker(t)
-	uc := usecase.NewMomentUsecase(repo, threads)
+	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	wantErr := errors.New("search index unavailable")
 	repo.EXPECT().Search(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, wantErr)

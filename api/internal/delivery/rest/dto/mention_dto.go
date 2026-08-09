@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/usecase"
 )
 
 type CreateMentionRequest struct {
@@ -16,10 +17,21 @@ type MentionResponse struct {
 	MentionedUserID *string `json:"mentioned_user_id,omitempty"`
 	DisplayName     string  `json:"display_name" example:"Gede"`
 	CreatedAt       string  `json:"created_at" example:"2026-07-20T10:00:00Z"`
+	// SharedCircleIDs is only populated by CreateMention — which
+	// Circles the owner and the mentioned user both actively belong to,
+	// the candidate set for "Share to circle too?" (FEATURES.md,
+	// Mention). Always empty on ListMentions.
+	SharedCircleIDs []string `json:"shared_circle_ids,omitempty"`
 }
 
 type ListMentionsResponse struct {
 	Mentions []MentionResponse `json:"mentions"`
+}
+
+// ListMomentSharesResponse is which Circles a personal Moment is
+// currently shared to — the "manage sharing" surface's read side.
+type ListMomentSharesResponse struct {
+	CircleIDs []string `json:"circle_ids"`
 }
 
 type ShareMomentToCircleRequest struct {
@@ -47,6 +59,16 @@ func NewMentionResponse(e *entity.MomentMention) MentionResponse {
 		DisplayName:     e.DisplayName,
 		CreatedAt:       e.CreatedAt.Format(time.RFC3339),
 	}
+}
+
+func NewCreateMentionResponse(r *usecase.CreateMentionResult) MentionResponse {
+	response := NewMentionResponse(r.Mention)
+	circleIDs := make([]string, len(r.SharedCircleIDs))
+	for i, id := range r.SharedCircleIDs {
+		circleIDs[i] = id.String()
+	}
+	response.SharedCircleIDs = circleIDs
+	return response
 }
 
 func NewMomentCircleResponse(e *entity.MomentCircle) MomentCircleResponse {

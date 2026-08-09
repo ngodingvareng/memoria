@@ -34,8 +34,15 @@ func (q *Queries) ArchiveThread(ctx context.Context, arg ArchiveThreadParams) er
 const countSearchThreads = `-- name: CountSearchThreads :one
 SELECT COUNT(*)
 FROM threads
-WHERE user_id = $1
-    AND circle_id IS NULL
+WHERE (
+        (threads.user_id = $1 AND threads.circle_id IS NULL)
+        OR threads.circle_id IN (
+            SELECT circle_id
+            FROM circle_members
+            WHERE circle_members.user_id = $1
+                AND left_at IS NULL
+        )
+    )
     AND deleted_at IS NULL
     AND (
         $2::text IS NULL
@@ -299,8 +306,15 @@ func (q *Queries) RestoreThread(ctx context.Context, arg RestoreThreadParams) er
 const searchThreads = `-- name: SearchThreads :many
 SELECT id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
 FROM threads
-WHERE user_id = $1
-    AND circle_id IS NULL
+WHERE (
+        (threads.user_id = $1 AND threads.circle_id IS NULL)
+        OR threads.circle_id IN (
+            SELECT circle_id
+            FROM circle_members
+            WHERE circle_members.user_id = $1
+                AND left_at IS NULL
+        )
+    )
     AND deleted_at IS NULL
     AND (
         $2::text IS NULL
@@ -323,8 +337,10 @@ type SearchThreadsParams struct {
 	PageLimit  int32
 }
 
-// Search & filter personal threads for the authenticated user's thread
-// list. All filters are optional (NULL = "don't filter on this"):
+// Search & filter the authenticated user's thread list: their own
+// personal Threads, plus every collaborative Thread owned by a Circle
+// they're an active member of (mirrors GetThreadWithAccess's notion of
+// "reachable"). All filters are optional (NULL = "don't filter on this"):
 //   - name: case-insensitive partial match (ILIKE) against threads.name
 //   - archived: exact match against (archived_at IS NOT NULL)
 //

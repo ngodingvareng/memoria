@@ -29,6 +29,39 @@ func seedTestThreadFull(t *testing.T, pool *pgxpool.Pool, userID uuid.UUID, name
 	return id
 }
 
+// seedTestCircleThread inserts a collaborative Thread owned by a Circle
+// instead of a personal user_id — Search's inclusion rule is keyed off
+// circle_id, not creatorUserID.
+func seedTestCircleThread(t *testing.T, pool *pgxpool.Pool, creatorUserID, circleID uuid.UUID, name string) uuid.UUID {
+	t.Helper()
+	var id uuid.UUID
+	err := pool.QueryRow(context.Background(),
+		`INSERT INTO threads (user_id, circle_id, name) VALUES ($1, $2, $3) RETURNING id`,
+		creatorUserID, circleID, name,
+	).Scan(&id)
+	require.NoError(t, err)
+	return id
+}
+
+// seedTestCircle inserts a Circle and seats memberUserID as an active
+// member (role defaults to 'member').
+func seedTestCircle(t *testing.T, pool *pgxpool.Pool, memberUserID uuid.UUID) uuid.UUID {
+	t.Helper()
+	var circleID uuid.UUID
+	err := pool.QueryRow(context.Background(),
+		`INSERT INTO circles (name, created_by_user_id) VALUES ($1, $2) RETURNING id`,
+		"Test Circle", memberUserID,
+	).Scan(&circleID)
+	require.NoError(t, err)
+
+	_, err = pool.Exec(context.Background(),
+		`INSERT INTO circle_members (circle_id, user_id) VALUES ($1, $2)`,
+		circleID, memberUserID,
+	)
+	require.NoError(t, err)
+	return circleID
+}
+
 // --- GetByID ---
 
 func TestThreadRepository_GetByID_Success(t *testing.T) {
@@ -158,6 +191,63 @@ func TestThreadRepository_Search_ExcludesSoftDeleted(t *testing.T) {
 	require.EqualValues(t, 1, total)
 	require.Len(t, threads, 1)
 	require.Equal(t, "Live thread", threads[0].Name)
+}
+
+func TestThreadRepository_Search_IncludesCircleThreadsForActiveMember(t *testing.T) {
+	pool := setupTestDB(t)
+	userID := seedTestUser(t, pool)
+	otherMemberID := seedTestUser(t, pool)
+	circleID := seedTestCircle(t, pool, userID)
+	seedTestThreadFull(t, pool, userID, "My personal thread", false)
+	seedTestCircleThread(t, pool, otherMemberID, circleID, "Circle thread")
+	repo := repository.NewThreadRepository(pool)
+
+	threads, total, err := repo.Search(context.Background(), usecase.SearchThreadsParams{
+		UserID: userID, Limit: 20, Offset: 0,
+	})
+
+	require.NoError(t, err)
+	require.EqualValues(t, 2, total)
+	names := []string{threads[0].Name, threads[1].Name}
+	require.ElementsMatch(t, []string{"My personal thread", "Circle thread"}, names)
+}
+
+func TestThreadRepository_Search_ExcludesCircleThreadsForNonMember(t *testing.T) {
+	pool := setupTestDB(t)
+	userID := seedTestUser(t, pool)
+	circleAdminID := seedTestUser(t, pool)
+	circleID := seedTestCircle(t, pool, circleAdminID)
+	seedTestCircleThread(t, pool, circleAdminID, circleID, "Circle thread")
+	repo := repository.NewThreadRepository(pool)
+
+	threads, total, err := repo.Search(context.Background(), usecase.SearchThreadsParams{
+		UserID: userID, Limit: 20, Offset: 0,
+	})
+
+	require.NoError(t, err)
+	require.EqualValues(t, 0, total)
+	require.Empty(t, threads)
+}
+
+func TestThreadRepository_Search_ExcludesCircleThreadsAfterLeaving(t *testing.T) {
+	pool := setupTestDB(t)
+	userID := seedTestUser(t, pool)
+	circleID := seedTestCircle(t, pool, userID)
+	seedTestCircleThread(t, pool, userID, circleID, "Circle thread")
+	repo := repository.NewThreadRepository(pool)
+
+	_, err := pool.Exec(context.Background(),
+		`UPDATE circle_members SET left_at = NOW() WHERE circle_id = $1 AND user_id = $2`,
+		circleID, userID)
+	require.NoError(t, err)
+
+	threads, total, err := repo.Search(context.Background(), usecase.SearchThreadsParams{
+		UserID: userID, Limit: 20, Offset: 0,
+	})
+
+	require.NoError(t, err)
+	require.EqualValues(t, 0, total)
+	require.Empty(t, threads)
 }
 
 func TestThreadRepository_Search_Pagination(t *testing.T) {

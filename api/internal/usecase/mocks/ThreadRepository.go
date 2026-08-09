@@ -182,6 +182,74 @@ func (_c *MockThreadRepository_GetByID_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// ListByCircle provides a mock function for the type MockThreadRepository
+func (_mock *MockThreadRepository) ListByCircle(ctx context.Context, circleID uuid.UUID) ([]*entity.Thread, error) {
+	ret := _mock.Called(ctx, circleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListByCircle")
+	}
+
+	var r0 []*entity.Thread
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]*entity.Thread, error)); ok {
+		return returnFunc(ctx, circleID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) []*entity.Thread); ok {
+		r0 = returnFunc(ctx, circleID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*entity.Thread)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, circleID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockThreadRepository_ListByCircle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByCircle'
+type MockThreadRepository_ListByCircle_Call struct {
+	*mock.Call
+}
+
+// ListByCircle is a helper method to define mock.On call
+//   - ctx context.Context
+//   - circleID uuid.UUID
+func (_e *MockThreadRepository_Expecter) ListByCircle(ctx any, circleID any) *MockThreadRepository_ListByCircle_Call {
+	return &MockThreadRepository_ListByCircle_Call{Call: _e.mock.On("ListByCircle", ctx, circleID)}
+}
+
+func (_c *MockThreadRepository_ListByCircle_Call) Run(run func(ctx context.Context, circleID uuid.UUID)) *MockThreadRepository_ListByCircle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockThreadRepository_ListByCircle_Call) Return(threads []*entity.Thread, err error) *MockThreadRepository_ListByCircle_Call {
+	_c.Call.Return(threads, err)
+	return _c
+}
+
+func (_c *MockThreadRepository_ListByCircle_Call) RunAndReturn(run func(ctx context.Context, circleID uuid.UUID) ([]*entity.Thread, error)) *MockThreadRepository_ListByCircle_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Search provides a mock function for the type MockThreadRepository
 func (_mock *MockThreadRepository) Search(ctx context.Context, params usecase.SearchThreadsParams) ([]*entity.Thread, int64, error) {
 	ret := _mock.Called(ctx, params)

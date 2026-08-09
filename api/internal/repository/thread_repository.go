@@ -126,6 +126,20 @@ func (r *threadRepository) Search(ctx context.Context, params usecase.SearchThre
 	return threads, total, nil
 }
 
+// ListByCircle implements [usecase.ThreadRepository].
+func (r *threadRepository) ListByCircle(ctx context.Context, circleID uuid.UUID) ([]*entity.Thread, error) {
+	rows, err := r.q.ListThreadsByCircleID(ctx, ptrToPgUUID(&circleID))
+	if err != nil {
+		return nil, fmt.Errorf("list threads by circle: %w", err)
+	}
+
+	threads := make([]*entity.Thread, len(rows))
+	for i, row := range rows {
+		threads[i] = toEntityThread(row)
+	}
+	return threads, nil
+}
+
 // WithTransaction implements [usecase.ThreadRepository].
 func (r *threadRepository) WithTransaction(ctx context.Context, fn func(usecase.ThreadRepository) error) error {
 	if r.pool == nil {

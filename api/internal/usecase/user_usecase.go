@@ -18,14 +18,28 @@ type UserUsecase interface {
 	// SetUsername returns errs.ErrUsernameAlreadyExists if the username
 	// was taken between the last availability check and this call.
 	SetUsername(ctx context.Context, userID uuid.UUID, username string) (*entity.User, error)
+	// GetPublicProfile resolves a user_id to the minimal public-facing
+	// fields (name, username, image) other users are shown — e.g.
+	// rendering a Circle's member list. Returns errs.ErrNotFound if no
+	// such user exists.
+	GetPublicProfile(ctx context.Context, id uuid.UUID) (*entity.User, error)
+	// GetPublicProfileByUsername is GetPublicProfile's counterpart for
+	// the @username profile page, which only has the username to go on.
+	GetPublicProfileByUsername(ctx context.Context, username string) (*entity.User, error)
+	// MarkUserKnown records that knowerUserID knows username (FEATURES.md,
+	// Privacy & Control's "known" audience tier) — one-directional,
+	// silent, and idempotent (see UserKnownRepository). Returns
+	// errs.ErrNotFound if username doesn't resolve to a user.
+	MarkUserKnown(ctx context.Context, knowerUserID uuid.UUID, username string) error
 }
 
 type userUsecase struct {
-	users UserRepository
+	users  UserRepository
+	knowns UserKnownRepository
 }
 
-func NewUserUsecase(users UserRepository) UserUsecase {
-	return &userUsecase{users: users}
+func NewUserUsecase(users UserRepository, knowns UserKnownRepository) UserUsecase {
+	return &userUsecase{users: users, knowns: knowns}
 }
 
 func (u *userUsecase) CheckUsernameAvailability(ctx context.Context, username string) (bool, error) {
@@ -45,4 +59,40 @@ func (u *userUsecase) SetUsername(ctx context.Context, userID uuid.UUID, usernam
 		return nil, fmt.Errorf("setting username: %w", err)
 	}
 	return user, nil
+}
+
+func (u *userUsecase) GetPublicProfile(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+	user, err := u.users.GetByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("getting public profile: %w", err)
+	}
+	return user, nil
+}
+
+func (u *userUsecase) GetPublicProfileByUsername(ctx context.Context, username string) (*entity.User, error) {
+	user, err := u.users.GetByUsername(ctx, username)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("getting public profile by username: %w", err)
+	}
+	return user, nil
+}
+
+func (u *userUsecase) MarkUserKnown(ctx context.Context, knowerUserID uuid.UUID, username string) error {
+	target, err := u.users.GetByUsername(ctx, username)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return errs.ErrNotFound
+		}
+		return fmt.Errorf("resolving username: %w", err)
+	}
+	if err := u.knowns.MarkKnown(ctx, knowerUserID, target.ID); err != nil {
+		return fmt.Errorf("marking user known: %w", err)
+	}
+	return nil
 }

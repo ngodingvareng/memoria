@@ -70,6 +70,34 @@ ORDER BY occurred_at DESC
 LIMIT sqlc.arg(page_limit)
 OFFSET sqlc.arg(page_offset);
 
+-- name: ListCircleMoments :many
+-- The Circle's Album feed (FEATURES.md, Looking Back): every Moment
+-- captured into one of the Circle's own collaborative Threads, plus
+-- every personal Moment shared into it via the mention flow (mirrors
+-- the candidate_circles union in ListMomentVisibleCircleIDs, just
+-- inverted — moments for a circle_id instead of circles for a
+-- moment_id). Caller is responsible for the Circle-membership check.
+-- Newest occurrence first.
+WITH circle_moment_ids AS (
+    SELECT m.id
+    FROM moments m
+        JOIN threads t ON t.id = m.thread_id
+    WHERE t.circle_id = sqlc.arg(circle_id)
+        AND m.deleted_at IS NULL
+    UNION
+    SELECT mc.moment_id AS id
+    FROM moment_circles mc
+        JOIN moments m ON m.id = mc.moment_id
+    WHERE mc.circle_id = sqlc.arg(circle_id)
+        AND m.deleted_at IS NULL
+)
+SELECT moments.*
+FROM moments
+    JOIN circle_moment_ids ON circle_moment_ids.id = moments.id
+ORDER BY moments.occurred_at DESC
+LIMIT sqlc.arg(page_limit)
+OFFSET sqlc.arg(page_offset);
+
 -- name: SearchMoments :many
 -- Global text Search (FEATURES.md, Looking Back) over one user's own
 -- Moments, backed by idx_moments_search_document.

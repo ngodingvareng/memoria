@@ -55,6 +55,12 @@ type CommentUsecase interface {
 	ListComments(ctx context.Context, momentID, viewerID uuid.UUID) ([]*entity.Comment, error)
 	UpdateComment(ctx context.Context, input UpdateCommentInput) (*entity.Comment, error)
 	SoftDeleteComment(ctx context.Context, id, userID uuid.UUID) error
+	// GetAudience resolves which contexts viewerID may act/read in for
+	// momentID (FEATURES.md, Response) — which circle_id(s) a comment or
+	// reaction composer should offer, and whether the mention context is
+	// available. A thin passthrough to ResponseAccessChecker, exposed
+	// here since Comment is its first consumer (see response_access.go).
+	GetAudience(ctx context.Context, momentID, viewerID uuid.UUID) (*ResponseAudience, error)
 }
 
 type commentUsecase struct {
@@ -151,4 +157,13 @@ func (u *commentUsecase) SoftDeleteComment(ctx context.Context, id, userID uuid.
 		return fmt.Errorf("soft-deleting comment: %w", err)
 	}
 	return nil
+}
+
+// GetAudience implements [CommentUsecase].
+func (u *commentUsecase) GetAudience(ctx context.Context, momentID, viewerID uuid.UUID) (*ResponseAudience, error) {
+	audience, err := u.access.ResolveAudience(ctx, momentID, viewerID)
+	if err != nil {
+		return nil, fmt.Errorf("resolving audience: %w", err)
+	}
+	return audience, nil
 }

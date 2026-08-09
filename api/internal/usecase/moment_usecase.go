@@ -25,13 +25,26 @@ type MomentRepository interface {
 	// surfacing errs.ErrNotFound.
 	SoftDelete(ctx context.Context, id, userID uuid.UUID) error
 	// GetByID returns errs.ErrNotFound if id/userID don't match any row.
+	// Deliberately owner-only — used where that strictness is required
+	// (e.g. MomentImageUsecase via MomentAccessChecker, same method).
 	GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Moment, error)
+	// GetWithAccess is GetMoment's read path: broader than GetByID,
+	// reachable by the owner, an active mentioned user, a Circle it was
+	// shared into, or the Circle that natively owns its Thread — same
+	// resolution as ResponseAccessChecker (response_access.go), since a
+	// viewer who can legitimately comment/react on a Moment must also
+	// be able to open it.
+	GetWithAccess(ctx context.Context, id, viewerID uuid.UUID) (*entity.Moment, error)
 	// ListByUserID is the personal archive timeline: every Moment this
 	// user owns, newest occurrence first.
 	ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.Moment, error)
 	// ListByThreadID is a single Thread's browsable timeline. Access to
 	// the Thread itself must be checked by the caller.
 	ListByThreadID(ctx context.Context, threadID uuid.UUID, limit, offset int32) ([]*entity.Moment, error)
+	// ListByCircle is the Circle's Album feed: every Moment in one of
+	// the Circle's collaborative Threads, plus every personal Moment
+	// shared into it. Membership must be checked by the caller.
+	ListByCircle(ctx context.Context, circleID uuid.UUID, limit, offset int32) ([]*entity.Moment, error)
 	// Search is the global text Search over one user's own Moments.
 	Search(ctx context.Context, userID uuid.UUID, query string, limit, offset int32) ([]*entity.Moment, error)
 	WithTransaction(ctx context.Context, fn func(MomentRepository) error) error
@@ -117,6 +130,13 @@ type SearchMomentsInput struct {
 	PageSize int32
 }
 
+type ListCircleMomentsInput struct {
+	UserID   uuid.UUID
+	CircleID uuid.UUID
+	Page     int32
+	PageSize int32
+}
+
 // MomentListResult is shared by ListMoments, ListThreadMoments, and
 // SearchMoments — all three are the same "page of Moments" shape, and
 // none of the three underlying queries has a matching COUNT query to
@@ -131,19 +151,27 @@ type MomentUsecase interface {
 	CreateMoment(ctx context.Context, input CreateMomentInput) (*entity.Moment, error)
 	UpdateMoment(ctx context.Context, input UpdateMomentInput) (*entity.Moment, error)
 	SoftDeleteMoment(ctx context.Context, id, userID uuid.UUID) error
+	// GetMoment is the general-purpose read path — anyone who can
+	// legitimately reach the Moment (owner, active mention, or a Circle
+	// context) can fetch it, not just its owner. See
+	// MomentRepository.GetWithAccess.
 	GetMoment(ctx context.Context, userID, momentID uuid.UUID) (*entity.Moment, error)
 	ListMoments(ctx context.Context, input ListMomentsInput) (*MomentListResult, error)
 	ListThreadMoments(ctx context.Context, input ListThreadMomentsInput) (*MomentListResult, error)
+	// ListCircleMoments returns circleID's Album feed. Returns
+	// errs.ErrNotFound if userID isn't an active member.
+	ListCircleMoments(ctx context.Context, input ListCircleMomentsInput) (*MomentListResult, error)
 	SearchMoments(ctx context.Context, input SearchMomentsInput) (*MomentListResult, error)
 }
 
 type momentUsecase struct {
 	repo    MomentRepository
 	threads ThreadAccessChecker
+	circles CircleAccessChecker
 }
 
-func NewMomentUsecase(repo MomentRepository, threads ThreadAccessChecker) MomentUsecase {
-	return &momentUsecase{repo: repo, threads: threads}
+func NewMomentUsecase(repo MomentRepository, threads ThreadAccessChecker, circles CircleAccessChecker) MomentUsecase {
+	return &momentUsecase{repo: repo, threads: threads, circles: circles}
 }
 
 // deriveOccurredLocal computes the wall-clock reading at the place a
@@ -245,7 +273,7 @@ func (u *momentUsecase) SoftDeleteMoment(ctx context.Context, id, userID uuid.UU
 
 // GetMoment implements [MomentUsecase].
 func (u *momentUsecase) GetMoment(ctx context.Context, userID, momentID uuid.UUID) (*entity.Moment, error) {
-	moment, err := u.repo.GetByID(ctx, momentID, userID)
+	moment, err := u.repo.GetWithAccess(ctx, momentID, userID)
 	if err != nil {
 		return nil, fmt.Errorf("getting moment: %w", err)
 	}
@@ -289,6 +317,23 @@ func (u *momentUsecase) ListThreadMoments(ctx context.Context, input ListThreadM
 	moments, err := u.repo.ListByThreadID(ctx, input.ThreadID, pageSize, (page-1)*pageSize)
 	if err != nil {
 		return nil, fmt.Errorf("listing thread moments: %w", err)
+	}
+	return &MomentListResult{Moments: moments, Page: page, PageSize: pageSize}, nil
+}
+
+// ListCircleMoments implements [MomentUsecase]: the Circle's Album feed.
+// Membership is checked here, before the repository is ever asked for
+// its Moments.
+func (u *momentUsecase) ListCircleMoments(ctx context.Context, input ListCircleMomentsInput) (*MomentListResult, error) {
+	if _, err := u.circles.GetActiveMember(ctx, input.CircleID, input.UserID); err != nil {
+		return nil, fmt.Errorf("checking circle membership: %w", err)
+	}
+
+	page, pageSize := normalizedPage(input.Page, input.PageSize)
+
+	moments, err := u.repo.ListByCircle(ctx, input.CircleID, pageSize, (page-1)*pageSize)
+	if err != nil {
+		return nil, fmt.Errorf("listing circle moments: %w", err)
 	}
 	return &MomentListResult{Moments: moments, Page: page, PageSize: pageSize}, nil
 }

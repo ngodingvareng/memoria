@@ -39,5 +39,6 @@ packages:
 
       UserBlockChecker:
       UserKnownChecker:
+      UserKnownRepository:
       UserMuteChecker:
       UserPolicyReader:

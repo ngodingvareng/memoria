@@ -10,6 +10,9 @@ type CreateThreadRequest struct {
 	Name        string  `json:"name" validate:"required,min=1,max=255" example:"Morning workout"`
 	Description *string `json:"description,omitempty" validate:"omitempty,max=2000" example:"Push-ups and a run every weekday morning"`
 	ColorHex    *string `json:"color_hex,omitempty" validate:"omitempty,hexcolor" example:"#FF5733"`
+	// CircleID creates a collaborative Thread owned by that Circle
+	// instead of a personal one; the caller must be an active member.
+	CircleID *string `json:"circle_id,omitempty" validate:"omitempty,uuid" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 }
 
 type UpdateThreadRequest struct {
@@ -47,6 +50,10 @@ type PaginationResponse struct {
 type SearchThreadsResponse struct {
 	Threads    []ThreadResponse   `json:"threads"`
 	Pagination PaginationResponse `json:"pagination"`
+}
+
+type ListThreadsResponse struct {
+	Threads []ThreadResponse `json:"threads"`
 }
 
 func NewThreadResponse(e *entity.Thread) ThreadResponse {

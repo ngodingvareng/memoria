@@ -38,23 +38,25 @@ func (_m *MockCircleShareChecker) EXPECT() *MockCircleShareChecker_Expecter {
 	return &MockCircleShareChecker_Expecter{mock: &_m.Mock}
 }
 
-// DoUsersShareAnyCircle provides a mock function for the type MockCircleShareChecker
-func (_mock *MockCircleShareChecker) DoUsersShareAnyCircle(ctx context.Context, userA uuid.UUID, userB uuid.UUID) (bool, error) {
+// ListSharedCircleIDs provides a mock function for the type MockCircleShareChecker
+func (_mock *MockCircleShareChecker) ListSharedCircleIDs(ctx context.Context, userA uuid.UUID, userB uuid.UUID) ([]uuid.UUID, error) {
 	ret := _mock.Called(ctx, userA, userB)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DoUsersShareAnyCircle")
+		panic("no return value specified for ListSharedCircleIDs")
 	}
 
-	var r0 bool
+	var r0 []uuid.UUID
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (bool, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) ([]uuid.UUID, error)); ok {
 		return returnFunc(ctx, userA, userB)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) bool); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) []uuid.UUID); ok {
 		r0 = returnFunc(ctx, userA, userB)
 	} else {
-		r0 = ret.Get(0).(bool)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]uuid.UUID)
+		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
 		r1 = returnFunc(ctx, userA, userB)
@@ -64,20 +66,20 @@ func (_mock *MockCircleShareChecker) DoUsersShareAnyCircle(ctx context.Context, 
 	return r0, r1
 }
 
-// MockCircleShareChecker_DoUsersShareAnyCircle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DoUsersShareAnyCircle'
-type MockCircleShareChecker_DoUsersShareAnyCircle_Call struct {
+// MockCircleShareChecker_ListSharedCircleIDs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSharedCircleIDs'
+type MockCircleShareChecker_ListSharedCircleIDs_Call struct {
 	*mock.Call
 }
 
-// DoUsersShareAnyCircle is a helper method to define mock.On call
+// ListSharedCircleIDs is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userA uuid.UUID
 //   - userB uuid.UUID
-func (_e *MockCircleShareChecker_Expecter) DoUsersShareAnyCircle(ctx any, userA any, userB any) *MockCircleShareChecker_DoUsersShareAnyCircle_Call {
-	return &MockCircleShareChecker_DoUsersShareAnyCircle_Call{Call: _e.mock.On("DoUsersShareAnyCircle", ctx, userA, userB)}
+func (_e *MockCircleShareChecker_Expecter) ListSharedCircleIDs(ctx any, userA any, userB any) *MockCircleShareChecker_ListSharedCircleIDs_Call {
+	return &MockCircleShareChecker_ListSharedCircleIDs_Call{Call: _e.mock.On("ListSharedCircleIDs", ctx, userA, userB)}
 }
 
-func (_c *MockCircleShareChecker_DoUsersShareAnyCircle_Call) Run(run func(ctx context.Context, userA uuid.UUID, userB uuid.UUID)) *MockCircleShareChecker_DoUsersShareAnyCircle_Call {
+func (_c *MockCircleShareChecker_ListSharedCircleIDs_Call) Run(run func(ctx context.Context, userA uuid.UUID, userB uuid.UUID)) *MockCircleShareChecker_ListSharedCircleIDs_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -100,12 +102,12 @@ func (_c *MockCircleShareChecker_DoUsersShareAnyCircle_Call) Run(run func(ctx co
 	return _c
 }
 
-func (_c *MockCircleShareChecker_DoUsersShareAnyCircle_Call) Return(b bool, err error) *MockCircleShareChecker_DoUsersShareAnyCircle_Call {
-	_c.Call.Return(b, err)
+func (_c *MockCircleShareChecker_ListSharedCircleIDs_Call) Return(uUIDs []uuid.UUID, err error) *MockCircleShareChecker_ListSharedCircleIDs_Call {
+	_c.Call.Return(uUIDs, err)
 	return _c
 }
 
-func (_c *MockCircleShareChecker_DoUsersShareAnyCircle_Call) RunAndReturn(run func(ctx context.Context, userA uuid.UUID, userB uuid.UUID) (bool, error)) *MockCircleShareChecker_DoUsersShareAnyCircle_Call {
+func (_c *MockCircleShareChecker_ListSharedCircleIDs_Call) RunAndReturn(run func(ctx context.Context, userA uuid.UUID, userB uuid.UUID) ([]uuid.UUID, error)) *MockCircleShareChecker_ListSharedCircleIDs_Call {
 	_c.Call.Return(run)
 	return _c
 }

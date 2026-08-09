@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
 	"github.com/ngodingvareng/memoria/internal/errs"
@@ -85,4 +86,90 @@ func (h *UserHandler) SetUsername(c fiber.Ctx) error {
 		Message: "username set",
 		Data:    dto.NewUserResponse(user),
 	})
+}
+
+// GetUserByID godoc
+// @ID           GetUserByID
+// @Summary      Get a user's public profile
+// @Description  Minimal other-facing fields (name, username, image) — e.g. resolving a Circle member's user_id
+// @Tags         users
+// @Produce      json
+// @Param        id path string true "User ID"
+// @Success      200 {object} dto.WebResponse[dto.PublicUserResponse]
+// @Failure      400 {object} dto.WebResponse[any]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Router       /users/{id} [get]
+func (h *UserHandler) GetUserByID(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	user, err := h.usecase.GetPublicProfile(c, id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[dto.PublicUserResponse]{
+		Code:    fiber.StatusOK,
+		Message: "found",
+		Data:    dto.NewPublicUserResponse(user),
+	})
+}
+
+// GetUserByUsername godoc
+// @ID           GetUserByUsername
+// @Summary      Get a user's public profile by username
+// @Description  Minimal other-facing fields (name, username, bio, image) — backs the @username profile page
+// @Tags         users
+// @Produce      json
+// @Param        username path string true "Username"
+// @Success      200 {object} dto.WebResponse[dto.PublicUserResponse]
+// @Failure      400 {object} dto.WebResponse[any]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Router       /users/username/{username} [get]
+func (h *UserHandler) GetUserByUsername(c fiber.Ctx) error {
+	username := c.Params("username")
+	if !validate.UsernameFormat.MatchString(username) {
+		return errs.ErrInvalidInput
+	}
+
+	user, err := h.usecase.GetPublicProfileByUsername(c, username)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[dto.PublicUserResponse]{
+		Code:    fiber.StatusOK,
+		Message: "found",
+		Data:    dto.NewPublicUserResponse(user),
+	})
+}
+
+// MarkUserKnown godoc
+// @ID           MarkUserKnown
+// @Summary      Mark a user as known
+// @Description  One-directional, silent, idempotent — grants username's "known" audience tier toward the caller (FEATURES.md, Privacy & Control)
+// @Tags         users
+// @Param        username path string true "Username to mark known"
+// @Success      204
+// @Failure      400 {object} dto.WebResponse[any]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Router       /users/username/{username}/known [post]
+func (h *UserHandler) MarkUserKnown(c fiber.Ctx) error {
+	username := c.Params("username")
+	if !validate.UsernameFormat.MatchString(username) {
+		return errs.ErrInvalidInput
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	if err := h.usecase.MarkUserKnown(c, userID, username); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }

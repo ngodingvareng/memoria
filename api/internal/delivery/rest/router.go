@@ -54,6 +54,9 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	users := app.Group("/users", middleware.RequireAuth(issuer))
 	users.Get("/username-availability", h.User.CheckUsernameAvailability)
 	users.Patch("/me/username", h.User.SetUsername)
+	users.Get("/:id", h.User.GetUserByID)
+	users.Get("/username/:username", h.User.GetUserByUsername)
+	users.Post("/username/:username/known", h.User.MarkUserKnown)
 
 	threads := app.Group("/threads", middleware.RequireAuth(issuer))
 	threads.Post("/", h.Thread.CreateThread)
@@ -86,7 +89,9 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	moments.Post("/:id/mentions/leave", h.Mention.LeaveMention)
 	moments.Post("/:id/share", h.Mention.ShareToCircle)
 	moments.Delete("/:id/share/:circleId", h.Mention.UnshareFromCircle)
+	moments.Get("/:id/shares", h.Mention.ListShares)
 
+	moments.Get("/:id/audience", h.Comment.GetAudience)
 	moments.Get("/:id/comments", h.Comment.ListComments)
 	moments.Post("/:id/comments", h.Comment.CreateComment)
 	moments.Put("/:id/comments/:commentId", h.Comment.UpdateComment)
@@ -115,6 +120,9 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	circles.Post("/:id/invite-link", h.CircleInvite.CreateOrRotateInviteLink)
 	circles.Patch("/:id/invite-link/approval", h.CircleInvite.SetInviteLinkRequiresApproval)
 	circles.Post("/:id/invites/:inviteId/revoke", h.CircleInvite.RevokeInvite)
+
+	circles.Get("/:id/threads", h.Thread.ListCircleThreads)
+	circles.Get("/:id/moments", h.Moment.ListCircleMoments)
 
 	circles.Get("/:id/join-requests", h.CircleJoinRequest.ListPending)
 	circles.Post("/:id/join-requests/:requestId/approve", h.CircleJoinRequest.Approve)

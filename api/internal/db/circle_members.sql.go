@@ -137,39 +137,6 @@ func (q *Queries) CanUserInviteToCircle(ctx context.Context, arg CanUserInviteTo
 	return can_invite, err
 }
 
-const doUsersShareAnyCircle = `-- name: DoUsersShareAnyCircle :one
-SELECT EXISTS(
-    SELECT 1
-    FROM circle_members AS a
-        JOIN circle_members AS b ON b.circle_id = a.circle_id
-    WHERE a.user_id = $1
-        AND b.user_id = $2
-        AND a.left_at IS NULL
-        AND b.left_at IS NULL
-) AS shares_circle
-`
-
-type DoUsersShareAnyCircleParams struct {
-	UserA uuid.UUID
-	UserB uuid.UUID
-}
-
-// Shared-Circle membership on its own, for surfaces that genuinely mean
-// that and nothing else — such as the mention flow's optional "Share to
-// circle too?" step. Both memberships must be active: a Circle one of
-// them has left is not shared ground.
-//
-// This is NOT how audience_policy = 'known' is evaluated. That tier is a
-// union of this and an explicit mark, and has its own query — use
-// IsUserKnownTo, or a user who marked someone without sharing a Circle
-// will be told they are unreachable.
-func (q *Queries) DoUsersShareAnyCircle(ctx context.Context, arg DoUsersShareAnyCircleParams) (bool, error) {
-	row := q.db.QueryRow(ctx, doUsersShareAnyCircle, arg.UserA, arg.UserB)
-	var shares_circle bool
-	err := row.Scan(&shares_circle)
-	return shares_circle, err
-}
-
 const getActiveCircleMember = `-- name: GetActiveCircleMember :one
 SELECT circle_id, user_id, role, can_invite, can_capture, joined_at, left_at
 FROM circle_members
@@ -251,6 +218,54 @@ func (q *Queries) ListActiveCircleMembers(ctx context.Context, circleID uuid.UUI
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCircleIDsSharedBetweenUsers = `-- name: ListCircleIDsSharedBetweenUsers :many
+SELECT a.circle_id
+FROM circle_members AS a
+    JOIN circle_members AS b ON b.circle_id = a.circle_id
+WHERE a.user_id = $1
+    AND b.user_id = $2
+    AND a.left_at IS NULL
+    AND b.left_at IS NULL
+`
+
+type ListCircleIDsSharedBetweenUsersParams struct {
+	UserA uuid.UUID
+	UserB uuid.UUID
+}
+
+// Which Circles user_a and user_b both actively belong to — for
+// surfaces that genuinely mean that and nothing else, such as the
+// mention flow's optional "Share to circle too?" step (FEATURES.md,
+// Mention). Both memberships must be active: a Circle one of them has
+// left is not shared ground. Deliberately returns the ids, not just a
+// boolean — the offer needs to name the Circles, and computing this
+// server-side means user_b's other, unrelated Circle memberships are
+// never exposed to user_a.
+//
+// This is NOT how audience_policy = 'known' is evaluated. That tier is a
+// union of this and an explicit mark, and has its own query — use
+// IsUserKnownTo, or a user who marked someone without sharing a Circle
+// will be told they are unreachable.
+func (q *Queries) ListCircleIDsSharedBetweenUsers(ctx context.Context, arg ListCircleIDsSharedBetweenUsersParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listCircleIDsSharedBetweenUsers, arg.UserA, arg.UserB)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var circle_id uuid.UUID
+		if err := rows.Scan(&circle_id); err != nil {
+			return nil, err
+		}
+		items = append(items, circle_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

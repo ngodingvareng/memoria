@@ -186,11 +186,15 @@ func setupTestApp(t *testing.T) *testApp {
 		accessTokenIssuer, refreshTokenGenerator, 30*24*time.Hour, 5, 15*time.Minute)
 	authHandler := handler.NewAuthHandler(authUsecase, false)
 
-	userUsecase := usecase.NewUserUsecase(userRepo)
+	userPrivacyRepo := repository.NewUserPrivacyRepository(pool)
+
+	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo)
 	userHandler := handler.NewUserHandler(userUsecase)
 
+	circleRepo := repository.NewCircleRepository(pool)
+
 	threadRepo := repository.NewThreadRepository(pool)
-	threadUsecase := usecase.NewThreadUsecase(threadRepo)
+	threadUsecase := usecase.NewThreadUsecase(threadRepo, circleRepo)
 	threadHandler := handler.NewThreadHandler(threadUsecase)
 
 	storage := fakeStorage{}
@@ -200,16 +204,13 @@ func setupTestApp(t *testing.T) *testApp {
 	threadImageHandler := handler.NewThreadImageHandler(threadImageUsecase)
 
 	momentRepo := repository.NewMomentRepository(pool)
-	momentUsecase := usecase.NewMomentUsecase(momentRepo, threadRepo)
+	momentUsecase := usecase.NewMomentUsecase(momentRepo, threadRepo, circleRepo)
 	momentHandler := handler.NewMomentHandler(momentUsecase)
 
 	momentImageRepo := repository.NewMomentImageRepository(pool)
 	momentImageUsecase := usecase.NewMomentImageUsecase(momentImageRepo, storage, momentRepo)
 	momentImageHandler := handler.NewMomentImageHandler(momentImageUsecase)
 
-	userPrivacyRepo := repository.NewUserPrivacyRepository(pool)
-
-	circleRepo := repository.NewCircleRepository(pool)
 	circleUsecase := usecase.NewCircleUsecase(circleRepo)
 	circleHandler := handler.NewCircleHandler(circleUsecase)
 
@@ -222,7 +223,7 @@ func setupTestApp(t *testing.T) *testApp {
 	circleJoinRequestHandler := handler.NewCircleJoinRequestHandler(circleJoinRequestUsecase)
 
 	mentionRepo := repository.NewMentionRepository(pool)
-	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo)
+	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo)
 	mentionHandler := handler.NewMentionHandler(mentionUsecase)
 
 	responseEventRepo := repository.NewResponseEventRepository(pool)

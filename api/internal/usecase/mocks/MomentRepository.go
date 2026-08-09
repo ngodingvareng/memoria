@@ -182,6 +182,160 @@ func (_c *MockMomentRepository_GetByID_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// GetWithAccess provides a mock function for the type MockMomentRepository
+func (_mock *MockMomentRepository) GetWithAccess(ctx context.Context, id uuid.UUID, viewerID uuid.UUID) (*entity.Moment, error) {
+	ret := _mock.Called(ctx, id, viewerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWithAccess")
+	}
+
+	var r0 *entity.Moment
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (*entity.Moment, error)); ok {
+		return returnFunc(ctx, id, viewerID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *entity.Moment); ok {
+		r0 = returnFunc(ctx, id, viewerID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Moment)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, id, viewerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockMomentRepository_GetWithAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetWithAccess'
+type MockMomentRepository_GetWithAccess_Call struct {
+	*mock.Call
+}
+
+// GetWithAccess is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+//   - viewerID uuid.UUID
+func (_e *MockMomentRepository_Expecter) GetWithAccess(ctx any, id any, viewerID any) *MockMomentRepository_GetWithAccess_Call {
+	return &MockMomentRepository_GetWithAccess_Call{Call: _e.mock.On("GetWithAccess", ctx, id, viewerID)}
+}
+
+func (_c *MockMomentRepository_GetWithAccess_Call) Run(run func(ctx context.Context, id uuid.UUID, viewerID uuid.UUID)) *MockMomentRepository_GetWithAccess_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 uuid.UUID
+		if args[2] != nil {
+			arg2 = args[2].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockMomentRepository_GetWithAccess_Call) Return(moment *entity.Moment, err error) *MockMomentRepository_GetWithAccess_Call {
+	_c.Call.Return(moment, err)
+	return _c
+}
+
+func (_c *MockMomentRepository_GetWithAccess_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID, viewerID uuid.UUID) (*entity.Moment, error)) *MockMomentRepository_GetWithAccess_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListByCircle provides a mock function for the type MockMomentRepository
+func (_mock *MockMomentRepository) ListByCircle(ctx context.Context, circleID uuid.UUID, limit int32, offset int32) ([]*entity.Moment, error) {
+	ret := _mock.Called(ctx, circleID, limit, offset)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListByCircle")
+	}
+
+	var r0 []*entity.Moment
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, int32, int32) ([]*entity.Moment, error)); ok {
+		return returnFunc(ctx, circleID, limit, offset)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, int32, int32) []*entity.Moment); ok {
+		r0 = returnFunc(ctx, circleID, limit, offset)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*entity.Moment)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, int32, int32) error); ok {
+		r1 = returnFunc(ctx, circleID, limit, offset)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockMomentRepository_ListByCircle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByCircle'
+type MockMomentRepository_ListByCircle_Call struct {
+	*mock.Call
+}
+
+// ListByCircle is a helper method to define mock.On call
+//   - ctx context.Context
+//   - circleID uuid.UUID
+//   - limit int32
+//   - offset int32
+func (_e *MockMomentRepository_Expecter) ListByCircle(ctx any, circleID any, limit any, offset any) *MockMomentRepository_ListByCircle_Call {
+	return &MockMomentRepository_ListByCircle_Call{Call: _e.mock.On("ListByCircle", ctx, circleID, limit, offset)}
+}
+
+func (_c *MockMomentRepository_ListByCircle_Call) Run(run func(ctx context.Context, circleID uuid.UUID, limit int32, offset int32)) *MockMomentRepository_ListByCircle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 int32
+		if args[2] != nil {
+			arg2 = args[2].(int32)
+		}
+		var arg3 int32
+		if args[3] != nil {
+			arg3 = args[3].(int32)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockMomentRepository_ListByCircle_Call) Return(moments []*entity.Moment, err error) *MockMomentRepository_ListByCircle_Call {
+	_c.Call.Return(moments, err)
+	return _c
+}
+
+func (_c *MockMomentRepository_ListByCircle_Call) RunAndReturn(run func(ctx context.Context, circleID uuid.UUID, limit int32, offset int32) ([]*entity.Moment, error)) *MockMomentRepository_ListByCircle_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListByThreadID provides a mock function for the type MockMomentRepository
 func (_mock *MockMomentRepository) ListByThreadID(ctx context.Context, threadID uuid.UUID, limit int32, offset int32) ([]*entity.Moment, error) {
 	ret := _mock.Called(ctx, threadID, limit, offset)

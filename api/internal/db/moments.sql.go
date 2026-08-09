@@ -362,6 +362,83 @@ func (q *Queries) GetSettlingTimeStats(ctx context.Context, userID uuid.UUID) ([
 	return items, nil
 }
 
+const listCircleMoments = `-- name: ListCircleMoments :many
+WITH circle_moment_ids AS (
+    SELECT m.id
+    FROM moments m
+        JOIN threads t ON t.id = m.thread_id
+    WHERE t.circle_id = $3
+        AND m.deleted_at IS NULL
+    UNION
+    SELECT mc.moment_id AS id
+    FROM moment_circles mc
+        JOIN moments m ON m.id = mc.moment_id
+    WHERE mc.circle_id = $3
+        AND m.deleted_at IS NULL
+)
+SELECT moments.id, moments.user_id, moments.thread_id, moments.origin, moments.occurred_at, moments.occurred_local, moments.occurred_utc_offset_minutes, moments.occurred_on, moments.recorded_at, moments.settling_time, moments.note, moments.color_hex, moments.place_name, moments.latitude, moments.longitude, moments.search_document, moments.client_id, moments.last_viewed_at, moments.created_at, moments.updated_at, moments.deleted_at
+FROM moments
+    JOIN circle_moment_ids ON circle_moment_ids.id = moments.id
+ORDER BY moments.occurred_at DESC
+LIMIT $2
+OFFSET $1
+`
+
+type ListCircleMomentsParams struct {
+	PageOffset int32
+	PageLimit  int32
+	CircleID   pgtype.UUID
+}
+
+// The Circle's Album feed (FEATURES.md, Looking Back): every Moment
+// captured into one of the Circle's own collaborative Threads, plus
+// every personal Moment shared into it via the mention flow (mirrors
+// the candidate_circles union in ListMomentVisibleCircleIDs, just
+// inverted — moments for a circle_id instead of circles for a
+// moment_id). Caller is responsible for the Circle-membership check.
+// Newest occurrence first.
+func (q *Queries) ListCircleMoments(ctx context.Context, arg ListCircleMomentsParams) ([]Moment, error) {
+	rows, err := q.db.Query(ctx, listCircleMoments, arg.PageOffset, arg.PageLimit, arg.CircleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Moment{}
+	for rows.Next() {
+		var i Moment
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ThreadID,
+			&i.Origin,
+			&i.OccurredAt,
+			&i.OccurredLocal,
+			&i.OccurredUtcOffsetMinutes,
+			&i.OccurredOn,
+			&i.RecordedAt,
+			&i.SettlingTime,
+			&i.Note,
+			&i.ColorHex,
+			&i.PlaceName,
+			&i.Latitude,
+			&i.Longitude,
+			&i.SearchDocument,
+			&i.ClientID,
+			&i.LastViewedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMomentVisibleCircleIDs = `-- name: ListMomentVisibleCircleIDs :many
 WITH candidate_circles AS (
     SELECT t.circle_id AS circle_id

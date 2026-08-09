@@ -1001,6 +1001,88 @@ const docTemplate = `{
                 }
             }
         },
+        "/circles/{id}/moments": {
+            "get": {
+                "description": "The Circle's Album feed — Moments from its collaborative Threads plus Moments shared into it, newest occurrence first",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "moments"
+                ],
+                "summary": "List a circle's moments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Moments per page (default 20, max 100)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMomentsResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/circles/{id}/threads": {
+            "get": {
+                "description": "List every Thread owned by a Circle; the caller must be an active member",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "threads"
+                ],
+                "summary": "List a Circle's collaborative threads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Circle ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListThreadsResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/healthz": {
             "get": {
                 "produces": [
@@ -1187,7 +1269,7 @@ const docTemplate = `{
         },
         "/moments/{id}": {
             "get": {
-                "description": "Get a single Moment belonging to the authenticated user",
+                "description": "Get a single Moment reachable by the caller — its owner, an active mentioned user, or a Circle context it's visible in",
                 "produces": [
                     "application/json"
                 ],
@@ -1303,6 +1385,41 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/moments/{id}/audience": {
+            "get": {
+                "description": "Whether the mention context is available, plus which Circle audiences (FEATURES.md, Response) — drives the comment/reaction composer",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "comments"
+                ],
+                "summary": "Get which contexts the caller may comment/react in for a moment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_MomentAudienceResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
                         }
@@ -1943,6 +2060,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/moments/{id}/shares": {
+            "get": {
+                "description": "The \"manage sharing\" surface — every Circle this personal Moment is currently shared into",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "mentions"
+                ],
+                "summary": "List which circles a moment is shared to",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Moment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMomentSharesResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/threads": {
             "get": {
                 "description": "Search and filter the authenticated user's threads, with pagination",
@@ -2385,6 +2537,126 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/username/{username}": {
+            "get": {
+                "description": "Minimal other-facing fields (name, username, bio, image) — backs the @username profile page",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get a user's public profile by username",
+                "operationId": "GetUserByUsername",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PublicUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/username/{username}/known": {
+            "post": {
+                "description": "One-directional, silent, idempotent — grants username's \"known\" audience tier toward the caller (FEATURES.md, Privacy \u0026 Control)",
+                "tags": [
+                    "users"
+                ],
+                "summary": "Mark a user as known",
+                "operationId": "MarkUserKnown",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username to mark known",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "description": "Minimal other-facing fields (name, username, image) — e.g. resolving a Circle member's user_id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get a user's public profile",
+                "operationId": "GetUserByID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PublicUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2705,6 +2977,11 @@ const docTemplate = `{
                 "name"
             ],
             "properties": {
+                "circle_id": {
+                    "description": "CircleID creates a collaborative Thread owned by that Circle\ninstead of a personal one; the caller must be an active member.",
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
                 "color_hex": {
                     "type": "string",
                     "example": "#FF5733"
@@ -2849,6 +3126,17 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMomentSharesResponse": {
+            "type": "object",
+            "properties": {
+                "circle_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMomentsResponse": {
             "type": "object",
             "properties": {
@@ -2870,6 +3158,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ReactionResponse"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListThreadsResponse": {
+            "type": "object",
+            "properties": {
+                "threads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ThreadResponse"
                     }
                 }
             }
@@ -2930,6 +3229,27 @@ const docTemplate = `{
                 "moment_id": {
                     "type": "string",
                     "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "shared_circle_ids": {
+                    "description": "SharedCircleIDs is only populated by CreateMention — which\nCircles the owner and the mentioned user both actively belong to,\nthe candidate set for \"Share to circle too?\" (FEATURES.md,\nMention). Always empty on ListMentions.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentAudienceResponse": {
+            "type": "object",
+            "properties": {
+                "circle_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mention_allowed": {
+                    "type": "boolean"
                 }
             }
         },
@@ -3044,6 +3364,30 @@ const docTemplate = `{
                 "total": {
                     "type": "integer",
                     "example": 42
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PublicUserResponse": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "image_path": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Budi Santoso"
+                },
+                "username": {
+                    "description": "Username is nil until the user has claimed one.",
+                    "type": "string",
+                    "example": "budisantoso"
                 }
             }
         },
@@ -3696,6 +4040,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMomentSharesResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMomentSharesResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMomentsResponse": {
             "type": "object",
             "properties": {
@@ -3730,6 +4091,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListThreadsResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListThreadsResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_LoginResponse": {
             "type": "object",
             "properties": {
@@ -3756,6 +4134,23 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MentionResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_MomentAudienceResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentAudienceResponse"
                 },
                 "errors": {},
                 "message": {
@@ -3807,6 +4202,23 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PublicUserResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PublicUserResponse"
                 },
                 "errors": {},
                 "message": {

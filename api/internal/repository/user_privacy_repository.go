@@ -12,13 +12,14 @@ import (
 
 var _ usecase.UserBlockChecker = (*userPrivacyRepository)(nil)
 var _ usecase.UserKnownChecker = (*userPrivacyRepository)(nil)
+var _ usecase.UserKnownRepository = (*userPrivacyRepository)(nil)
 var _ usecase.UserMuteChecker = (*userPrivacyRepository)(nil)
 
 // userPrivacyRepository wraps the read-only Is* checks from
-// user_blocks.sql/user_knows.sql/user_mutes.sql. It deliberately does
-// not expose Create/Delete/List for any of the three tables — managing
-// Known/Block/Mute is a separate, not-yet-built feature (see
-// user_privacy.go).
+// user_blocks.sql/user_knows.sql/user_mutes.sql, plus the one write
+// path built so far — MarkKnown. It still doesn't expose Delete/List
+// for any of the three tables — the rest of Known/Block/Mute management
+// is a separate, not-yet-built feature (see user_privacy.go).
 type userPrivacyRepository struct {
 	q *db.Queries
 }
@@ -43,6 +44,17 @@ func (r *userPrivacyRepository) IsKnownTo(ctx context.Context, ownerUserID, othe
 		return false, fmt.Errorf("checking known status: %w", err)
 	}
 	return known.Bool, nil
+}
+
+// MarkKnown implements [usecase.UserKnownRepository].
+func (r *userPrivacyRepository) MarkKnown(ctx context.Context, knowerUserID, knownUserID uuid.UUID) error {
+	if err := r.q.CreateUserKnown(ctx, db.CreateUserKnownParams{
+		KnowerUserID: knowerUserID,
+		KnownUserID:  knownUserID,
+	}); err != nil {
+		return fmt.Errorf("marking user known: %w", err)
+	}
+	return nil
 }
 
 // IsMuted implements [usecase.UserMuteChecker].

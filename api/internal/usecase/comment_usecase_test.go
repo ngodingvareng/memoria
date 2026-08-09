@@ -165,6 +165,43 @@ func TestCommentUsecase_ListComments_PassesResolvedAudienceThrough(t *testing.T)
 	assert.Equal(t, expected, comments)
 }
 
+func TestCommentUsecase_GetAudience_Success(t *testing.T) {
+	repo := mocks.NewMockCommentRepository(t)
+	events := mocks.NewMockResponseEventRepository(t)
+	access, moments, blocks := newTestResponseAccessChecker(t)
+	uc := usecase.NewCommentUsecase(repo, access, events)
+
+	momentID, ownerID, viewerID, circleID := uuid.New(), uuid.New(), uuid.New(), uuid.New()
+	moments.EXPECT().GetWithAccess(mock.Anything, momentID, viewerID).
+		Return(&entity.Moment{ID: momentID, UserID: ownerID}, nil)
+	blocks.EXPECT().IsBlockedEitherDirection(mock.Anything, viewerID, ownerID).Return(false, nil)
+	moments.EXPECT().ListVisibleCircleIDs(mock.Anything, momentID, viewerID).Return([]uuid.UUID{circleID}, nil)
+	moments.EXPECT().IsActivelyMentioned(mock.Anything, momentID, viewerID).Return(true, nil)
+
+	audience, err := uc.GetAudience(context.Background(), momentID, viewerID)
+
+	assert.NoError(t, err)
+	assert.True(t, audience.MentionAllowed)
+	assert.Equal(t, []uuid.UUID{circleID}, audience.CircleIDs)
+}
+
+func TestCommentUsecase_GetAudience_Blocked_Denied(t *testing.T) {
+	repo := mocks.NewMockCommentRepository(t)
+	events := mocks.NewMockResponseEventRepository(t)
+	access, moments, blocks := newTestResponseAccessChecker(t)
+	uc := usecase.NewCommentUsecase(repo, access, events)
+
+	momentID, ownerID, viewerID := uuid.New(), uuid.New(), uuid.New()
+	moments.EXPECT().GetWithAccess(mock.Anything, momentID, viewerID).
+		Return(&entity.Moment{ID: momentID, UserID: ownerID}, nil)
+	blocks.EXPECT().IsBlockedEitherDirection(mock.Anything, viewerID, ownerID).Return(true, nil)
+
+	audience, err := uc.GetAudience(context.Background(), momentID, viewerID)
+
+	assert.Nil(t, audience)
+	assert.ErrorIs(t, err, errs.ErrAccessDenied)
+}
+
 func TestCommentUsecase_UpdateComment_NotFound(t *testing.T) {
 	repo := mocks.NewMockCommentRepository(t)
 	events := mocks.NewMockResponseEventRepository(t)

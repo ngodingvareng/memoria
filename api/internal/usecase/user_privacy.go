@@ -14,11 +14,14 @@ import (
 // because all three need the exact identical signature (CODING_STANDARDS.md
 // §5) — see user_privacy_repository.go for the single implementation.
 //
-// Known/Block/Mute have no CRUD usecase of their own yet: only these
-// read-only checks are wired in, which is enough to make
+// Block/Mute still have no CRUD usecase of their own: only the
+// read-only checks below are wired in, enough to make
 // mention_policy/circle_invite_policy and the blocking gate work.
-// Letting a user actually manage their own Known/Block/Mute lists is a
-// separate, not-yet-built "Privacy & Control" feature.
+// Letting a user manage their own Block/Mute lists is a separate,
+// not-yet-built "Privacy & Control" feature. Known gained one write
+// path — UserKnownRepository.MarkKnown, backing the profile page's
+// "I know this person" action — without building the rest (no
+// unmark, no "People I know" list yet).
 
 // UserBlockChecker gates every view/mention/comment/reaction access
 // check (FEATURES.md, Privacy & Control): blocking is symmetric in
@@ -33,6 +36,13 @@ type UserBlockChecker interface {
 // enforced, otherUserID is the one trying to reach them.
 type UserKnownChecker interface {
 	IsKnownTo(ctx context.Context, ownerUserID, otherUserID uuid.UUID) (bool, error)
+}
+
+// UserKnownRepository is the write counterpart to UserKnownChecker: it
+// lets knowerUserID mark knownUserID as known. One-directional and
+// idempotent (see entity.UserKnown) — used by UserUsecase.MarkUserKnown.
+type UserKnownRepository interface {
+	MarkKnown(ctx context.Context, knowerUserID, knownUserID uuid.UUID) error
 }
 
 // UserMuteChecker is a view filter only, never an access gate

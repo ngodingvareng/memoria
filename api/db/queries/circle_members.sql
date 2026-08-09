@@ -142,22 +142,24 @@ SELECT EXISTS(
         AND can_invite = TRUE
 ) AS can_invite;
 
--- name: DoUsersShareAnyCircle :one
--- Shared-Circle membership on its own, for surfaces that genuinely mean
--- that and nothing else — such as the mention flow's optional "Share to
--- circle too?" step. Both memberships must be active: a Circle one of
--- them has left is not shared ground.
+-- name: ListCircleIDsSharedBetweenUsers :many
+-- Which Circles user_a and user_b both actively belong to — for
+-- surfaces that genuinely mean that and nothing else, such as the
+-- mention flow's optional "Share to circle too?" step (FEATURES.md,
+-- Mention). Both memberships must be active: a Circle one of them has
+-- left is not shared ground. Deliberately returns the ids, not just a
+-- boolean — the offer needs to name the Circles, and computing this
+-- server-side means user_b's other, unrelated Circle memberships are
+-- never exposed to user_a.
 --
 -- This is NOT how audience_policy = 'known' is evaluated. That tier is a
 -- union of this and an explicit mark, and has its own query — use
 -- IsUserKnownTo, or a user who marked someone without sharing a Circle
 -- will be told they are unreachable.
-SELECT EXISTS(
-    SELECT 1
-    FROM circle_members AS a
-        JOIN circle_members AS b ON b.circle_id = a.circle_id
-    WHERE a.user_id = sqlc.arg(user_a)
-        AND b.user_id = sqlc.arg(user_b)
-        AND a.left_at IS NULL
-        AND b.left_at IS NULL
-) AS shares_circle;
+SELECT a.circle_id
+FROM circle_members AS a
+    JOIN circle_members AS b ON b.circle_id = a.circle_id
+WHERE a.user_id = sqlc.arg(user_a)
+    AND b.user_id = sqlc.arg(user_b)
+    AND a.left_at IS NULL
+    AND b.left_at IS NULL;

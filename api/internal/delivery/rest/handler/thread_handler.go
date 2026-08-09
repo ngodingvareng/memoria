@@ -51,8 +51,18 @@ func (h *ThreadHandler) CreateThread(c fiber.Ctx) error {
 		return errs.ErrUnauthorized
 	}
 
+	var circleID *uuid.UUID
+	if req.CircleID != nil {
+		parsed, err := uuid.Parse(*req.CircleID)
+		if err != nil {
+			return errs.ErrInvalidInput
+		}
+		circleID = &parsed
+	}
+
 	response, err := h.usecase.CreateThread(c, usecase.CreateThreadInput{
 		UserID:      userID,
+		CircleID:    circleID,
 		Name:        req.Name,
 		Description: req.Description,
 		ColorHex:    req.ColorHex,
@@ -246,5 +256,42 @@ func (h *ThreadHandler) SearchThreads(c fiber.Ctx) error {
 				Total:    result.Total,
 			},
 		},
+	})
+}
+
+// ListCircleThreads godoc
+// @Summary      List a Circle's collaborative threads
+// @Description  List every Thread owned by a Circle; the caller must be an active member
+// @Tags         threads
+// @Produce      json
+// @Param        id path string true "Circle ID"
+// @Success      200 {object} dto.WebResponse[dto.ListThreadsResponse]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Router       /circles/{id}/threads [get]
+func (h *ThreadHandler) ListCircleThreads(c fiber.Ctx) error {
+	circleID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	threads, err := h.usecase.ListCircleThreads(c, circleID, userID)
+	if err != nil {
+		return err
+	}
+
+	responses := make([]dto.ThreadResponse, len(threads))
+	for i, a := range threads {
+		responses[i] = dto.NewThreadResponse(a)
+	}
+
+	return c.JSON(dto.WebResponse[dto.ListThreadsResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    dto.ListThreadsResponse{Threads: responses},
 	})
 }

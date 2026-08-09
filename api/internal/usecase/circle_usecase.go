@@ -35,7 +35,10 @@ type CircleRepository interface {
 	UpdateMemberRole(ctx context.Context, circleID, userID, changedByUserID uuid.UUID, role enum.CircleRole) (*entity.CircleMember, error)
 	UpdateMemberPermissions(ctx context.Context, circleID, userID, changedByUserID uuid.UUID, canInvite, canCapture bool) (*entity.CircleMember, error)
 
-	DoUsersShareAnyCircle(ctx context.Context, userA, userB uuid.UUID) (bool, error)
+	// ListSharedCircleIDs is unused by CircleUsecase itself — declared
+	// here only because circleRepository is the single implementation
+	// backing both CircleRepository and CircleShareChecker below.
+	ListSharedCircleIDs(ctx context.Context, userA, userB uuid.UUID) ([]uuid.UUID, error)
 
 	WithTransaction(ctx context.Context, fn func(CircleRepository) error) error
 }
@@ -51,10 +54,10 @@ type CircleAccessChecker interface {
 }
 
 // CircleShareChecker is the minimal capability MentionUsecase needs:
-// whether two users already share a Circle, for the mention flow's
-// optional "Share to circle too?" step (FEATURES.md, Mention).
+// which Circles two users both actively belong to, for the mention
+// flow's optional "Share to circle too?" step (FEATURES.md, Mention).
 type CircleShareChecker interface {
-	DoUsersShareAnyCircle(ctx context.Context, userA, userB uuid.UUID) (bool, error)
+	ListSharedCircleIDs(ctx context.Context, userA, userB uuid.UUID) ([]uuid.UUID, error)
 }
 
 // --- Inputs / outputs ---

@@ -55,16 +55,25 @@ WHERE circle_id = sqlc.arg(circle_id)
 ORDER BY created_at DESC;
 
 -- name: SearchThreads :many
--- Search & filter personal threads for the authenticated user's thread
--- list. All filters are optional (NULL = "don't filter on this"):
+-- Search & filter the authenticated user's thread list: their own
+-- personal Threads, plus every collaborative Thread owned by a Circle
+-- they're an active member of (mirrors GetThreadWithAccess's notion of
+-- "reachable"). All filters are optional (NULL = "don't filter on this"):
 --   - name: case-insensitive partial match (ILIKE) against threads.name
 --   - archived: exact match against (archived_at IS NOT NULL)
 -- Ordered by sort_order then newest-first; paginated via
 -- page_limit / page_offset.
 SELECT *
 FROM threads
-WHERE user_id = sqlc.arg(user_id)
-    AND circle_id IS NULL
+WHERE (
+        (threads.user_id = sqlc.arg(user_id) AND threads.circle_id IS NULL)
+        OR threads.circle_id IN (
+            SELECT circle_id
+            FROM circle_members
+            WHERE circle_members.user_id = sqlc.arg(user_id)
+                AND left_at IS NULL
+        )
+    )
     AND deleted_at IS NULL
     AND (
         sqlc.narg(name)::text IS NULL
@@ -83,8 +92,15 @@ OFFSET sqlc.arg(page_offset);
 -- page_limit/page_offset — used to compute pagination metadata.
 SELECT COUNT(*)
 FROM threads
-WHERE user_id = sqlc.arg(user_id)
-    AND circle_id IS NULL
+WHERE (
+        (threads.user_id = sqlc.arg(user_id) AND threads.circle_id IS NULL)
+        OR threads.circle_id IN (
+            SELECT circle_id
+            FROM circle_members
+            WHERE circle_members.user_id = sqlc.arg(user_id)
+                AND left_at IS NULL
+        )
+    )
     AND deleted_at IS NULL
     AND (
         sqlc.narg(name)::text IS NULL

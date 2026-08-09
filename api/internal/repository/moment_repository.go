@@ -121,6 +121,21 @@ func (r *momentRepository) ListByThreadID(ctx context.Context, threadID uuid.UUI
 	return toEntityMoments(rows), nil
 }
 
+// ListByCircle implements [usecase.MomentRepository]. No membership
+// filter at the query level — access is checked upstream by the
+// usecase via CircleAccessChecker.
+func (r *momentRepository) ListByCircle(ctx context.Context, circleID uuid.UUID, limit, offset int32) ([]*entity.Moment, error) {
+	rows, err := r.q.ListCircleMoments(ctx, db.ListCircleMomentsParams{
+		CircleID:   ptrToPgUUID(&circleID),
+		PageLimit:  limit,
+		PageOffset: offset,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list circle moments: %w", err)
+	}
+	return toEntityMoments(rows), nil
+}
+
 // Search implements [usecase.MomentRepository].
 func (r *momentRepository) Search(ctx context.Context, userID uuid.UUID, query string, limit, offset int32) ([]*entity.Moment, error) {
 	rows, err := r.q.SearchMoments(ctx, db.SearchMomentsParams{

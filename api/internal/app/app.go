@@ -69,12 +69,21 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, hasher, accessTokenIssuer, refreshTokenGenerator, cfg.JWTRefreshTokenTTL, cfg.LoginMaxFailedAttempts, cfg.LoginLockoutDuration)
 	authHandler := handler.NewAuthHandler(authUsecase, cfg.SecureCookies)
 
-	userUsecase := usecase.NewUserUsecase(userRepo)
+	// userPrivacyRepo is constructed here (ahead of 3d below) because
+	// UserUsecase needs it as a UserKnownRepository for the profile
+	// page's "I know this person" action.
+	userPrivacyRepo := repository.NewUserPrivacyRepository(conn)
+
+	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo)
 	userHandler := handler.NewUserHandler(userUsecase)
 
-	// 3b. Threads
+	// 3b. Threads. circleRepo is constructed here (ahead of the rest of
+	// 3d below) because ThreadUsecase needs it as a CircleAccessChecker
+	// to gate creating/listing a Circle's collaborative Threads.
+	circleRepo := repository.NewCircleRepository(conn)
+
 	threadRepo := repository.NewThreadRepository(conn)
-	threadUsecase := usecase.NewThreadUsecase(threadRepo)
+	threadUsecase := usecase.NewThreadUsecase(threadRepo, circleRepo)
 	threadHandler := handler.NewThreadHandler(threadUsecase)
 
 	threadImageRepo := repository.NewThreadImageRepository(conn)
@@ -83,7 +92,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 
 	// 3c. Moments
 	momentRepo := repository.NewMomentRepository(conn)
-	momentUsecase := usecase.NewMomentUsecase(momentRepo, threadRepo)
+	momentUsecase := usecase.NewMomentUsecase(momentRepo, threadRepo, circleRepo)
 	momentHandler := handler.NewMomentHandler(momentUsecase)
 
 	momentImageRepo := repository.NewMomentImageRepository(conn)
@@ -91,11 +100,9 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	momentImageHandler := handler.NewMomentImageHandler(momentImageUsecase)
 
 	// 3d. Circle, Mention, Response (Comment/Reaction). userPrivacyRepo
-	// has no usecase of its own — it's passed directly wherever a
+	// (constructed above) has no usecase of its own beyond UserUsecase's
+	// MarkKnown use — it's passed directly wherever a
 	// UserBlockChecker/UserKnownChecker/UserMuteChecker is needed.
-	userPrivacyRepo := repository.NewUserPrivacyRepository(conn)
-
-	circleRepo := repository.NewCircleRepository(conn)
 	circleUsecase := usecase.NewCircleUsecase(circleRepo)
 	circleHandler := handler.NewCircleHandler(circleUsecase)
 
@@ -108,7 +115,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	circleJoinRequestHandler := handler.NewCircleJoinRequestHandler(circleJoinRequestUsecase)
 
 	mentionRepo := repository.NewMentionRepository(conn)
-	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo)
+	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo)
 	mentionHandler := handler.NewMentionHandler(mentionUsecase)
 
 	responseEventRepo := repository.NewResponseEventRepository(conn)

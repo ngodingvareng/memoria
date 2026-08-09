@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/usecase"
 )
 
 type CreateCommentRequest struct {
@@ -29,6 +30,26 @@ type CommentResponse struct {
 
 type ListCommentsResponse struct {
 	Comments []CommentResponse `json:"comments"`
+}
+
+// MomentAudienceResponse is which Response contexts (FEATURES.md) the
+// caller may act/read in for a Moment — CircleIDs deliberately carries
+// only ids, not names; the frontend already resolves Circle names
+// elsewhere (GET /circles/{id}).
+type MomentAudienceResponse struct {
+	MentionAllowed bool     `json:"mention_allowed"`
+	CircleIDs      []string `json:"circle_ids"`
+}
+
+func NewMomentAudienceResponse(a *usecase.ResponseAudience) MomentAudienceResponse {
+	circleIDs := make([]string, len(a.CircleIDs))
+	for i, id := range a.CircleIDs {
+		circleIDs[i] = id.String()
+	}
+	return MomentAudienceResponse{
+		MentionAllowed: a.MentionAllowed,
+		CircleIDs:      circleIDs,
+	}
 }
 
 func NewCommentResponse(e *entity.Comment) CommentResponse {

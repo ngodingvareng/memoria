@@ -168,16 +168,6 @@ type Querier interface {
 	// errs.ErrNotFound; callers needing a real 404 look it up via
 	// GetCircleWithAccess first.
 	DissolveCircle(ctx context.Context, arg DissolveCircleParams) error
-	// Shared-Circle membership on its own, for surfaces that genuinely mean
-	// that and nothing else — such as the mention flow's optional "Share to
-	// circle too?" step. Both memberships must be active: a Circle one of
-	// them has left is not shared ground.
-	//
-	// This is NOT how audience_policy = 'known' is evaluated. That tier is a
-	// union of this and an explicit mark, and has its own query — use
-	// IsUserKnownTo, or a user who marked someone without sharing a Circle
-	// will be told they are unreachable.
-	DoUsersShareAnyCircle(ctx context.Context, arg DoUsersShareAnyCircleParams) (bool, error)
 	// The Circle's link as shown in its settings. Only token_hash is stored,
 	// so the shareable URL has to be reconstructed from the raw token the
 	// generating call returned — it cannot be recovered later, and a member
@@ -311,6 +301,28 @@ type Querier interface {
 	// Which Circles a personal Moment is currently shared into, for its
 	// own edit/unshare UI.
 	ListCircleIDsByMomentID(ctx context.Context, momentID uuid.UUID) ([]uuid.UUID, error)
+	// Which Circles user_a and user_b both actively belong to — for
+	// surfaces that genuinely mean that and nothing else, such as the
+	// mention flow's optional "Share to circle too?" step (FEATURES.md,
+	// Mention). Both memberships must be active: a Circle one of them has
+	// left is not shared ground. Deliberately returns the ids, not just a
+	// boolean — the offer needs to name the Circles, and computing this
+	// server-side means user_b's other, unrelated Circle memberships are
+	// never exposed to user_a.
+	//
+	// This is NOT how audience_policy = 'known' is evaluated. That tier is a
+	// union of this and an explicit mark, and has its own query — use
+	// IsUserKnownTo, or a user who marked someone without sharing a Circle
+	// will be told they are unreachable.
+	ListCircleIDsSharedBetweenUsers(ctx context.Context, arg ListCircleIDsSharedBetweenUsersParams) ([]uuid.UUID, error)
+	// The Circle's Album feed (FEATURES.md, Looking Back): every Moment
+	// captured into one of the Circle's own collaborative Threads, plus
+	// every personal Moment shared into it via the mention flow (mirrors
+	// the candidate_circles union in ListMomentVisibleCircleIDs, just
+	// inverted — moments for a circle_id instead of circles for a
+	// moment_id). Caller is responsible for the Circle-membership check.
+	// Newest occurrence first.
+	ListCircleMoments(ctx context.Context, arg ListCircleMomentsParams) ([]Moment, error)
 	// The "My Circles" list: every Circle this user is currently an active
 	// member of.
 	ListCirclesByUserID(ctx context.Context, userID uuid.UUID) ([]Circle, error)
@@ -447,8 +459,10 @@ type Querier interface {
 	// Global text Search (FEATURES.md, Looking Back) over one user's own
 	// Moments, backed by idx_moments_search_document.
 	SearchMoments(ctx context.Context, arg SearchMomentsParams) ([]Moment, error)
-	// Search & filter personal threads for the authenticated user's thread
-	// list. All filters are optional (NULL = "don't filter on this"):
+	// Search & filter the authenticated user's thread list: their own
+	// personal Threads, plus every collaborative Thread owned by a Circle
+	// they're an active member of (mirrors GetThreadWithAccess's notion of
+	// "reachable"). All filters are optional (NULL = "don't filter on this"):
 	//   - name: case-insensitive partial match (ILIKE) against threads.name
 	//   - archived: exact match against (archived_at IS NOT NULL)
 	// Ordered by sort_order then newest-first; paginated via

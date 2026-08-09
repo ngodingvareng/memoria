@@ -183,3 +183,35 @@ func (h *CommentHandler) DeleteComment(c fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
+
+// GetAudience godoc
+// @Summary      Get which contexts the caller may comment/react in for a moment
+// @Description  Whether the mention context is available, plus which Circle audiences (FEATURES.md, Response) — drives the comment/reaction composer
+// @Tags         comments
+// @Produce      json
+// @Param        id path string true "Moment ID"
+// @Success      200 {object} dto.WebResponse[dto.MomentAudienceResponse]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Router       /moments/{id}/audience [get]
+func (h *CommentHandler) GetAudience(c fiber.Ctx) error {
+	momentID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	audience, err := h.usecase.GetAudience(c, momentID, userID)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[dto.MomentAudienceResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    dto.NewMomentAudienceResponse(audience),
+	})
+}

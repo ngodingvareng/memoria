@@ -220,7 +220,7 @@ func (h *MomentHandler) DeleteMoment(c fiber.Ctx) error {
 
 // GetMoment godoc
 // @Summary      Get a moment by ID
-// @Description  Get a single Moment belonging to the authenticated user
+// @Description  Get a single Moment reachable by the caller — its owner, an active mentioned user, or a Circle context it's visible in
 // @Tags         moments
 // @Produce      json
 // @Param        id path string true "Moment ID"
@@ -331,6 +331,53 @@ func (h *MomentHandler) SearchMoments(c fiber.Ctx) error {
 	result, err := h.usecase.SearchMoments(c, usecase.SearchMomentsInput{
 		UserID:   userID,
 		Query:    query.Query,
+		Page:     query.Page,
+		PageSize: query.PageSize,
+	})
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[dto.ListMomentsResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    newListMomentsResponse(result),
+	})
+}
+
+// ListCircleMoments godoc
+// @Summary      List a circle's moments
+// @Description  The Circle's Album feed — Moments from its collaborative Threads plus Moments shared into it, newest occurrence first
+// @Tags         moments
+// @Produce      json
+// @Param        id        path  string true  "Circle ID"
+// @Param        page      query int    false "Page number (default 1)"
+// @Param        page_size query int    false "Moments per page (default 20, max 100)"
+// @Success      200 {object} dto.WebResponse[dto.ListMomentsResponse]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Router       /circles/{id}/moments [get]
+func (h *MomentHandler) ListCircleMoments(c fiber.Ctx) error {
+	circleID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	var query dto.ListMomentsQuery
+	if err := c.Bind().Query(&query); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(query); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	result, err := h.usecase.ListCircleMoments(c, usecase.ListCircleMomentsInput{
+		UserID:   userID,
+		CircleID: circleID,
 		Page:     query.Page,
 		PageSize: query.PageSize,
 	})

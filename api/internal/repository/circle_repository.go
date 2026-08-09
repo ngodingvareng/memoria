@@ -161,14 +161,13 @@ func (r *circleRepository) UpdateMemberPermissions(ctx context.Context, circleID
 	return toEntityCircleMember(row), nil
 }
 
-// DoUsersShareAnyCircle implements [usecase.CircleRepository] and
-// [usecase.CircleShareChecker].
-func (r *circleRepository) DoUsersShareAnyCircle(ctx context.Context, userA, userB uuid.UUID) (bool, error) {
-	shared, err := r.q.DoUsersShareAnyCircle(ctx, db.DoUsersShareAnyCircleParams{UserA: userA, UserB: userB})
+// ListSharedCircleIDs implements [usecase.CircleShareChecker].
+func (r *circleRepository) ListSharedCircleIDs(ctx context.Context, userA, userB uuid.UUID) ([]uuid.UUID, error) {
+	ids, err := r.q.ListCircleIDsSharedBetweenUsers(ctx, db.ListCircleIDsSharedBetweenUsersParams{UserA: userA, UserB: userB})
 	if err != nil {
-		return false, fmt.Errorf("checking shared circle: %w", err)
+		return nil, fmt.Errorf("listing shared circles: %w", err)
 	}
-	return shared, nil
+	return ids, nil
 }
 
 // WithTransaction implements [usecase.CircleRepository].

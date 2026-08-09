@@ -45,14 +45,22 @@ type ThreadRepository interface {
 	// GetByID also grants access to a collaborative Thread's Circle
 	// members, not just its creator — see threads.GetThreadWithAccess.
 	GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Thread, error)
+	// ListByCircle returns a Circle's collaborative Threads. Callers are
+	// responsible for the Circle-membership check (see ListCircleThreads)
+	// — this query has no user-scoping of its own.
+	ListByCircle(ctx context.Context, circleID uuid.UUID) ([]*entity.Thread, error)
 	WithTransaction(ctx context.Context, fn func(ThreadRepository) error) error
 }
 
-// CreateThreadInput deliberately has no circle_id — collaborative
-// (Circle-owned) Threads aren't wired up at the application level yet,
-// so every Thread created through this usecase is personal.
+// CreateThreadInput's CircleID is nil for a personal Thread (owned by
+// UserID) and set to create a collaborative Thread owned by that Circle
+// instead — CreateThread checks the caller is an active member of it
+// first (FEATURES.md, Circle: "Users can create collaborative Threads
+// that any member can contribute to" — no admin/permission gate beyond
+// active membership).
 type CreateThreadInput struct {
 	UserID      uuid.UUID
+	CircleID    *uuid.UUID
 	Name        string
 	Description *string
 	ColorHex    *string
@@ -87,14 +95,18 @@ type ThreadUsecase interface {
 	SoftDeleteThread(ctx context.Context, id, userID uuid.UUID) error
 	GetThread(ctx context.Context, userID, threadID uuid.UUID) (*entity.Thread, error)
 	SearchThreads(ctx context.Context, input SearchThreadsInput) (*SearchThreadsResult, error)
+	// ListCircleThreads returns circleID's collaborative Threads.
+	// Returns errs.ErrNotFound if userID isn't an active member.
+	ListCircleThreads(ctx context.Context, circleID, userID uuid.UUID) ([]*entity.Thread, error)
 }
 
 type threadUsecase struct {
-	repo ThreadRepository
+	repo    ThreadRepository
+	circles CircleAccessChecker
 }
 
-func NewThreadUsecase(repo ThreadRepository) ThreadUsecase {
-	return &threadUsecase{repo: repo}
+func NewThreadUsecase(repo ThreadRepository, circles CircleAccessChecker) ThreadUsecase {
+	return &threadUsecase{repo: repo, circles: circles}
 }
 
 // CreateThread implements [ThreadUsecase].
@@ -104,8 +116,15 @@ func (u *threadUsecase) CreateThread(ctx context.Context, input CreateThreadInpu
 		colorHex = *input.ColorHex
 	}
 
+	if input.CircleID != nil {
+		if _, err := u.circles.GetActiveMember(ctx, *input.CircleID, input.UserID); err != nil {
+			return nil, fmt.Errorf("checking circle membership: %w", err)
+		}
+	}
+
 	thread := &entity.Thread{
 		UserID:      input.UserID,
+		CircleID:    input.CircleID,
 		Name:        input.Name,
 		Description: input.Description,
 		ColorHex:    &colorHex,
@@ -209,4 +228,17 @@ func (u *threadUsecase) SearchThreads(ctx context.Context, input SearchThreadsIn
 		Page:     page,
 		PageSize: pageSize,
 	}, nil
+}
+
+// ListCircleThreads implements [ThreadUsecase].
+func (u *threadUsecase) ListCircleThreads(ctx context.Context, circleID, userID uuid.UUID) ([]*entity.Thread, error) {
+	if _, err := u.circles.GetActiveMember(ctx, circleID, userID); err != nil {
+		return nil, fmt.Errorf("checking circle membership: %w", err)
+	}
+
+	threads, err := u.repo.ListByCircle(ctx, circleID)
+	if err != nil {
+		return nil, fmt.Errorf("listing circle threads: %w", err)
+	}
+	return threads, nil
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/go-openapi/testify/v2/require"
+	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
 	"github.com/ngodingvareng/memoria/internal/enum"
 	"github.com/ngodingvareng/memoria/internal/errs"
@@ -182,15 +183,15 @@ func TestCircleRepository_ListByUserID(t *testing.T) {
 	require.Equal(t, created.ID, circles[0].ID)
 }
 
-func TestCircleRepository_DoUsersShareAnyCircle(t *testing.T) {
+func TestCircleRepository_ListSharedCircleIDs(t *testing.T) {
 	pool := setupTestDB(t)
 	userA := seedTestUser(t, pool)
 	userB := seedTestUser(t, pool)
 	repo := repository.NewCircleRepository(pool)
 
-	shared, err := repo.DoUsersShareAnyCircle(context.Background(), userA, userB)
+	ids, err := repo.ListSharedCircleIDs(context.Background(), userA, userB)
 	require.NoError(t, err)
-	require.False(t, shared)
+	require.Empty(t, ids)
 
 	created, err := repo.Create(context.Background(), &entity.Circle{Name: "Shared"})
 	require.NoError(t, err)
@@ -201,7 +202,7 @@ func TestCircleRepository_DoUsersShareAnyCircle(t *testing.T) {
 		created.ID, userB)
 	require.NoError(t, err)
 
-	shared, err = repo.DoUsersShareAnyCircle(context.Background(), userA, userB)
+	ids, err = repo.ListSharedCircleIDs(context.Background(), userA, userB)
 	require.NoError(t, err)
-	require.True(t, shared)
+	require.Equal(t, []uuid.UUID{created.ID}, ids)
 }

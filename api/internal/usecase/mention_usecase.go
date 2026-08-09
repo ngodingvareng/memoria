@@ -52,10 +52,20 @@ type ListMentionedMomentsInput struct {
 	PageSize int32
 }
 
+// CreateMentionResult is CreateMention's return: the new mention, plus
+// which Circles the owner and the mentioned user both actively belong
+// to — the candidate set for the mention flow's optional "Share to
+// circle too?" step (FEATURES.md, Mention), computed in the same call
+// so the frontend can offer it immediately with no extra request.
+type CreateMentionResult struct {
+	Mention         *entity.MomentMention
+	SharedCircleIDs []uuid.UUID
+}
+
 // --- Usecase ---
 
 type MentionUsecase interface {
-	CreateMention(ctx context.Context, input CreateMentionInput) (*entity.MomentMention, error)
+	CreateMention(ctx context.Context, input CreateMentionInput) (*CreateMentionResult, error)
 	ListMentions(ctx context.Context, momentID, ownerUserID uuid.UUID) ([]*entity.MomentMention, error)
 	// LeaveMention is the mentioned user removing themselves — no
 	// notification to the owner (FEATURES.md, Leaving a mention).
@@ -65,26 +75,30 @@ type MentionUsecase interface {
 
 	ShareToCircle(ctx context.Context, input ShareMomentToCircleInput) (*entity.MomentCircle, error)
 	UnshareFromCircle(ctx context.Context, momentID, circleID, userID uuid.UUID) error
+	// ListSharedCircles is which Circles a personal Moment is currently
+	// shared to — owner-only, backs the "manage sharing" surface.
+	ListSharedCircles(ctx context.Context, momentID, ownerUserID uuid.UUID) ([]uuid.UUID, error)
 }
 
 type mentionUsecase struct {
-	repo    MentionRepository
-	moments MomentAccessChecker
-	circles CircleAccessChecker
-	users   UserPolicyReader
-	knowns  UserKnownChecker
-	blocks  UserBlockChecker
+	repo         MentionRepository
+	moments      MomentAccessChecker
+	circles      CircleAccessChecker
+	circleShares CircleShareChecker
+	users        UserPolicyReader
+	knowns       UserKnownChecker
+	blocks       UserBlockChecker
 }
 
-func NewMentionUsecase(repo MentionRepository, moments MomentAccessChecker, circles CircleAccessChecker, users UserPolicyReader, knowns UserKnownChecker, blocks UserBlockChecker) MentionUsecase {
-	return &mentionUsecase{repo: repo, moments: moments, circles: circles, users: users, knowns: knowns, blocks: blocks}
+func NewMentionUsecase(repo MentionRepository, moments MomentAccessChecker, circles CircleAccessChecker, circleShares CircleShareChecker, users UserPolicyReader, knowns UserKnownChecker, blocks UserBlockChecker) MentionUsecase {
+	return &mentionUsecase{repo: repo, moments: moments, circles: circles, circleShares: circleShares, users: users, knowns: knowns, blocks: blocks}
 }
 
 // CreateMention implements [MentionUsecase]. Enforces
 // users.mention_policy (FEATURES.md, Privacy & Control: "Who may
 // mention a user at all is controlled by that user") and blocking,
 // which overrides any policy in both directions.
-func (u *mentionUsecase) CreateMention(ctx context.Context, input CreateMentionInput) (*entity.MomentMention, error) {
+func (u *mentionUsecase) CreateMention(ctx context.Context, input CreateMentionInput) (*CreateMentionResult, error) {
 	if _, err := u.moments.GetByID(ctx, input.MomentID, input.OwnerUserID); err != nil {
 		return nil, fmt.Errorf("checking moment ownership: %w", err)
 	}
@@ -121,7 +135,13 @@ func (u *mentionUsecase) CreateMention(ctx context.Context, input CreateMentionI
 	if err != nil {
 		return nil, fmt.Errorf("creating mention: %w", err)
 	}
-	return mention, nil
+
+	sharedCircleIDs, err := u.circleShares.ListSharedCircleIDs(ctx, input.OwnerUserID, target.ID)
+	if err != nil {
+		return nil, fmt.Errorf("listing shared circles: %w", err)
+	}
+
+	return &CreateMentionResult{Mention: mention, SharedCircleIDs: sharedCircleIDs}, nil
 }
 
 // ListMentions implements [MentionUsecase].
@@ -194,4 +214,16 @@ func (u *mentionUsecase) UnshareFromCircle(ctx context.Context, momentID, circle
 		return fmt.Errorf("unsharing moment from circle: %w", err)
 	}
 	return nil
+}
+
+// ListSharedCircles implements [MentionUsecase].
+func (u *mentionUsecase) ListSharedCircles(ctx context.Context, momentID, ownerUserID uuid.UUID) ([]uuid.UUID, error) {
+	if _, err := u.moments.GetByID(ctx, momentID, ownerUserID); err != nil {
+		return nil, fmt.Errorf("checking moment ownership: %w", err)
+	}
+	ids, err := u.repo.ListSharedCircleIDs(ctx, momentID)
+	if err != nil {
+		return nil, fmt.Errorf("listing shared circles: %w", err)
+	}
+	return ids, nil
 }

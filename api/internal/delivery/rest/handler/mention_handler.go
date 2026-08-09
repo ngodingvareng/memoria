@@ -53,19 +53,19 @@ func (h *MentionHandler) CreateMention(c fiber.Ctx) error {
 		return errs.ErrUnauthorized
 	}
 
-	mention, err := h.usecase.CreateMention(c, usecase.CreateMentionInput{
+	result, err := h.usecase.CreateMention(c, usecase.CreateMentionInput{
 		MomentID: momentID, OwnerUserID: userID, Username: req.Username,
 	})
 	if err != nil {
 		return err
 	}
 
-	slog.InfoContext(c, "mention created", "moment_id", momentID, "mention_id", mention.ID, "user_id", userID)
+	slog.InfoContext(c, "mention created", "moment_id", momentID, "mention_id", result.Mention.ID, "user_id", userID)
 
 	return c.Status(fiber.StatusCreated).JSON(dto.WebResponse[dto.MentionResponse]{
 		Code:    fiber.StatusCreated,
 		Message: "mention created",
-		Data:    dto.NewMentionResponse(mention),
+		Data:    dto.NewCreateMentionResponse(result),
 	})
 }
 
@@ -291,4 +291,41 @@ func (h *MentionHandler) UnshareFromCircle(c fiber.Ctx) error {
 	slog.InfoContext(c, "moment unshared from circle", "moment_id", momentID, "circle_id", circleID, "user_id", userID)
 
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// ListShares godoc
+// @Summary      List which circles a moment is shared to
+// @Description  The "manage sharing" surface — every Circle this personal Moment is currently shared into
+// @Tags         mentions
+// @Produce      json
+// @Param        id path string true "Moment ID"
+// @Success      200 {object} dto.WebResponse[dto.ListMomentSharesResponse]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Router       /moments/{id}/shares [get]
+func (h *MentionHandler) ListShares(c fiber.Ctx) error {
+	momentID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	circleIDs, err := h.usecase.ListSharedCircles(c, momentID, userID)
+	if err != nil {
+		return err
+	}
+
+	ids := make([]string, len(circleIDs))
+	for i, id := range circleIDs {
+		ids[i] = id.String()
+	}
+
+	return c.JSON(dto.WebResponse[dto.ListMomentSharesResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    dto.ListMomentSharesResponse{CircleIDs: ids},
+	})
 }
