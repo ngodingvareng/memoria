@@ -2,7 +2,12 @@ import AppHeader from '@/components/app-header';
 import AppSidebar from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { getSession, useSession } from '@/lib/session';
-import { createFileRoute, Outlet, redirect, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  Outlet,
+  redirect,
+  useNavigate,
+} from '@tanstack/react-router';
 import { useEffect } from 'react';
 
 export const Route = createFileRoute('/_app')({

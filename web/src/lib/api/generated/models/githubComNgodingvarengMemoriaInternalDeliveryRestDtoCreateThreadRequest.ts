@@ -6,6 +6,11 @@
  */
 
 export interface GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateThreadRequest {
+  /**
+   * CircleID creates a collaborative Thread owned by that Circle
+   * instead of a personal one; the caller must be an active member.
+   */
+  circle_id?: string;
   color_hex?: string;
   /** @maxLength 2000 */
   description?: string;

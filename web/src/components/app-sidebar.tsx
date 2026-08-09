@@ -10,6 +10,8 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ThreadCircleBadge } from '@/features/threads';
+import { useGetCircles } from '@/lib/api/generated/circles/circles';
 import { useGetThreads } from '@/lib/api/generated/threads/threads';
 import {
   Activity01Icon,
@@ -54,15 +56,6 @@ const data = {
       url: '/album',
     },
   ],
-
-  circle: [
-    {
-      name: 'NgodingVareng',
-      imageSrc: 'https://github.com/shadcn.png',
-      imageAlt: 'hello',
-      url: '/g/1',
-    },
-  ],
 };
 
 export default function AppSidebar({
@@ -75,6 +68,8 @@ export default function AppSidebar({
     page_size: RECENT_THREADS_LIMIT,
   });
   const recentThreads = threadsData?.threads ?? [];
+  const { data: circlesData, isPending: isCirclesPending } = useGetCircles();
+  const circles = circlesData?.circles ?? [];
 
   return (
     <Sidebar
@@ -102,30 +97,46 @@ export default function AppSidebar({
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Circles</SidebarGroupLabel>
-          <SidebarMenu>
-            {data.circle.map((item) => (
-              <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton
-                  render={
-                    <Link to={item.url}>
-                      <Avatar size="sm" className="rounded-sm after:rounded-sm">
-                        <AvatarImage
-                          src={item.imageSrc}
-                          alt={item.imageAlt}
-                          className="rounded-sm"
-                        />
-                        <AvatarFallback>CN</AvatarFallback>
-                      </Avatar>
-                      <span className="min-w-0 truncate">{item.name}</span>
-                    </Link>
-                  }
-                />
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        {(isCirclesPending || circles.length > 0) && (
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel>Circles</SidebarGroupLabel>
+            <SidebarMenu>
+              {isCirclesPending
+                ? Array.from({ length: 3 }).map((_, i) => (
+                    <SidebarMenuItem key={i}>
+                      <Skeleton className="h-8 w-full" />
+                    </SidebarMenuItem>
+                  ))
+                : circles.map((circle) => (
+                    <SidebarMenuItem key={circle.id}>
+                      <SidebarMenuButton
+                        isActive={pathname === `/c/${circle.id}`}
+                        render={
+                          <Link to="/c/$id" params={{ id: circle.id! }}>
+                            <Avatar
+                              size="sm"
+                              className="rounded-sm after:rounded-sm"
+                            >
+                              <AvatarImage
+                                src={circle.image_path ?? undefined}
+                                alt={circle.name}
+                                className="rounded-sm"
+                              />
+                              <AvatarFallback>
+                                {circle.name?.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="min-w-0 truncate">
+                              {circle.name}
+                            </span>
+                          </Link>
+                        }
+                      />
+                    </SidebarMenuItem>
+                  ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        )}
 
         {(isThreadsPending || recentThreads.length > 0) && (
           <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -138,8 +149,12 @@ export default function AppSidebar({
                     </SidebarMenuItem>
                   ))
                 : recentThreads.map((thread) => (
-                    <SidebarMenuItem key={thread.id}>
+                    <SidebarMenuItem
+                      key={thread.id}
+                      className="flex items-center gap-1"
+                    >
                       <SidebarMenuButton
+                        className="min-w-0 flex-1"
                         isActive={pathname === `/thread/${thread.id}`}
                         render={
                           <Link to="/thread/$id" params={{ id: thread.id! }}>
@@ -149,6 +164,12 @@ export default function AppSidebar({
                           </Link>
                         }
                       />
+                      {thread.circle_id && (
+                        <ThreadCircleBadge
+                          circleId={thread.circle_id}
+                          compact
+                        />
+                      )}
                     </SidebarMenuItem>
                   ))}
             </SidebarMenu>

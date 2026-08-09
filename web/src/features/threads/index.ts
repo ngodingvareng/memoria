@@ -1,8 +1,15 @@
+export { AudiencePicker } from './components/audience-picker';
+export { CommentInput } from './components/comment-input';
+export { CommentList } from './components/comment-list';
 export { CreateHeaderLink } from './components/create-header-link';
 export { CreateThreadForm } from './components/create-thread-form';
 export { DeleteThreadDialog } from './components/delete-thread-dialog';
 export { EditThreadDetailsSection } from './components/edit-thread-details-section';
 export { EditThreadHero } from './components/edit-thread-hero';
 export { EditThreadNameDialog } from './components/edit-thread-name-dialog';
+export { ReactionPicker } from './components/reaction-picker';
+export { ReactionSummary } from './components/reaction-summary';
+export { ShareToCirclePicker } from './components/share-to-circle-picker';
+export { ThreadCircleBadge } from './components/thread-circle-badge';
 export { ThreadHeader } from './components/thread-header';
 export { ThreadHero } from './components/thread-hero';

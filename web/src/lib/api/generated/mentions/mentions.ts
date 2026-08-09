@@ -24,6 +24,7 @@ import type {
   GetMentionsParams,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateMentionRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMentionsResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMomentSharesResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMomentsResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMentionResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMomentCircleResponse,
@@ -876,3 +877,170 @@ export const useDeleteMomentsIdShareCircleId = <
     queryClient
   );
 };
+export const getGetMomentsIdSharesUrl = (id: string) => {
+  return `/moments/${id}/shares`;
+};
+
+/**
+ * The "manage sharing" surface — every Circle this personal Moment is currently shared into
+ * @summary List which circles a moment is shared to
+ */
+export const getMomentsIdShares = async (
+  id: string,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMomentSharesResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMomentSharesResponse>(
+    getGetMomentsIdSharesUrl(id),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetMomentsIdSharesQueryKey = (id: string) => {
+  return [`/moments/${id}/shares`] as const;
+};
+
+export const getGetMomentsIdSharesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMomentsIdShares>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdShares>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMomentsIdSharesQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMomentsIdShares>>
+  > = ({ signal }) => getMomentsIdShares(id, { signal });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMomentsIdShares>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetMomentsIdSharesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMomentsIdShares>>
+>;
+export type GetMomentsIdSharesQueryError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+export function useGetMomentsIdShares<
+  TData = Awaited<ReturnType<typeof getMomentsIdShares>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdShares>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMomentsIdShares>>,
+          TError,
+          Awaited<ReturnType<typeof getMomentsIdShares>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetMomentsIdShares<
+  TData = Awaited<ReturnType<typeof getMomentsIdShares>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdShares>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMomentsIdShares>>,
+          TError,
+          Awaited<ReturnType<typeof getMomentsIdShares>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetMomentsIdShares<
+  TData = Awaited<ReturnType<typeof getMomentsIdShares>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdShares>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List which circles a moment is shared to
+ */
+
+export function useGetMomentsIdShares<
+  TData = Awaited<ReturnType<typeof getMomentsIdShares>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdShares>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetMomentsIdSharesQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}

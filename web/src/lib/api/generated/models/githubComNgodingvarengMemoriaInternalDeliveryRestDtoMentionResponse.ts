@@ -11,4 +11,11 @@ export interface GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMentionResp
   id?: string;
   mentioned_user_id?: string;
   moment_id?: string;
+  /**
+   * SharedCircleIDs is only populated by CreateMention — which
+   * Circles the owner and the mentioned user both actively belong to,
+   * the candidate set for "Share to circle too?" (FEATURES.md,
+   * Mention). Always empty on ListMentions.
+   */
+  shared_circle_ids?: string[];
 }

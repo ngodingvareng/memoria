@@ -1,3 +1,9 @@
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from '@/components/ui/empty';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/_circle/c/$id/album')({
@@ -5,5 +11,14 @@ export const Route = createFileRoute('/_app/_circle/c/$id/album')({
 });
 
 function RouteComponent() {
-  return <div>Hello "/_app/_circle/c/$id/album"!</div>;
+  return (
+    <Empty>
+      <EmptyHeader>
+        <EmptyTitle>Coming soon</EmptyTitle>
+        <EmptyDescription>
+          A circle's shared photo album is on the way.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
 }

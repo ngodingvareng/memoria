@@ -14,7 +14,7 @@ export const Route = createFileRoute('/_auth/signin')({
 
 function RouteComponent() {
   return (
-    <Card className='px-6'>
+    <Card className="px-6">
       <CardHeader className="text-center">
         <CardTitle className="text-xl">Sign in</CardTitle>
         <CardDescription>

@@ -23,7 +23,10 @@ const formSchema = z
       .string()
       .min(1, 'Name is required.')
       .max(255, 'Name must be at most 255 characters.'),
-    email: z.string().min(1, 'Email is required.').email('Enter a valid email address.'),
+    email: z
+      .string()
+      .min(1, 'Email is required.')
+      .email('Enter a valid email address.'),
     password: z.string().min(8, 'Password must be at least 8 characters.'),
     confirmPassword: z.string().min(1, 'Please confirm your password.'),
   })
@@ -64,7 +67,8 @@ export function SignupForm() {
           setSubmitError(
             err.status === 409
               ? 'An account with this email already exists.'
-              : (err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message)
+              : (err.fieldErrors?.map((e) => e.message).join(' ') ??
+                  err.message)
           );
         } else {
           setSubmitError('Something went wrong. Please try again.');

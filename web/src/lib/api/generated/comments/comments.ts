@@ -24,6 +24,7 @@ import type {
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCommentResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateCommentRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListCommentsResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMomentAudienceResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdateCommentRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
 } from '../models';
@@ -47,6 +48,175 @@ const withQueryKey = <T extends object, K>(
   }
   return result;
 };
+
+export const getGetMomentsIdAudienceUrl = (id: string) => {
+  return `/moments/${id}/audience`;
+};
+
+/**
+ * Whether the mention context is available, plus which Circle audiences (FEATURES.md, Response) — drives the comment/reaction composer
+ * @summary Get which contexts the caller may comment/react in for a moment
+ */
+export const getMomentsIdAudience = async (
+  id: string,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMomentAudienceResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMomentAudienceResponse>(
+    getGetMomentsIdAudienceUrl(id),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetMomentsIdAudienceQueryKey = (id: string) => {
+  return [`/moments/${id}/audience`] as const;
+};
+
+export const getGetMomentsIdAudienceQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMomentsIdAudience>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdAudience>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetMomentsIdAudienceQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMomentsIdAudience>>
+  > = ({ signal }) => getMomentsIdAudience(id, { signal });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMomentsIdAudience>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetMomentsIdAudienceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMomentsIdAudience>>
+>;
+export type GetMomentsIdAudienceQueryError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+export function useGetMomentsIdAudience<
+  TData = Awaited<ReturnType<typeof getMomentsIdAudience>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdAudience>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMomentsIdAudience>>,
+          TError,
+          Awaited<ReturnType<typeof getMomentsIdAudience>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetMomentsIdAudience<
+  TData = Awaited<ReturnType<typeof getMomentsIdAudience>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdAudience>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMomentsIdAudience>>,
+          TError,
+          Awaited<ReturnType<typeof getMomentsIdAudience>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetMomentsIdAudience<
+  TData = Awaited<ReturnType<typeof getMomentsIdAudience>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdAudience>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get which contexts the caller may comment/react in for a moment
+ */
+
+export function useGetMomentsIdAudience<
+  TData = Awaited<ReturnType<typeof getMomentsIdAudience>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMomentsIdAudience>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetMomentsIdAudienceQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
 
 export const getGetMomentsIdCommentsUrl = (id: string) => {
   return `/moments/${id}/comments`;

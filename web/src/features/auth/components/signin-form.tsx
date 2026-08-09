@@ -26,7 +26,10 @@ import { useState } from 'react';
 import * as z from 'zod';
 
 const formSchema = z.object({
-  email: z.string().min(1, 'Email is required.').email('Enter a valid email address.'),
+  email: z
+    .string()
+    .min(1, 'Email is required.')
+    .email('Enter a valid email address.'),
   password: z.string().min(1, 'Password is required.'),
 });
 
@@ -53,7 +56,8 @@ export function SigninForm() {
           setSubmitError(
             err.status === 401
               ? 'Incorrect email or password.'
-              : (err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message)
+              : (err.fieldErrors?.map((e) => e.message).join(' ') ??
+                  err.message)
           );
         } else {
           setSubmitError('Something went wrong. Please try again.');

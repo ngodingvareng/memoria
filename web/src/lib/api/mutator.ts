@@ -27,7 +27,10 @@ export async function apiMutator<T>(
   const session = getSession();
 
   try {
-    return await apiFetch<T>(url, { ...options, accessToken: session?.accessToken });
+    return await apiFetch<T>(url, {
+      ...options,
+      accessToken: session?.accessToken,
+    });
   } catch (err) {
     if (!(err instanceof ApiError) || err.status !== 401 || !session) {
       throw err;
@@ -39,6 +42,9 @@ export async function apiMutator<T>(
       throw err;
     }
 
-    return apiFetch<T>(url, { ...options, accessToken: getSession()?.accessToken });
+    return apiFetch<T>(url, {
+      ...options,
+      accessToken: getSession()?.accessToken,
+    });
   }
 }

@@ -16,10 +16,11 @@ import { toSession } from '@/features/auth/lib/to-session';
 // in", which is a normal outcome here, not an error.
 export async function restoreSession(): Promise<boolean> {
   try {
-    const data = await apiFetch<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginResponse>(
-      '/auth/refresh',
-      { method: 'POST' }
-    );
+    const data =
+      await apiFetch<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginResponse>(
+        '/auth/refresh',
+        { method: 'POST' }
+      );
     setSession(toSession(data));
     return true;
   } catch {

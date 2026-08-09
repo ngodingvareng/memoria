@@ -3,108 +3,115 @@ import { ButtonGroup } from '@/components/ui/button-group';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { InputGroupTextarea } from '@/components/ui/input-group';
 import { Item, ItemContent } from '@/components/ui/item';
-import {
-  ArrowUp02Icon,
-  Attachment01Icon,
-  FileEmpty02Icon,
-  Heading01Icon,
-  Heading02Icon,
-  Heading03Icon,
-  HeadingIcon,
-  MultiplicationSignIcon,
-  PlusSignIcon,
-} from '@hugeicons/core-free-icons';
+import { ArrowUp02Icon, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import {
-  headingsPlugin,
-  linkPlugin,
-  listsPlugin,
-  markdownShortcutPlugin,
-  MDXEditor,
-} from '@mdxeditor/editor';
-import '@mdxeditor/editor/style.css';
+import { useRef, useState } from 'react';
+import { ColorSwatchPicker } from './color-swatch-picker';
+import { ImagePreviewList } from './image-preview-list';
+
+export interface MomentDraft {
+  note: string;
+  colorHex: string;
+  images: File[];
+}
 
 interface MomentInputProps {
   onOpenTimeDialog: () => void;
-  onPublish: () => void;
+  onPublish: (draft: MomentDraft) => void | Promise<void>;
 }
 
 export function MomentInput({ onOpenTimeDialog, onPublish }: MomentInputProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [note, setNote] = useState('');
+  const [colorHex, setColorHex] = useState('');
+  const [images, setImages] = useState<File[]>([]);
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handlePublish = async () => {
+    if (!note.trim() && images.length === 0) return;
+    setIsPublishing(true);
+    try {
+      await onPublish({ note, colorHex, images });
+      setNote('');
+      setColorHex('');
+      setImages([]);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   return (
     <div className="sticky bottom-0 pb-6 left-0 z-30 bg-linear-to-t from-background pt-20 from-60% to-transparent w-full">
-      <Item variant="outline" className="mx-auto shadow-sm bg-card max-w-5xl">
+      <Item
+        variant="outline"
+        className="mx-auto shadow-sm bg-card max-w-5xl rounded-4xl"
+      >
         <ItemContent className="flex flex-col min-h-20 max-h-[calc(100vh-10rem)]">
-          <div className="grow overflow-y-auto  ">
-            <MDXEditor
-              markdown=""
+          <div className="grow overflow-y-auto flex flex-col gap-2">
+            <InputGroupTextarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
               placeholder="Woylah cikk, ketik sini..."
-              contentEditableClassName="typeset text-foreground! max-w-none!"
-              plugins={[
-                headingsPlugin(),
-                linkPlugin(),
-                markdownShortcutPlugin(),
-                listsPlugin(),
-              ]}
-              spellCheck={false}
+              maxLength={10000}
+              className="text-foreground! text-base! min-h-16"
+            />
+            <ImagePreviewList
+              images={images}
+              onRemove={(index) =>
+                setImages((prev) => prev.filter((_, i) => i !== index))
+              }
             />
           </div>
           <div className="flex justify-between gap-1">
-            <div>
+            <div className="flex gap-1">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <HugeiconsIcon strokeWidth={2.5} icon={PlusSignIcon} />
+                Add photos
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  e.target.value = '';
+                  if (files.length > 0) {
+                    setImages((prev) => [...prev, ...files]);
+                  }
+                }}
+              />
+
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  render={<Button variant="secondary" size="sm" />}
+                  render={<Button variant="secondary" size="icon-sm" />}
                 >
-                  <HugeiconsIcon strokeWidth={2.5} icon={PlusSignIcon} />
-                  Add files and more...
+                  <span
+                    className="size-5 rounded-full border border-foreground"
+                    style={{ backgroundColor: colorHex || undefined }}
+                  />
+                  <span className="sr-only">Color</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <HugeiconsIcon strokeWidth={2} icon={HeadingIcon} />
-                      Heading
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent>
-                        <DropdownMenuItem>
-                          <HugeiconsIcon strokeWidth={2} icon={Heading01Icon} />
-                          H1
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <HugeiconsIcon strokeWidth={2} icon={Heading02Icon} />
-                          H2
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <HugeiconsIcon strokeWidth={2} icon={Heading03Icon} />
-                          H3
-                        </DropdownMenuItem>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                  <DropdownMenuItem>
-                    <HugeiconsIcon strokeWidth={2} icon={FileEmpty02Icon} />
-                    Photos & files
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <HugeiconsIcon strokeWidth={2} icon={Attachment01Icon} />
-                    Links
-                  </DropdownMenuItem>
+                  <ColorSwatchPicker
+                    value={colorHex}
+                    onChange={setColorHex}
+                    className="p-2"
+                  />
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={onPublish}>
-                <HugeiconsIcon icon={MultiplicationSignIcon} />
-                Publish
-              </Button>
               <ButtonGroup>
                 <Button
                   variant="secondary"
@@ -113,7 +120,11 @@ export function MomentInput({ onOpenTimeDialog, onPublish }: MomentInputProps) {
                 >
                   10/02/2033 10:00
                 </Button>
-                <Button size="icon-sm">
+                <Button
+                  size="icon-sm"
+                  onClick={handlePublish}
+                  disabled={isPublishing}
+                >
                   <HugeiconsIcon strokeWidth={2.5} icon={ArrowUp02Icon} />
                 </Button>
               </ButtonGroup>

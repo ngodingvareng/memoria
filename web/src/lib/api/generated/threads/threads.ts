@@ -23,6 +23,7 @@ import type {
 import type {
   GetThreadsParams,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateThreadRequest,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListThreadsResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoSearchThreadsResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadImageResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse,
@@ -51,6 +52,174 @@ const withQueryKey = <T extends object, K>(
   }
   return result;
 };
+
+export const getGetCirclesIdThreadsUrl = (id: string) => {
+  return `/circles/${id}/threads`;
+};
+
+/**
+ * List every Thread owned by a Circle; the caller must be an active member
+ * @summary List a Circle's collaborative threads
+ */
+export const getCirclesIdThreads = async (
+  id: string,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListThreadsResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListThreadsResponse>(
+    getGetCirclesIdThreadsUrl(id),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetCirclesIdThreadsQueryKey = (id: string) => {
+  return [`/circles/${id}/threads`] as const;
+};
+
+export const getGetCirclesIdThreadsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCirclesIdThreads>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdThreads>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCirclesIdThreadsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCirclesIdThreads>>
+  > = ({ signal }) => getCirclesIdThreads(id, { signal });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCirclesIdThreads>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetCirclesIdThreadsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCirclesIdThreads>>
+>;
+export type GetCirclesIdThreadsQueryError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+export function useGetCirclesIdThreads<
+  TData = Awaited<ReturnType<typeof getCirclesIdThreads>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdThreads>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCirclesIdThreads>>,
+          TError,
+          Awaited<ReturnType<typeof getCirclesIdThreads>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCirclesIdThreads<
+  TData = Awaited<ReturnType<typeof getCirclesIdThreads>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdThreads>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCirclesIdThreads>>,
+          TError,
+          Awaited<ReturnType<typeof getCirclesIdThreads>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCirclesIdThreads<
+  TData = Awaited<ReturnType<typeof getCirclesIdThreads>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdThreads>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List a Circle's collaborative threads
+ */
+
+export function useGetCirclesIdThreads<
+  TData = Awaited<ReturnType<typeof getCirclesIdThreads>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdThreads>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetCirclesIdThreadsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
 
 export const getGetThreadsUrl = (params?: GetThreadsParams) => {
   const normalizedParams = new URLSearchParams();

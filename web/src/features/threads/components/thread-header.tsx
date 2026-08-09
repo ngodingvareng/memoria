@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
+import { ThreadCircleBadge } from './thread-circle-badge';
 import {
   Edit04Icon,
   EyeIcon,
@@ -13,6 +14,7 @@ import { Link } from '@tanstack/react-router';
 interface ThreadHeaderProps {
   threadId: string;
   threadName: string;
+  circleId?: string;
   isReadMode: boolean;
   onToggleMode: () => void;
   onShare: () => void;
@@ -21,15 +23,17 @@ interface ThreadHeaderProps {
 export function ThreadHeader({
   threadId,
   threadName,
+  circleId,
   isReadMode,
   onToggleMode,
   onShare,
 }: ThreadHeaderProps) {
   return (
     <div className="flex flex-col gap-2 mt-4">
-      <div className="flex items-center justify-end gap-1">
-        <div className="grow">
+      <div className="flex items-start justify-end gap-1">
+        <div className="grow flex flex-col gap-1">
           <h1 className="text-2xl font-semibold font-heading">{threadName}</h1>
+          {circleId && <ThreadCircleBadge circleId={circleId} />}
         </div>
 
         <ButtonGroup>

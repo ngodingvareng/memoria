@@ -26,3 +26,15 @@ export function getNoteColorClass(color?: string): string {
   if (!color) return 'bg-muted';
   return noteColorMap[color] || 'bg-muted';
 }
+
+// Moments carry a freeform color_hex from the API rather than one of the
+// named swatches above, so their tint/gradient is computed at runtime
+// instead of resolved through a static Tailwind class map.
+export function hexToRgba(hex: string, alpha: number): string {
+  const normalized = hex.replace('#', '');
+  const value = parseInt(normalized, 16);
+  const r = (value >> 16) & 255;
+  const g = (value >> 8) & 255;
+  const b = value & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}

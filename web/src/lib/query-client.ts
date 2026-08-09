@@ -8,7 +8,8 @@ export const queryClient = new QueryClient({
       // ApiError means the server actually answered (4xx/5xx) — retrying
       // that blindly makes no sense. Anything else (network hiccup) gets
       // a couple of attempts.
-      retry: (failureCount, error) => !(error instanceof ApiError) && failureCount < 2,
+      retry: (failureCount, error) =>
+        !(error instanceof ApiError) && failureCount < 2,
     },
     mutations: {
       retry: false,

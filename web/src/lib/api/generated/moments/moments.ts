@@ -21,6 +21,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetCirclesIdMomentsParams,
   GetMomentsParams,
   GetMomentsSearchParams,
   GetThreadsIdMomentsParams,
@@ -53,6 +54,199 @@ const withQueryKey = <T extends object, K>(
   }
   return result;
 };
+
+export const getGetCirclesIdMomentsUrl = (
+  id: string,
+  params?: GetCirclesIdMomentsParams
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/circles/${id}/moments?${stringifiedParams}`
+    : `/circles/${id}/moments`;
+};
+
+/**
+ * The Circle's Album feed — Moments from its collaborative Threads plus Moments shared into it, newest occurrence first
+ * @summary List a circle's moments
+ */
+export const getCirclesIdMoments = async (
+  id: string,
+  params?: GetCirclesIdMomentsParams,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMomentsResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMomentsResponse>(
+    getGetCirclesIdMomentsUrl(id, params),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetCirclesIdMomentsQueryKey = (
+  id: string,
+  params?: GetCirclesIdMomentsParams
+) => {
+  return [`/circles/${id}/moments`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetCirclesIdMomentsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCirclesIdMoments>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  params?: GetCirclesIdMomentsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdMoments>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetCirclesIdMomentsQueryKey(id, params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCirclesIdMoments>>
+  > = ({ signal }) => getCirclesIdMoments(id, params, { signal });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCirclesIdMoments>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetCirclesIdMomentsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCirclesIdMoments>>
+>;
+export type GetCirclesIdMomentsQueryError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+export function useGetCirclesIdMoments<
+  TData = Awaited<ReturnType<typeof getCirclesIdMoments>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  params: undefined | GetCirclesIdMomentsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdMoments>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCirclesIdMoments>>,
+          TError,
+          Awaited<ReturnType<typeof getCirclesIdMoments>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCirclesIdMoments<
+  TData = Awaited<ReturnType<typeof getCirclesIdMoments>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  params?: GetCirclesIdMomentsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdMoments>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCirclesIdMoments>>,
+          TError,
+          Awaited<ReturnType<typeof getCirclesIdMoments>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetCirclesIdMoments<
+  TData = Awaited<ReturnType<typeof getCirclesIdMoments>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  params?: GetCirclesIdMomentsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdMoments>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List a circle's moments
+ */
+
+export function useGetCirclesIdMoments<
+  TData = Awaited<ReturnType<typeof getCirclesIdMoments>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  params?: GetCirclesIdMomentsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCirclesIdMoments>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetCirclesIdMomentsQueryOptions(id, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
 
 export const getGetMomentsUrl = (params?: GetMomentsParams) => {
   const normalizedParams = new URLSearchParams();
@@ -495,7 +689,7 @@ export const getGetMomentsIdUrl = (id: string) => {
 };
 
 /**
- * Get a single Moment belonging to the authenticated user
+ * Get a single Moment reachable by the caller — its owner, an active mentioned user, or a Circle context it's visible in
  * @summary Get a moment by ID
  */
 export const getMomentsId = async (

@@ -1,4 +1,5 @@
 import {
+  getGetCirclesIdThreadsQueryKey,
   getGetThreadsQueryKey,
   usePostThreads,
 } from '@/lib/api/generated/threads/threads';
@@ -30,7 +31,11 @@ const formSchema = z.object({
     .max(255, 'Name must be at most 255 characters.'),
 });
 
-export function CreateThreadForm() {
+interface CreateThreadFormProps {
+  circleId?: string;
+}
+
+export function CreateThreadForm({ circleId }: CreateThreadFormProps = {}) {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const createThreadMutation = usePostThreads();
@@ -46,10 +51,12 @@ export function CreateThreadForm() {
       setSubmitError(null);
       try {
         const thread = await createThreadMutation.mutateAsync({
-          data: { name: value.name },
+          data: { name: value.name, circle_id: circleId },
         });
         await queryClient.invalidateQueries({
-          queryKey: getGetThreadsQueryKey(),
+          queryKey: circleId
+            ? getGetCirclesIdThreadsQueryKey(circleId)
+            : getGetThreadsQueryKey(),
         });
         navigate({ to: '/thread/$id', params: { id: thread.id! } });
       } catch (err) {

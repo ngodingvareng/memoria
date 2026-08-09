@@ -13,17 +13,10 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from '@/components/ui/empty';
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemHeader,
-  ItemTitle,
-} from '@/components/ui/item';
+import { Item, ItemContent, ItemGroup, ItemTitle } from '@/components/ui/item';
 import { Skeleton } from '@/components/ui/skeleton';
 import Wrapper from '@/components/wrapper';
-import { ThreadHero } from '@/features/threads';
+import { ThreadCircleBadge, ThreadHero } from '@/features/threads';
 import {
   useGetThreads,
   useGetThreadsIdImages,
@@ -46,28 +39,32 @@ function ThreadListCard({
   const imagesQuery = useGetThreadsIdImages(thread.id!);
 
   return (
-    <Item
-      variant="outline"
-      render={<Link to="/thread/$id" params={{ id: thread.id! }} />}
-    >
-      <ItemHeader>
-        <ThreadHero
-          isReadMode={false}
-          imageUrl={imagesQuery.data?.[0]?.url}
-          imageAlt={thread.name ?? ''}
-          colorHex={thread.color_hex}
-          className=" rounded-xl"
-        />
-      </ItemHeader>
-      <ItemContent>
-        <ItemTitle>{thread.name}</ItemTitle>
-        <ItemDescription>
-          {thread.description ||
-            (thread.updated_at &&
-              formatDistanceToNow(thread.updated_at, {
-                addSuffix: true,
-              }))}
-        </ItemDescription>
+    <Item className="relative overflow-hidden p-0">
+      <ThreadHero
+        isReadMode={false}
+        imageUrl={imagesQuery.data?.[0]?.url}
+        imageAlt={thread.name ?? ''}
+        colorHex={thread.color_hex}
+        className="h-full right-0 absolute z-8 rounded-xl"
+      />
+
+      <ItemContent className='p-4 bg-linear-to-r from-muted via-muted to-muted/60 z-9'>
+        <Link to="/thread/$id" params={{ id: thread.id! }} className="contents">
+          <ItemTitle className="text-lg">{thread.name}</ItemTitle>
+          <div className="flex gap-2 items-center">
+            {thread.updated_at && (
+              <p className="text-muted-foreground">
+                {formatDistanceToNow(thread.updated_at, {
+                  addSuffix: true,
+                })}
+              </p>
+            )}
+
+            {thread.circle_id && (
+              <ThreadCircleBadge circleId={thread.circle_id} />
+            )}
+          </div>
+        </Link>
       </ItemContent>
     </Item>
   );
@@ -132,7 +129,7 @@ function RouteComponent() {
         )}
 
         {!isPending && !isError && threads.length > 0 && (
-          <ItemGroup className="grid grid-cols-3 gap-4">
+          <ItemGroup className="grid grid-cols-1 gap-4">
             {threads.map((thread) => (
               <ThreadListCard key={thread.id} thread={thread} />
             ))}

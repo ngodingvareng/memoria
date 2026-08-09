@@ -23,9 +23,14 @@ export function ThreadHero({
   if (isReadMode) return null;
 
   return (
-    <div className={cn('aspect-4/1 rounded-4xl relative overflow-hidden', className)}>
+    <div
+      className={cn(
+        'aspect-7/1 rounded-4xl relative overflow-hidden',
+        className
+      )}
+    >
       <div
-        className="bg-primary absolute inset-0 z-30 aspect-4/1 opacity-50 mix-blend-color"
+        className="bg-primary absolute inset-0 z-3 aspect-7/1 opacity-50 mix-blend-color"
         style={colorHex ? { backgroundColor: colorHex } : undefined}
       />
       <img
@@ -34,7 +39,7 @@ export function ThreadHero({
         src={imageUrl || DEFAULT_COVER_IMAGE_URL}
         alt={imageAlt}
         title={imageAlt}
-        className="relative z-20 aspect-4/1 w-full object-cover brightness-60"
+        className="relative z-2 aspect-7/1 w-full object-cover brightness-60"
       />
     </div>
   );

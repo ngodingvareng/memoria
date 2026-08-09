@@ -23,6 +23,7 @@ import type {
 import type {
   CheckUsernameAvailabilityParams,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCheckUsernameAvailabilityResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPublicUserResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoSetUsernameRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUserResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
@@ -325,6 +326,409 @@ export function useCheckUsernameAvailability<
     params,
     options
   );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetUserByUsernameUrl = (username: string) => {
+  return `/users/username/${username}`;
+};
+
+/**
+ * Minimal other-facing fields (name, username, bio, image) — backs the @username profile page
+ * @summary Get a user's public profile by username
+ */
+export const getUserByUsername = async (
+  username: string,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPublicUserResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPublicUserResponse>(
+    getGetUserByUsernameUrl(username),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetUserByUsernameQueryKey = (username: string) => {
+  return [`/users/username/${username}`] as const;
+};
+
+export const getGetUserByUsernameQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUserByUsername>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  username: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUserByUsername>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetUserByUsernameQueryKey(username);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getUserByUsername>>
+  > = ({ signal }) => getUserByUsername(username, { signal });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: username !== null && username !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getUserByUsername>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetUserByUsernameQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUserByUsername>>
+>;
+export type GetUserByUsernameQueryError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+export function useGetUserByUsername<
+  TData = Awaited<ReturnType<typeof getUserByUsername>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  username: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUserByUsername>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUserByUsername>>,
+          TError,
+          Awaited<ReturnType<typeof getUserByUsername>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUserByUsername<
+  TData = Awaited<ReturnType<typeof getUserByUsername>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  username: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUserByUsername>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUserByUsername>>,
+          TError,
+          Awaited<ReturnType<typeof getUserByUsername>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUserByUsername<
+  TData = Awaited<ReturnType<typeof getUserByUsername>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  username: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUserByUsername>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get a user's public profile by username
+ */
+
+export function useGetUserByUsername<
+  TData = Awaited<ReturnType<typeof getUserByUsername>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  username: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUserByUsername>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetUserByUsernameQueryOptions(username, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getMarkUserKnownUrl = (username: string) => {
+  return `/users/username/${username}/known`;
+};
+
+/**
+ * One-directional, silent, idempotent — grants username's "known" audience tier toward the caller (FEATURES.md, Privacy & Control)
+ * @summary Mark a user as known
+ */
+export const markUserKnown = async (
+  username: string,
+  options?: RequestInit
+): Promise<void> => {
+  return apiMutator<void>(getMarkUserKnownUrl(username), {
+    ...options,
+    method: 'POST',
+  });
+};
+
+export const getMarkUserKnownMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof markUserKnown>>,
+    TError,
+    { username: string },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof markUserKnown>>,
+  TError,
+  { username: string },
+  TContext
+> => {
+  const mutationKey = ['markUserKnown'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof markUserKnown>>,
+    { username: string }
+  > = (props) => {
+    const { username } = props ?? {};
+
+    return markUserKnown(username);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MarkUserKnownMutationResult = NonNullable<
+  Awaited<ReturnType<typeof markUserKnown>>
+>;
+
+export type MarkUserKnownMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Mark a user as known
+ */
+export const useMarkUserKnown = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof markUserKnown>>,
+      TError,
+      { username: string },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof markUserKnown>>,
+  TError,
+  { username: string },
+  TContext
+> => {
+  return useMutation(getMarkUserKnownMutationOptions(options), queryClient);
+};
+export const getGetUserByIDUrl = (id: string) => {
+  return `/users/${id}`;
+};
+
+/**
+ * Minimal other-facing fields (name, username, image) — e.g. resolving a Circle member's user_id
+ * @summary Get a user's public profile
+ */
+export const getUserByID = async (
+  id: string,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPublicUserResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPublicUserResponse>(
+    getGetUserByIDUrl(id),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetUserByIDQueryKey = (id: string) => {
+  return [`/users/${id}`] as const;
+};
+
+export const getGetUserByIDQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUserByID>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUserByID>>, TError, TData>
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetUserByIDQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getUserByID>>> = ({
+    signal,
+  }) => getUserByID(id, { signal });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getUserByID>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetUserByIDQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUserByID>>
+>;
+export type GetUserByIDQueryError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+export function useGetUserByID<
+  TData = Awaited<ReturnType<typeof getUserByID>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUserByID>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUserByID>>,
+          TError,
+          Awaited<ReturnType<typeof getUserByID>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUserByID<
+  TData = Awaited<ReturnType<typeof getUserByID>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUserByID>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUserByID>>,
+          TError,
+          Awaited<ReturnType<typeof getUserByID>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUserByID<
+  TData = Awaited<ReturnType<typeof getUserByID>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUserByID>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get a user's public profile
+ */
+
+export function useGetUserByID<
+  TData = Awaited<ReturnType<typeof getUserByID>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUserByID>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetUserByIDQueryOptions(id, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

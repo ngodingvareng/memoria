@@ -17,7 +17,7 @@ import { Route as HelpRouteImport } from './routes/help'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppUsernameRouteImport } from './routes/_app/$username'
+import { Route as AppAtChar123usernameChar125RouteImport } from './routes/_app/@{$username}'
 import { Route as AppCircleRouteImport } from './routes/_app/_circle'
 import { Route as AppMentionsRouteImport } from './routes/_app/mentions'
 import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
@@ -28,6 +28,7 @@ import { Route as AuthWelcomeRouteImport } from './routes/_auth/welcome'
 import { Route as AppAlbumIndexRouteImport } from './routes/_app/album.index'
 import { Route as AppCircleIndexRouteImport } from './routes/_app/circle.index'
 import { Route as AppCircleNewRouteImport } from './routes/_app/circle.new'
+import { Route as AppMomentIdRouteImport } from './routes/_app/moment.$id'
 import { Route as AppMomentNewRouteImport } from './routes/_app/moment.new'
 import { Route as AppRecapPeriodRouteImport } from './routes/_app/recap.$period'
 import { Route as AppThreadIndexRouteImport } from './routes/_app/thread.index'
@@ -45,7 +46,6 @@ import { Route as AppCircleCIdInviteRouteImport } from './routes/_app/_circle/c.
 import { Route as AppCircleCIdMemberRouteImport } from './routes/_app/_circle/c.$id.member'
 import { Route as AppCircleCIdSettingsRouteImport } from './routes/_app/_circle/c.$id.settings'
 import { Route as AppCircleCIdThreadRouteImport } from './routes/_app/_circle/c.$id.thread'
-import { Route as AppThreadIdMomentsMomentIdRouteImport } from './routes/_app/thread.$id.moments.$momentId'
 import { Route as AppCircleCIdJoinCodeRouteImport } from './routes/_app/_circle/c.$id.join.$code'
 
 const AppRoute = AppRouteImport.update({
@@ -85,11 +85,12 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppUsernameRoute = AppUsernameRouteImport.update({
-  id: '/$username',
-  path: '/$username',
-  getParentRoute: () => AppRoute,
-} as any)
+const AppAtChar123usernameChar125Route =
+  AppAtChar123usernameChar125RouteImport.update({
+    id: '/@{$username}',
+    path: '/@{$username}',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppCircleRoute = AppCircleRouteImport.update({
   id: '/_circle',
   getParentRoute: () => AppRoute,
@@ -137,6 +138,11 @@ const AppCircleIndexRoute = AppCircleIndexRouteImport.update({
 const AppCircleNewRoute = AppCircleNewRouteImport.update({
   id: '/circle/new',
   path: '/circle/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMomentIdRoute = AppMomentIdRouteImport.update({
+  id: '/moment/$id',
+  path: '/moment/$id',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMomentNewRoute = AppMomentNewRouteImport.update({
@@ -224,12 +230,6 @@ const AppCircleCIdThreadRoute = AppCircleCIdThreadRouteImport.update({
   path: '/c/$id/thread',
   getParentRoute: () => AppCircleRoute,
 } as any)
-const AppThreadIdMomentsMomentIdRoute =
-  AppThreadIdMomentsMomentIdRouteImport.update({
-    id: '/thread/$id/moments/$momentId',
-    path: '/thread/$id/moments/$momentId',
-    getParentRoute: () => AppRoute,
-  } as any)
 const AppCircleCIdJoinCodeRoute = AppCircleCIdJoinCodeRouteImport.update({
   id: '/c/$id/join/$code',
   path: '/c/$id/join/$code',
@@ -242,7 +242,7 @@ export interface FileRoutesByFullPath {
   '/help': typeof HelpRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/$username': typeof AppUsernameRoute
+  '/@{$username}': typeof AppAtChar123usernameChar125Route
   '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
   '/search': typeof AppSearchRoute
@@ -250,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof AuthSignupRoute
   '/welcome': typeof AuthWelcomeRoute
   '/circle/new': typeof AppCircleNewRoute
+  '/moment/$id': typeof AppMomentIdRoute
   '/moment/new': typeof AppMomentNewRoute
   '/recap/$period': typeof AppRecapPeriodRoute
   '/thread/new': typeof AppThreadNewRoute
@@ -268,7 +269,6 @@ export interface FileRoutesByFullPath {
   '/c/$id/member': typeof AppCircleCIdMemberRoute
   '/c/$id/settings': typeof AppCircleCIdSettingsRoute
   '/c/$id/thread': typeof AppCircleCIdThreadRoute
-  '/thread/$id/moments/$momentId': typeof AppThreadIdMomentsMomentIdRoute
   '/c/$id/': typeof AppCircleCIdIndexRoute
   '/c/$id/join/$code': typeof AppCircleCIdJoinCodeRoute
 }
@@ -278,7 +278,7 @@ export interface FileRoutesByTo {
   '/help': typeof HelpRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/$username': typeof AppUsernameRoute
+  '/@{$username}': typeof AppAtChar123usernameChar125Route
   '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
   '/search': typeof AppSearchRoute
@@ -286,6 +286,7 @@ export interface FileRoutesByTo {
   '/signup': typeof AuthSignupRoute
   '/welcome': typeof AuthWelcomeRoute
   '/circle/new': typeof AppCircleNewRoute
+  '/moment/$id': typeof AppMomentIdRoute
   '/moment/new': typeof AppMomentNewRoute
   '/recap/$period': typeof AppRecapPeriodRoute
   '/thread/new': typeof AppThreadNewRoute
@@ -304,7 +305,6 @@ export interface FileRoutesByTo {
   '/c/$id/member': typeof AppCircleCIdMemberRoute
   '/c/$id/settings': typeof AppCircleCIdSettingsRoute
   '/c/$id/thread': typeof AppCircleCIdThreadRoute
-  '/thread/$id/moments/$momentId': typeof AppThreadIdMomentsMomentIdRoute
   '/c/$id': typeof AppCircleCIdIndexRoute
   '/c/$id/join/$code': typeof AppCircleCIdJoinCodeRoute
 }
@@ -317,7 +317,7 @@ export interface FileRoutesById {
   '/help': typeof HelpRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
-  '/_app/$username': typeof AppUsernameRoute
+  '/_app/@{$username}': typeof AppAtChar123usernameChar125Route
   '/_app/_circle': typeof AppCircleRouteWithChildren
   '/_app/mentions': typeof AppMentionsRoute
   '/_app/notifications': typeof AppNotificationsRoute
@@ -327,6 +327,7 @@ export interface FileRoutesById {
   '/_auth/welcome': typeof AuthWelcomeRoute
   '/_app/': typeof AppIndexRoute
   '/_app/circle/new': typeof AppCircleNewRoute
+  '/_app/moment/$id': typeof AppMomentIdRoute
   '/_app/moment/new': typeof AppMomentNewRoute
   '/_app/recap/$period': typeof AppRecapPeriodRoute
   '/_app/thread/new': typeof AppThreadNewRoute
@@ -345,7 +346,6 @@ export interface FileRoutesById {
   '/_app/_circle/c/$id/member': typeof AppCircleCIdMemberRoute
   '/_app/_circle/c/$id/settings': typeof AppCircleCIdSettingsRoute
   '/_app/_circle/c/$id/thread': typeof AppCircleCIdThreadRoute
-  '/_app/thread/$id/moments/$momentId': typeof AppThreadIdMomentsMomentIdRoute
   '/_app/_circle/c/$id/': typeof AppCircleCIdIndexRoute
   '/_app/_circle/c/$id/join/$code': typeof AppCircleCIdJoinCodeRoute
 }
@@ -357,7 +357,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/privacy'
     | '/terms'
-    | '/$username'
+    | '/@{$username}'
     | '/mentions'
     | '/notifications'
     | '/search'
@@ -365,6 +365,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/welcome'
     | '/circle/new'
+    | '/moment/$id'
     | '/moment/new'
     | '/recap/$period'
     | '/thread/new'
@@ -383,7 +384,6 @@ export interface FileRouteTypes {
     | '/c/$id/member'
     | '/c/$id/settings'
     | '/c/$id/thread'
-    | '/thread/$id/moments/$momentId'
     | '/c/$id/'
     | '/c/$id/join/$code'
   fileRoutesByTo: FileRoutesByTo
@@ -393,7 +393,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/privacy'
     | '/terms'
-    | '/$username'
+    | '/@{$username}'
     | '/mentions'
     | '/notifications'
     | '/search'
@@ -401,6 +401,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/welcome'
     | '/circle/new'
+    | '/moment/$id'
     | '/moment/new'
     | '/recap/$period'
     | '/thread/new'
@@ -419,7 +420,6 @@ export interface FileRouteTypes {
     | '/c/$id/member'
     | '/c/$id/settings'
     | '/c/$id/thread'
-    | '/thread/$id/moments/$momentId'
     | '/c/$id'
     | '/c/$id/join/$code'
   id:
@@ -431,7 +431,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/privacy'
     | '/terms'
-    | '/_app/$username'
+    | '/_app/@{$username}'
     | '/_app/_circle'
     | '/_app/mentions'
     | '/_app/notifications'
@@ -441,6 +441,7 @@ export interface FileRouteTypes {
     | '/_auth/welcome'
     | '/_app/'
     | '/_app/circle/new'
+    | '/_app/moment/$id'
     | '/_app/moment/new'
     | '/_app/recap/$period'
     | '/_app/thread/new'
@@ -459,7 +460,6 @@ export interface FileRouteTypes {
     | '/_app/_circle/c/$id/member'
     | '/_app/_circle/c/$id/settings'
     | '/_app/_circle/c/$id/thread'
-    | '/_app/thread/$id/moments/$momentId'
     | '/_app/_circle/c/$id/'
     | '/_app/_circle/c/$id/join/$code'
   fileRoutesById: FileRoutesById
@@ -532,11 +532,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/$username': {
-      id: '/_app/$username'
-      path: '/$username'
-      fullPath: '/$username'
-      preLoaderRoute: typeof AppUsernameRouteImport
+    '/_app/@{$username}': {
+      id: '/_app/@{$username}'
+      path: '/@{$username}'
+      fullPath: '/@{$username}'
+      preLoaderRoute: typeof AppAtChar123usernameChar125RouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/_circle': {
@@ -607,6 +607,13 @@ declare module '@tanstack/react-router' {
       path: '/circle/new'
       fullPath: '/circle/new'
       preLoaderRoute: typeof AppCircleNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/moment/$id': {
+      id: '/_app/moment/$id'
+      path: '/moment/$id'
+      fullPath: '/moment/$id'
+      preLoaderRoute: typeof AppMomentIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/moment/new': {
@@ -728,13 +735,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCircleCIdThreadRouteImport
       parentRoute: typeof AppCircleRoute
     }
-    '/_app/thread/$id/moments/$momentId': {
-      id: '/_app/thread/$id/moments/$momentId'
-      path: '/thread/$id/moments/$momentId'
-      fullPath: '/thread/$id/moments/$momentId'
-      preLoaderRoute: typeof AppThreadIdMomentsMomentIdRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/_circle/c/$id/join/$code': {
       id: '/_app/_circle/c/$id/join/$code'
       path: '/c/$id/join/$code'
@@ -770,13 +770,14 @@ const AppCircleRouteWithChildren = AppCircleRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
-  AppUsernameRoute: typeof AppUsernameRoute
+  AppAtChar123usernameChar125Route: typeof AppAtChar123usernameChar125Route
   AppCircleRoute: typeof AppCircleRouteWithChildren
   AppMentionsRoute: typeof AppMentionsRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppSearchRoute: typeof AppSearchRoute
   AppIndexRoute: typeof AppIndexRoute
   AppCircleNewRoute: typeof AppCircleNewRoute
+  AppMomentIdRoute: typeof AppMomentIdRoute
   AppMomentNewRoute: typeof AppMomentNewRoute
   AppRecapPeriodRoute: typeof AppRecapPeriodRoute
   AppThreadNewRoute: typeof AppThreadNewRoute
@@ -785,17 +786,17 @@ interface AppRouteChildren {
   AppThreadIndexRoute: typeof AppThreadIndexRoute
   AppThreadIdManageRoute: typeof AppThreadIdManageRoute
   AppThreadIdIndexRoute: typeof AppThreadIdIndexRoute
-  AppThreadIdMomentsMomentIdRoute: typeof AppThreadIdMomentsMomentIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppUsernameRoute: AppUsernameRoute,
+  AppAtChar123usernameChar125Route: AppAtChar123usernameChar125Route,
   AppCircleRoute: AppCircleRouteWithChildren,
   AppMentionsRoute: AppMentionsRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppSearchRoute: AppSearchRoute,
   AppIndexRoute: AppIndexRoute,
   AppCircleNewRoute: AppCircleNewRoute,
+  AppMomentIdRoute: AppMomentIdRoute,
   AppMomentNewRoute: AppMomentNewRoute,
   AppRecapPeriodRoute: AppRecapPeriodRoute,
   AppThreadNewRoute: AppThreadNewRoute,
@@ -804,7 +805,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppThreadIndexRoute: AppThreadIndexRoute,
   AppThreadIdManageRoute: AppThreadIdManageRoute,
   AppThreadIdIndexRoute: AppThreadIdIndexRoute,
-  AppThreadIdMomentsMomentIdRoute: AppThreadIdMomentsMomentIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
