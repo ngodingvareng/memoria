@@ -1,7 +1,11 @@
+import { useLogin } from '@/lib/api/generated/auth/auth';
+import { toSession } from '@/features/auth/lib/to-session';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
@@ -12,13 +16,60 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group';
+import { ApiError } from '@/lib/api-client';
+import { setSession } from '@/lib/session';
 import { ViewIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Link } from '@tanstack/react-router';
+import { useForm } from '@tanstack/react-form';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
+import * as z from 'zod';
+
+const formSchema = z.object({
+  email: z.string().min(1, 'Email is required.').email('Enter a valid email address.'),
+  password: z.string().min(1, 'Password is required.'),
+});
 
 export function SigninForm() {
+  const navigate = useNavigate();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const loginMutation = useLogin();
+
+  const form = useForm({
+    defaultValues: { email: '', password: '' },
+    validators: {
+      onSubmit: formSchema,
+    },
+    onSubmit: async ({ value }) => {
+      setSubmitError(null);
+      try {
+        const data = await loginMutation.mutateAsync({
+          data: { email: value.email, password: value.password },
+        });
+        setSession(toSession(data));
+        navigate({ to: '/' });
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setSubmitError(
+            err.status === 401
+              ? 'Incorrect email or password.'
+              : (err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message)
+          );
+        } else {
+          setSubmitError('Something went wrong. Please try again.');
+        }
+      }
+    },
+  });
+
   return (
-    <form>
+    <form
+      id="signin-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+    >
       <FieldGroup>
         <Field>
           <Button variant="outline" type="button">
@@ -43,35 +94,81 @@ export function SigninForm() {
         <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
           Or continue with
         </FieldSeparator>
-        <Field>
-          <FieldLabel>Email</FieldLabel>
-          <InputGroup className="h-11!">
-            <InputGroupInput
-              autoComplete="off"
-              placeholder="memoria@example.com"
-              className="text-lg!"
-            />
-          </InputGroup>
-        </Field>
-        <Field>
-          <FieldLabel>Password</FieldLabel>
-          <InputGroup className="h-11!">
-            <InputGroupInput
-              type="password"
-              autoComplete="off"
-              placeholder="••••••••"
-              className="text-lg!"
-            />
-            <InputGroupAddon align="inline-end">
-             <InputGroupButton size="icon-sm">
-              <HugeiconsIcon icon={ViewIcon} />
-             </InputGroupButton>
-            </InputGroupAddon>
-          </InputGroup>
-        </Field>
+        <form.Field
+          name="email"
+          children={(field) => {
+            const isInvalid =
+              field.state.meta.isTouched && !field.state.meta.isValid;
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                <InputGroup className="h-11!">
+                  <InputGroupInput
+                    id={field.name}
+                    name={field.name}
+                    type="email"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    aria-invalid={isInvalid}
+                    autoComplete="off"
+                    placeholder="memoria@example.com"
+                    className="text-lg!"
+                  />
+                </InputGroup>
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            );
+          }}
+        />
+        <form.Field
+          name="password"
+          children={(field) => {
+            const isInvalid =
+              field.state.meta.isTouched && !field.state.meta.isValid;
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                <InputGroup className="h-11!">
+                  <InputGroupInput
+                    id={field.name}
+                    name={field.name}
+                    type="password"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    aria-invalid={isInvalid}
+                    autoComplete="off"
+                    placeholder="••••••••"
+                    className="text-lg!"
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton size="icon-sm">
+                      <HugeiconsIcon icon={ViewIcon} />
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            );
+          }}
+        />
+
+        {submitError && (
+          <Alert variant="destructive">
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        )}
 
         <Field>
-          <Button type="submit">Sign in</Button>
+          <form.Subscribe
+            selector={(state) => state.isSubmitting}
+            children={(isSubmitting) => (
+              <Button type="submit" form="signin-form" disabled={isSubmitting}>
+                Sign in
+              </Button>
+            )}
+          />
         </Field>
 
         <Field>

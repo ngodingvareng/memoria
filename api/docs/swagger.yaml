@@ -1105,6 +1105,7 @@ paths:
       description: |-
         Returns an access token in the response body and sets
         the refresh token as an httpOnly cookie scoped to /auth.
+      operationId: Login
       parameters:
       - description: Login request
         in: body
@@ -1128,6 +1129,7 @@ paths:
       - auth
   /auth/logout:
     post:
+      operationId: Logout
       responses:
         "204":
           description: No Content
@@ -1141,6 +1143,7 @@ paths:
         it, and returns a new access token plus a new refresh
         cookie. Reusing an already-rotated refresh token revokes
         its entire token family and forces a fresh login.
+      operationId: RefreshToken
       produces:
       - application/json
       responses:
@@ -1165,6 +1168,7 @@ paths:
         immediately starts a session, exactly like /auth/login:
         returns an access token and sets the refresh token as an
         httpOnly cookie scoped to /auth.
+      operationId: Register
       parameters:
       - description: Register request
         in: body
@@ -2633,6 +2637,7 @@ paths:
       consumes:
       - application/json
       description: Used by the post-register welcome/onboarding step.
+      operationId: SetUsername
       parameters:
       - description: Username to claim
         in: body
@@ -2660,6 +2665,7 @@ paths:
       - users
   /users/username-availability:
     get:
+      operationId: CheckUsernameAvailability
       parameters:
       - description: Username to check
         in: query

@@ -28,6 +28,7 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Log in with email and password",
+                "operationId": "Login",
                 "parameters": [
                     {
                         "description": "Login request",
@@ -61,6 +62,7 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Log out of the current session",
+                "operationId": "Logout",
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -78,6 +80,7 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Exchange the refresh token cookie for a new access/refresh token pair",
+                "operationId": "RefreshToken",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -107,6 +110,7 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Register a new account",
+                "operationId": "Register",
                 "parameters": [
                     {
                         "description": "Register request",
@@ -2313,6 +2317,7 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "Claim a username for the current account",
+                "operationId": "SetUsername",
                 "parameters": [
                     {
                         "description": "Username to claim",
@@ -2355,6 +2360,7 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "Check whether a username is available to claim",
+                "operationId": "CheckUsernameAvailability",
                 "parameters": [
                     {
                         "type": "string",

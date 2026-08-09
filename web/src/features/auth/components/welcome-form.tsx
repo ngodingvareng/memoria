@@ -1,7 +1,8 @@
 import {
   checkUsernameAvailability,
-  setUsername,
-} from '@/features/auth/api/user-api';
+  useSetUsername,
+} from '@/lib/api/generated/users/users';
+import { toSessionUser } from '@/features/auth/lib/to-session';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +43,7 @@ const formSchema = z.object({ username: usernameFieldSchema });
 export function WelcomeForm() {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const setUsernameMutation = useSetUsername();
 
   const form = useForm({
     defaultValues: { username: '' },
@@ -54,8 +56,10 @@ export function WelcomeForm() {
 
       setSubmitError(null);
       try {
-        const user = await setUsername(value.username, session.accessToken);
-        setSession({ ...session, user });
+        const user = await setUsernameMutation.mutateAsync({
+          data: { username: value.username },
+        });
+        setSession({ ...session, user: toSessionUser(user) });
         navigate({ to: '/' });
       } catch (err) {
         if (err instanceof ApiError) {
@@ -90,14 +94,11 @@ export function WelcomeForm() {
               // Malformed input is already flagged by the sync validator
               // above — no point spending a network round trip on it.
               if (!usernamePattern.test(value)) return undefined;
+              if (!getSession()) return undefined;
 
-              const session = getSession();
-              if (!session) return undefined;
-
-              const available = await checkUsernameAvailability(
-                value,
-                session.accessToken
-              );
+              const { available } = await checkUsernameAvailability({
+                username: value,
+              });
               return available
                 ? undefined
                 : { message: 'That username is already taken.' };

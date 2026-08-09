@@ -10,7 +10,8 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "generate:api": "orval"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -21,6 +22,8 @@
     "@mdxeditor/editor": "^4.2.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-form": "^1.33.3",
+    "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-query-devtools": "^5.101.4",
     "@tanstack/react-router": "^1.170.18",
     "@tanstack/react-router-devtools": "^1.167.0",
     "cambio": "^1.1.5",
@@ -46,6 +49,7 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
     "babel-plugin-react-compiler": "^1.0.0",
+    "orval": "^8.24.0",
     "oxlint": "^1.77.0",
     "prettier": "^3.9.6",
     "typescript": "~6.0.3",

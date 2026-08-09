@@ -1,4 +1,5 @@
-import { registerAccount } from '@/features/auth/api/auth-api';
+import { useRegister } from '@/lib/api/generated/auth/auth';
+import { toSession } from '@/features/auth/lib/to-session';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,7 @@ const formSchema = z
 export function SignupForm() {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const registerMutation = useRegister();
 
   const form = useForm({
     defaultValues: {
@@ -48,12 +50,14 @@ export function SignupForm() {
     onSubmit: async ({ value }) => {
       setSubmitError(null);
       try {
-        const session = await registerAccount({
-          name: value.name,
-          email: value.email,
-          password: value.password,
+        const data = await registerMutation.mutateAsync({
+          data: {
+            name: value.name,
+            email: value.email,
+            password: value.password,
+          },
         });
-        setSession(session);
+        setSession(toSession(data));
         navigate({ to: '/welcome' });
       } catch (err) {
         if (err instanceof ApiError) {

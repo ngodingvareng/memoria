@@ -41,6 +41,7 @@ func NewAuthHandler(uc usecase.AuthUsecase, secureCookies bool) *AuthHandler {
 // @Description  immediately starts a session, exactly like /auth/login:
 // @Description  returns an access token and sets the refresh token as an
 // @Description  httpOnly cookie scoped to /auth.
+// @ID           Register
 // @Tags         auth
 // @Accept       json
 // @Produce      json
@@ -87,6 +88,7 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 // @Summary      Log in with email and password
 // @Description  Returns an access token in the response body and sets
 // @Description  the refresh token as an httpOnly cookie scoped to /auth.
+// @ID           Login
 // @Tags         auth
 // @Accept       json
 // @Produce      json
@@ -133,6 +135,7 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 // @Description  it, and returns a new access token plus a new refresh
 // @Description  cookie. Reusing an already-rotated refresh token revokes
 // @Description  its entire token family and forces a fresh login.
+// @ID           RefreshToken
 // @Tags         auth
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[dto.LoginResponse]
@@ -172,6 +175,7 @@ func (h *AuthHandler) Refresh(c fiber.Ctx) error {
 }
 
 // Logout godoc
+// @ID           Logout
 // @Summary      Log out of the current session
 // @Tags         auth
 // @Success      204

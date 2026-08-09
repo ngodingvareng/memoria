@@ -20,6 +20,7 @@
                     "auth"
                 ],
                 "summary": "Log in with email and password",
+                "operationId": "Login",
                 "parameters": [
                     {
                         "description": "Login request",
@@ -53,6 +54,7 @@
                     "auth"
                 ],
                 "summary": "Log out of the current session",
+                "operationId": "Logout",
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -70,6 +72,7 @@
                     "auth"
                 ],
                 "summary": "Exchange the refresh token cookie for a new access/refresh token pair",
+                "operationId": "RefreshToken",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -99,6 +102,7 @@
                     "auth"
                 ],
                 "summary": "Register a new account",
+                "operationId": "Register",
                 "parameters": [
                     {
                         "description": "Register request",
@@ -2305,6 +2309,7 @@
                     "users"
                 ],
                 "summary": "Claim a username for the current account",
+                "operationId": "SetUsername",
                 "parameters": [
                     {
                         "description": "Username to claim",
@@ -2347,6 +2352,7 @@
                     "users"
                 ],
                 "summary": "Check whether a username is available to claim",
+                "operationId": "CheckUsernameAvailability",
                 "parameters": [
                     {
                         "type": "string",

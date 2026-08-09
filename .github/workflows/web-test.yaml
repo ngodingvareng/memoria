@@ -1,0 +1,44 @@
+name: Web test
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'web/**'
+      - 'api/docs/swagger.json'
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'web/**'
+      - 'api/docs/swagger.json'
+
+jobs:
+  check-api-types:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Regenerate API types/hooks and fail on drift
+        # api/docs/swagger.json is committed, so this needs nothing from
+        # api/ beyond that file — no need to spin up the Go API here.
+        # If someone changes a swag annotation (or the generated
+        # swagger.json itself) without re-running `bun run generate:api`,
+        # this diff catches it instead of letting stale generated code merge.
+        run: |
+          bun run generate:api
+          git diff --exit-code -- src/lib/api/generated
+
+      - name: Build
+        run: bun run build

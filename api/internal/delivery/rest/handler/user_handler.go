@@ -23,6 +23,7 @@ func NewUserHandler(uc usecase.UserUsecase) *UserHandler {
 }
 
 // CheckUsernameAvailability godoc
+// @ID           CheckUsernameAvailability
 // @Summary      Check whether a username is available to claim
 // @Tags         users
 // @Produce      json
@@ -49,6 +50,7 @@ func (h *UserHandler) CheckUsernameAvailability(c fiber.Ctx) error {
 }
 
 // SetUsername godoc
+// @ID           SetUsername
 // @Summary      Claim a username for the current account
 // @Description  Used by the post-register welcome/onboarding step.
 // @Tags         users
