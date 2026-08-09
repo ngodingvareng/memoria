@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -43,6 +44,14 @@ func NewS3Storage(ctx context.Context, cfg S3Config) (*s3Storage, error) {
 			o.BaseEndpoint = aws.String(cfg.Endpoint)
 		}
 		o.UsePathStyle = cfg.UsePathStyle
+		// PutObject bodies here are unseekable multipart upload streams.
+		// The SDK's default (WhenSupported) tries to compute a trailing
+		// checksum for every request, which it refuses to do for an
+		// unseekable stream over plain HTTP (no TLS) — exactly RustFS's
+		// local dev setup. WhenRequired restores the pre-v1.21 behavior:
+		// only compute a checksum when the operation demands one.
+		o.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
+		o.ResponseChecksumValidation = aws.ResponseChecksumValidationWhenRequired
 	})
 
 	return &s3Storage{client: client, bucket: cfg.Bucket}, nil
@@ -50,10 +59,25 @@ func NewS3Storage(ctx context.Context, cfg S3Config) (*s3Storage, error) {
 }
 
 func (s *s3Storage) Put(ctx context.Context, key string, body io.Reader, size int64, contentType string) error {
+	// SigV4 signing needs to seek the body to compute the payload hash.
+	// Callers here (thread/moment image uploads) pass an io.MultiReader
+	// chained on top of the multipart file for content-type sniffing,
+	// which isn't an io.Seeker even though the underlying file was —
+	// buffer it once instead. size is already capped by the caller
+	// (10MB), so this is bounded.
+	seekable, ok := body.(io.ReadSeeker)
+	if !ok {
+		buf, err := io.ReadAll(body)
+		if err != nil {
+			return fmt.Errorf("buffering upload body for %q: %w", key, err)
+		}
+		seekable = bytes.NewReader(buf)
+	}
+
 	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(s.bucket),
 		Key:           aws.String(key),
-		Body:          body,
+		Body:          seekable,
 		ContentLength: aws.Int64(size),
 		ContentType:   aws.String(contentType),
 	})
