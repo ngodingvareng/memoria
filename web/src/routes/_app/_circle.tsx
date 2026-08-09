@@ -50,7 +50,7 @@ function RouteComponent() {
             <TabsTrigger
               value="overview"
               render={
-                <Link to="/g/$id" params={{ id: '1' }}>
+                <Link to="/c/$id" params={{ id: '1' }}>
                   Overview
                 </Link>
               }
@@ -58,7 +58,7 @@ function RouteComponent() {
             <TabsTrigger
               value="threads"
               render={
-                <Link to="/g/$id/thread" params={{ id: '1' }}>
+                <Link to="/c/$id/thread" params={{ id: '1' }}>
                   Threads
                 </Link>
               }
@@ -66,7 +66,7 @@ function RouteComponent() {
             <TabsTrigger
               value="members"
               render={
-                <Link to="/g/$id/member" params={{ id: '1' }}>
+                <Link to="/c/$id/member" params={{ id: '1' }}>
                   Members
                 </Link>
               }
@@ -74,7 +74,7 @@ function RouteComponent() {
             <TabsTrigger
               value="settings"
               render={
-                <Link to="/g/$id/settings" params={{ id: '1' }}>
+                <Link to="/c/$id/settings" params={{ id: '1' }}>
                   Settings
                 </Link>
               }

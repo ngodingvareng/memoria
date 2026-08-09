@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Wrapper from '@/components/wrapper';
-import { MomentList, type MomentCardParam } from '@/features/threads';
+import { MomentList, type MomentCardParam } from '@/features/moments';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/$username')({

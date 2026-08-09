@@ -3,13 +3,12 @@ import { DateTimeDialog } from '@/components/dialogs/datetime-dialog';
 import { ShareDialog } from '@/components/dialogs/share-dialog';
 
 import Wrapper from '@/components/wrapper';
+import { ThreadHeader, ThreadHero } from '@/features/threads';
 import {
   MomentInput,
   MomentList,
-  ThreadHeader,
-  ThreadHero,
   type MomentCardParam,
-} from '@/features/threads';
+} from '@/features/moments';
 import { dummyNotes } from '@/lib/dummies';
 import { createFileRoute } from '@tanstack/react-router';
 import React from 'react';

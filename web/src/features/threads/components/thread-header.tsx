@@ -1,6 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { Edit04Icon, EyeIcon, Search01Icon } from '@hugeicons/core-free-icons';
+import {
+  Edit04Icon,
+  EyeIcon,
+  Search01Icon,
+  Share01Icon,
+} from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
 
@@ -23,6 +28,9 @@ export function ThreadHeader({
         <ButtonGroup>
           <Button variant="outline">
             <HugeiconsIcon icon={Search01Icon} />
+          </Button>
+          <Button variant="outline" onClick={onShare}>
+            <HugeiconsIcon icon={Share01Icon} />
           </Button>
           <Button variant="outline" onClick={onToggleMode}>
             {isReadMode ? (
