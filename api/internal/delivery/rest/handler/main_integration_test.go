@@ -155,7 +155,20 @@ func (fakeStorage) PresignGet(_ context.Context, key string, _ time.Duration) (s
 	return "https://fake.storage.test/" + key, nil
 }
 
+func (fakeStorage) PublicURL(key string) string {
+	return "https://fake.storage.test/" + key
+}
+
 func (fakeStorage) Delete(_ context.Context, _ string) error {
+	return nil
+}
+
+// fakeMailer satisfies usecase.Mailer without sending any real email —
+// handler tests only need to verify routing/auth/DTO/usecase wiring, not
+// SMTP delivery.
+type fakeMailer struct{}
+
+func (fakeMailer) Send(_ context.Context, _, _, _ string) error {
 	return nil
 }
 
@@ -177,18 +190,21 @@ func setupTestApp(t *testing.T) *testApp {
 	accessTokenIssuer := security.NewJWTAccessTokenIssuer([]byte("test-secret"), time.Hour, "memoria-test")
 	refreshTokenGenerator := security.NewRefreshTokenGenerator()
 	hasher := security.NewScryptHasher()
+	storage := fakeStorage{}
+	mailer := fakeMailer{}
 
 	userRepo := repository.NewUserRepository(pool)
 	userAccountRepo := repository.NewUserAccountRepository(pool)
 	refreshTokenRepo := repository.NewRefreshTokenRepository(pool)
+	userVerificationRepo := repository.NewUserVerificationRepository(pool)
 	authUoW := repository.NewAuthUnitOfWork(pool)
-	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, hasher,
-		accessTokenIssuer, refreshTokenGenerator, 30*24*time.Hour, 5, 15*time.Minute)
+	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, userVerificationRepo, hasher,
+		accessTokenIssuer, refreshTokenGenerator, mailer, "https://memoria-test.example", 30*24*time.Hour, 5, 15*time.Minute)
 	authHandler := handler.NewAuthHandler(authUsecase, false)
 
 	userPrivacyRepo := repository.NewUserPrivacyRepository(pool)
 
-	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo)
+	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, storage)
 	userHandler := handler.NewUserHandler(userUsecase)
 
 	circleRepo := repository.NewCircleRepository(pool)
@@ -196,8 +212,6 @@ func setupTestApp(t *testing.T) *testApp {
 	threadRepo := repository.NewThreadRepository(pool)
 	threadUsecase := usecase.NewThreadUsecase(threadRepo, circleRepo)
 	threadHandler := handler.NewThreadHandler(threadUsecase)
-
-	storage := fakeStorage{}
 
 	threadImageRepo := repository.NewThreadImageRepository(pool)
 	threadImageUsecase := usecase.NewThreadImageUsecase(threadImageRepo, storage, threadRepo)
@@ -211,7 +225,7 @@ func setupTestApp(t *testing.T) *testApp {
 	momentImageUsecase := usecase.NewMomentImageUsecase(momentImageRepo, storage, momentRepo)
 	momentImageHandler := handler.NewMomentImageHandler(momentImageUsecase)
 
-	circleUsecase := usecase.NewCircleUsecase(circleRepo)
+	circleUsecase := usecase.NewCircleUsecase(circleRepo, storage)
 	circleHandler := handler.NewCircleHandler(circleUsecase)
 
 	circleInviteRepo := repository.NewCircleInviteRepository(pool)
@@ -223,7 +237,7 @@ func setupTestApp(t *testing.T) *testApp {
 	circleJoinRequestHandler := handler.NewCircleJoinRequestHandler(circleJoinRequestUsecase)
 
 	mentionRepo := repository.NewMentionRepository(pool)
-	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo)
+	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo, userRepo)
 	mentionHandler := handler.NewMentionHandler(mentionUsecase)
 
 	responseEventRepo := repository.NewResponseEventRepository(pool)
