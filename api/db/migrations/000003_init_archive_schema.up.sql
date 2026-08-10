@@ -19,6 +19,14 @@
 -- drift out of sync with anything.
 CREATE TYPE moment_origin AS ENUM('manual', 'commitment', 'import');
 
+-- Backs the fuzzy/typo-tolerant matching used by GET /search/suggestions
+-- (trigram similarity via the GIN indexes below). Ships in the stock
+-- postgres:18-alpine image already in use — no image changes needed.
+-- unaccent is deliberately not added: its default STABLE (not IMMUTABLE)
+-- behavior would need a custom IMMUTABLE wrapper to sit inside a
+-- generated column, not worth the complexity for v1.
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 
 -- ---------------------------------------------------------
 -- threads
@@ -50,6 +58,17 @@ CREATE TABLE threads(
     description TEXT,
     color_hex VARCHAR(7),
 
+    -- ----- Search -----
+    -- 'simple' rather than 'english', same multilingual reasoning as
+    -- moments.search_document below: Thread names/descriptions are
+    -- freeform text in whatever language the user thinks in.
+    search_document tsvector GENERATED ALWAYS AS (
+        to_tsvector(
+            'simple'::regconfig,
+            coalesce(name, '') || ' ' || coalesce(description, '')
+        )
+    ) STORED,
+
     -- Manual ordering on the Thread list; the archive itself is always
     -- ordered by occurred_at.
     sort_order INT NOT NULL DEFAULT 0,
@@ -68,6 +87,17 @@ CREATE INDEX idx_threads_user_id ON threads(user_id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_threads_circle_id
 ON threads(circle_id)
 WHERE circle_id IS NOT NULL AND deleted_at IS NULL;
+
+CREATE INDEX idx_threads_search_document
+ON threads USING GIN(search_document);
+
+-- Trigram index for typo-tolerant matching in GET /search/suggestions
+-- (the `name % ...` predicate) — tsvector alone only matches whole
+-- lexemes/prefixes, so "grocry" wouldn't match "grocery" without this.
+-- Scoped to `name` only: it's the short, title-like field where a typo
+-- actually matters for a suggestion row.
+CREATE INDEX idx_threads_name_trgm
+ON threads USING GIN(name gin_trgm_ops);
 
 
 -- ---------------------------------------------------------
@@ -228,6 +258,14 @@ WHERE deleted_at IS NULL;
 
 CREATE INDEX idx_moments_search_document
 ON moments USING GIN(search_document);
+
+-- Trigram index for typo-tolerant matching on place_name, used by
+-- GET /search/suggestions. note is deliberately NOT trigram-indexed:
+-- it can run long (see moments.note), so a GIN trigram index over it
+-- is expensive for a benefit the search_document prefix-tsquery match
+-- already covers word-by-word as the user types.
+CREATE INDEX idx_moments_place_name_trgm
+ON moments USING GIN(place_name gin_trgm_ops);
 
 CREATE INDEX idx_moments_location
 ON moments(latitude, longitude)

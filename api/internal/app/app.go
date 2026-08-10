@@ -111,6 +111,12 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	momentImageUsecase := usecase.NewMomentImageUsecase(momentImageRepo, objectStorage, momentRepo)
 	momentImageHandler := handler.NewMomentImageHandler(momentImageUsecase)
 
+	// 3c-search. Keyword search suggestions popover — reuses threadRepo/
+	// momentRepo (both already constructed above) through the narrow
+	// ThreadSuggestionSearcher/MomentSuggestionSearcher interfaces.
+	searchUsecase := usecase.NewSearchUsecase(threadRepo, momentRepo)
+	searchHandler := handler.NewSearchHandler(searchUsecase)
+
 	// 3d-notifications. NotificationCreator is needed by CircleInvite,
 	// CircleJoinRequest, and Mention below for their real-time triggers
 	// (FEATURES.md, Notification) — built here, just ahead of them.
@@ -208,6 +214,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		Comment:           commentHandler,
 		Reaction:          reactionHandler,
 		Notification:      notificationHandler,
+		Search:            searchHandler,
 	})
 
 	return &Container{

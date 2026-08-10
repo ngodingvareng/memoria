@@ -209,7 +209,7 @@ func (h *ThreadHandler) GetThread(c fiber.Ctx) error {
 // @Description  Search and filter the authenticated user's threads, with pagination
 // @Tags         threads
 // @Produce      json
-// @Param        name           query string false "Filter by name (partial, case-insensitive)"
+// @Param        name           query string false "Fuzzy/typo-tolerant match against the thread's name and description"
 // @Param        archived       query bool   false "Filter by whether the thread is archived"
 // @Param        sort           query string false "Sort order; only 'updated_at' is supported (switches to most-recently-updated first)"
 // @Param        page           query int    false "Page number (default 1)"

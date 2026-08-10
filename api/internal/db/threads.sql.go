@@ -46,7 +46,8 @@ WHERE (
     AND deleted_at IS NULL
     AND (
         $2::text IS NULL
-        OR name ILIKE '%' || $2::text || '%'
+        OR search_document @@ plainto_tsquery('simple', $2::text)
+        OR name % $2::text
     )
     AND (
         $3::bool IS NULL
@@ -75,7 +76,7 @@ VALUES (
     $1, $2, $3,
     $4, $5
 )
-RETURNING id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
+RETURNING id, user_id, circle_id, name, description, color_hex, search_document, sort_order, archived_at, created_at, updated_at, deleted_at
 `
 
 type CreateThreadParams struct {
@@ -105,6 +106,7 @@ func (q *Queries) CreateThread(ctx context.Context, arg CreateThreadParams) (Thr
 		&i.Name,
 		&i.Description,
 		&i.ColorHex,
+		&i.SearchDocument,
 		&i.SortOrder,
 		&i.ArchivedAt,
 		&i.CreatedAt,
@@ -115,7 +117,7 @@ func (q *Queries) CreateThread(ctx context.Context, arg CreateThreadParams) (Thr
 }
 
 const getThreadByID = `-- name: GetThreadByID :one
-SELECT id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
+SELECT id, user_id, circle_id, name, description, color_hex, search_document, sort_order, archived_at, created_at, updated_at, deleted_at
 FROM threads
 WHERE id = $1
     AND deleted_at IS NULL
@@ -134,6 +136,7 @@ func (q *Queries) GetThreadByID(ctx context.Context, id uuid.UUID) (Thread, erro
 		&i.Name,
 		&i.Description,
 		&i.ColorHex,
+		&i.SearchDocument,
 		&i.SortOrder,
 		&i.ArchivedAt,
 		&i.CreatedAt,
@@ -144,7 +147,7 @@ func (q *Queries) GetThreadByID(ctx context.Context, id uuid.UUID) (Thread, erro
 }
 
 const getThreadWithAccess = `-- name: GetThreadWithAccess :one
-SELECT threads.id, threads.user_id, threads.circle_id, threads.name, threads.description, threads.color_hex, threads.sort_order, threads.archived_at, threads.created_at, threads.updated_at, threads.deleted_at
+SELECT threads.id, threads.user_id, threads.circle_id, threads.name, threads.description, threads.color_hex, threads.search_document, threads.sort_order, threads.archived_at, threads.created_at, threads.updated_at, threads.deleted_at
 FROM threads
 WHERE threads.id = $1
     AND threads.deleted_at IS NULL
@@ -177,6 +180,7 @@ func (q *Queries) GetThreadWithAccess(ctx context.Context, arg GetThreadWithAcce
 		&i.Name,
 		&i.Description,
 		&i.ColorHex,
+		&i.SearchDocument,
 		&i.SortOrder,
 		&i.ArchivedAt,
 		&i.CreatedAt,
@@ -203,7 +207,7 @@ func (q *Queries) HardDeleteThread(ctx context.Context, arg HardDeleteThreadPara
 }
 
 const listPersonalThreadsByUserID = `-- name: ListPersonalThreadsByUserID :many
-SELECT id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
+SELECT id, user_id, circle_id, name, description, color_hex, search_document, sort_order, archived_at, created_at, updated_at, deleted_at
 FROM threads
 WHERE user_id = $1
     AND circle_id IS NULL
@@ -229,6 +233,7 @@ func (q *Queries) ListPersonalThreadsByUserID(ctx context.Context, userID uuid.U
 			&i.Name,
 			&i.Description,
 			&i.ColorHex,
+			&i.SearchDocument,
 			&i.SortOrder,
 			&i.ArchivedAt,
 			&i.CreatedAt,
@@ -246,7 +251,7 @@ func (q *Queries) ListPersonalThreadsByUserID(ctx context.Context, userID uuid.U
 }
 
 const listThreadsByCircleID = `-- name: ListThreadsByCircleID :many
-SELECT id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
+SELECT id, user_id, circle_id, name, description, color_hex, search_document, sort_order, archived_at, created_at, updated_at, deleted_at
 FROM threads
 WHERE circle_id = $1
     AND deleted_at IS NULL
@@ -270,6 +275,7 @@ func (q *Queries) ListThreadsByCircleID(ctx context.Context, circleID pgtype.UUI
 			&i.Name,
 			&i.Description,
 			&i.ColorHex,
+			&i.SearchDocument,
 			&i.SortOrder,
 			&i.ArchivedAt,
 			&i.CreatedAt,
@@ -303,8 +309,83 @@ func (q *Queries) RestoreThread(ctx context.Context, arg RestoreThreadParams) er
 	return err
 }
 
+const searchThreadSuggestions = `-- name: SearchThreadSuggestions :many
+SELECT threads.id, threads.user_id, threads.circle_id, threads.name, threads.description, threads.color_hex, threads.search_document, threads.sort_order, threads.archived_at, threads.created_at, threads.updated_at, threads.deleted_at
+FROM threads
+WHERE (
+        (threads.user_id = $1 AND threads.circle_id IS NULL)
+        OR threads.circle_id IN (
+            SELECT circle_id
+            FROM circle_members
+            WHERE circle_members.user_id = $1
+                AND left_at IS NULL
+        )
+    )
+    AND deleted_at IS NULL
+    AND (
+        search_document @@ to_tsquery('simple', $2)
+        OR name % $3::text
+    )
+ORDER BY
+    ts_rank(search_document, to_tsquery('simple', $2)) DESC,
+    similarity(name, $3::text) DESC,
+    updated_at DESC
+LIMIT $4
+`
+
+type SearchThreadSuggestionsParams struct {
+	UserID      uuid.UUID
+	PrefixQuery string
+	Query       string
+	LimitCount  int32
+}
+
+// Top-N thread matches for the live-typing search popover
+// (GET /search/suggestions). Same "reachable" scope as SearchThreads,
+// no archived/name filter args, no pagination — a fixed-size list.
+// prefix_query is a caller-built ':*'-suffixed tsquery string (see
+// usecase.buildPrefixTsQuery); query is the raw trimmed search text,
+// used for the trigram fallback/ranking.
+func (q *Queries) SearchThreadSuggestions(ctx context.Context, arg SearchThreadSuggestionsParams) ([]Thread, error) {
+	rows, err := q.db.Query(ctx, searchThreadSuggestions,
+		arg.UserID,
+		arg.PrefixQuery,
+		arg.Query,
+		arg.LimitCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Thread{}
+	for rows.Next() {
+		var i Thread
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.CircleID,
+			&i.Name,
+			&i.Description,
+			&i.ColorHex,
+			&i.SearchDocument,
+			&i.SortOrder,
+			&i.ArchivedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchThreads = `-- name: SearchThreads :many
-SELECT id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
+SELECT id, user_id, circle_id, name, description, color_hex, search_document, sort_order, archived_at, created_at, updated_at, deleted_at
 FROM threads
 WHERE (
         (threads.user_id = $1 AND threads.circle_id IS NULL)
@@ -318,7 +399,8 @@ WHERE (
     AND deleted_at IS NULL
     AND (
         $2::text IS NULL
-        OR name ILIKE '%' || $2::text || '%'
+        OR search_document @@ plainto_tsquery('simple', $2::text)
+        OR name % $2::text
     )
     AND (
         $3::bool IS NULL
@@ -345,7 +427,10 @@ type SearchThreadsParams struct {
 // personal Threads, plus every collaborative Thread owned by a Circle
 // they're an active member of (mirrors GetThreadWithAccess's notion of
 // "reachable"). All filters are optional (NULL = "don't filter on this"):
-//   - name: case-insensitive partial match (ILIKE) against threads.name
+//   - name: fuzzy/typo-tolerant match against the thread's name and
+//     description (search_document) — plainto_tsquery for word/stem
+//     matching, OR pg_trgm similarity for typos, superseding the old
+//     ILIKE '%...%' partial-substring-only match.
 //   - archived: exact match against (archived_at IS NOT NULL)
 //
 // Ordered by sort_order then newest-first by default; passing
@@ -378,6 +463,7 @@ func (q *Queries) SearchThreads(ctx context.Context, arg SearchThreadsParams) ([
 			&i.Name,
 			&i.Description,
 			&i.ColorHex,
+			&i.SearchDocument,
 			&i.SortOrder,
 			&i.ArchivedAt,
 			&i.CreatedAt,
@@ -440,7 +526,7 @@ SET name = $1,
 WHERE id = $4
     AND user_id = $5
     AND deleted_at IS NULL
-    RETURNING id, user_id, circle_id, name, description, color_hex, sort_order, archived_at, created_at, updated_at, deleted_at
+    RETURNING id, user_id, circle_id, name, description, color_hex, search_document, sort_order, archived_at, created_at, updated_at, deleted_at
 `
 
 type UpdateThreadParams struct {
@@ -467,6 +553,7 @@ func (q *Queries) UpdateThread(ctx context.Context, arg UpdateThreadParams) (Thr
 		&i.Name,
 		&i.Description,
 		&i.ColorHex,
+		&i.SearchDocument,
 		&i.SortOrder,
 		&i.ArchivedAt,
 		&i.CreatedAt,

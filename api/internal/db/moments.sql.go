@@ -782,6 +782,81 @@ func (q *Queries) RestoreMoment(ctx context.Context, arg RestoreMomentParams) er
 	return err
 }
 
+const searchMomentSuggestions = `-- name: SearchMomentSuggestions :many
+SELECT moments.id, moments.user_id, moments.thread_id, moments.origin, moments.occurred_at, moments.occurred_local, moments.occurred_utc_offset_minutes, moments.occurred_on, moments.recorded_at, moments.settling_time, moments.note, moments.color_hex, moments.place_name, moments.latitude, moments.longitude, moments.search_document, moments.client_id, moments.last_viewed_at, moments.created_at, moments.updated_at, moments.deleted_at
+FROM moments
+WHERE user_id = $1
+    AND deleted_at IS NULL
+    AND (
+        search_document @@ to_tsquery('simple', $2)
+        OR place_name % $3::text
+    )
+ORDER BY
+    ts_rank(search_document, to_tsquery('simple', $2)) DESC,
+    similarity(coalesce(place_name, ''), $3::text) DESC,
+    occurred_at DESC
+LIMIT $4
+`
+
+type SearchMomentSuggestionsParams struct {
+	UserID      uuid.UUID
+	PrefixQuery string
+	Query       string
+	LimitCount  int32
+}
+
+// Top-N moment matches for the live-typing search popover
+// (GET /search/suggestions). Owner-only, same scope as SearchMoments.
+// prefix_query is a caller-built ':*'-suffixed tsquery string (see
+// usecase.buildPrefixTsQuery); query is the raw trimmed search text,
+// used for the trigram fallback/ranking against place_name.
+func (q *Queries) SearchMomentSuggestions(ctx context.Context, arg SearchMomentSuggestionsParams) ([]Moment, error) {
+	rows, err := q.db.Query(ctx, searchMomentSuggestions,
+		arg.UserID,
+		arg.PrefixQuery,
+		arg.Query,
+		arg.LimitCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Moment{}
+	for rows.Next() {
+		var i Moment
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ThreadID,
+			&i.Origin,
+			&i.OccurredAt,
+			&i.OccurredLocal,
+			&i.OccurredUtcOffsetMinutes,
+			&i.OccurredOn,
+			&i.RecordedAt,
+			&i.SettlingTime,
+			&i.Note,
+			&i.ColorHex,
+			&i.PlaceName,
+			&i.Latitude,
+			&i.Longitude,
+			&i.SearchDocument,
+			&i.ClientID,
+			&i.LastViewedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchMoments = `-- name: SearchMoments :many
 SELECT id, user_id, thread_id, origin, occurred_at, occurred_local, occurred_utc_offset_minutes, occurred_on, recorded_at, settling_time, note, color_hex, place_name, latitude, longitude, search_document, client_id, last_viewed_at, created_at, updated_at, deleted_at
 FROM moments

@@ -43,6 +43,13 @@ type ThreadRepository interface {
 	// rather than surfacing errs.ErrNotFound.
 	SoftDelete(ctx context.Context, id, userID uuid.UUID) error
 	Search(ctx context.Context, params SearchThreadsParams) ([]*entity.Thread, int64, error)
+	// SearchSuggestions returns up to limit reachable Threads matching
+	// query, for the live-typing search popover (GET /search/suggestions).
+	// No pagination/count — a fixed-size top-N, not a full page. query is
+	// the raw trimmed search text (used for trigram ranking/fallback);
+	// prefixQuery is a caller-built ':*'-suffixed tsquery string (see
+	// SearchUsecase's buildPrefixTsQuery).
+	SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Thread, error)
 	// GetByID also grants access to a collaborative Thread's Circle
 	// members, not just its creator — see threads.GetThreadWithAccess.
 	GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Thread, error)

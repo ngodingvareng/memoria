@@ -53,3 +53,6 @@ packages:
       NotificationPreferenceRepository:
       NotificationCreator:
       CircleMemberLister:
+
+      ThreadSuggestionSearcher:
+      MomentSuggestionSearcher:

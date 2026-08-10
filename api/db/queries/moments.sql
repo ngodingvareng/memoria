@@ -155,6 +155,26 @@ ORDER BY occurred_at DESC
 LIMIT sqlc.arg(page_limit)
 OFFSET sqlc.arg(page_offset);
 
+-- name: SearchMomentSuggestions :many
+-- Top-N moment matches for the live-typing search popover
+-- (GET /search/suggestions). Owner-only, same scope as SearchMoments.
+-- prefix_query is a caller-built ':*'-suffixed tsquery string (see
+-- usecase.buildPrefixTsQuery); query is the raw trimmed search text,
+-- used for the trigram fallback/ranking against place_name.
+SELECT moments.*
+FROM moments
+WHERE user_id = sqlc.arg(user_id)
+    AND deleted_at IS NULL
+    AND (
+        search_document @@ to_tsquery('simple', sqlc.arg(prefix_query))
+        OR place_name % sqlc.arg(query)::text
+    )
+ORDER BY
+    ts_rank(search_document, to_tsquery('simple', sqlc.arg(prefix_query))) DESC,
+    similarity(coalesce(place_name, ''), sqlc.arg(query)::text) DESC,
+    occurred_at DESC
+LIMIT sqlc.arg(limit_count);
+
 -- name: ListMomentsOnDates :many
 -- Echoes same-day-and-month flashback. The caller computes the IN-list
 -- of prior-year occurred_on dates for "today" (e.g. every August 4th

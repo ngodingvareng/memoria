@@ -59,7 +59,10 @@ ORDER BY created_at DESC;
 -- personal Threads, plus every collaborative Thread owned by a Circle
 -- they're an active member of (mirrors GetThreadWithAccess's notion of
 -- "reachable"). All filters are optional (NULL = "don't filter on this"):
---   - name: case-insensitive partial match (ILIKE) against threads.name
+--   - name: fuzzy/typo-tolerant match against the thread's name and
+--     description (search_document) — plainto_tsquery for word/stem
+--     matching, OR pg_trgm similarity for typos, superseding the old
+--     ILIKE '%...%' partial-substring-only match.
 --   - archived: exact match against (archived_at IS NOT NULL)
 -- Ordered by sort_order then newest-first by default; passing
 -- sort_by_recency = true switches to updated_at DESC instead (backs the
@@ -82,7 +85,8 @@ WHERE (
     AND deleted_at IS NULL
     AND (
         sqlc.narg(name)::text IS NULL
-        OR name ILIKE '%' || sqlc.narg(name)::text || '%'
+        OR search_document @@ plainto_tsquery('simple', sqlc.narg(name)::text)
+        OR name % sqlc.narg(name)::text
     )
     AND (
         sqlc.narg(archived)::bool IS NULL
@@ -112,12 +116,42 @@ WHERE (
     AND deleted_at IS NULL
     AND (
         sqlc.narg(name)::text IS NULL
-        OR name ILIKE '%' || sqlc.narg(name)::text || '%'
+        OR search_document @@ plainto_tsquery('simple', sqlc.narg(name)::text)
+        OR name % sqlc.narg(name)::text
     )
     AND (
         sqlc.narg(archived)::bool IS NULL
         OR (archived_at IS NOT NULL) = sqlc.narg(archived)::bool
     );
+
+-- name: SearchThreadSuggestions :many
+-- Top-N thread matches for the live-typing search popover
+-- (GET /search/suggestions). Same "reachable" scope as SearchThreads,
+-- no archived/name filter args, no pagination — a fixed-size list.
+-- prefix_query is a caller-built ':*'-suffixed tsquery string (see
+-- usecase.buildPrefixTsQuery); query is the raw trimmed search text,
+-- used for the trigram fallback/ranking.
+SELECT threads.*
+FROM threads
+WHERE (
+        (threads.user_id = sqlc.arg(user_id) AND threads.circle_id IS NULL)
+        OR threads.circle_id IN (
+            SELECT circle_id
+            FROM circle_members
+            WHERE circle_members.user_id = sqlc.arg(user_id)
+                AND left_at IS NULL
+        )
+    )
+    AND deleted_at IS NULL
+    AND (
+        search_document @@ to_tsquery('simple', sqlc.arg(prefix_query))
+        OR name % sqlc.arg(query)::text
+    )
+ORDER BY
+    ts_rank(search_document, to_tsquery('simple', sqlc.arg(prefix_query))) DESC,
+    similarity(name, sqlc.arg(query)::text) DESC,
+    updated_at DESC
+LIMIT sqlc.arg(limit_count);
 
 -- name: UpdateThread :one
 UPDATE threads

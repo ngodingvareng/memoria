@@ -7,3 +7,4 @@ DROP TABLE IF EXISTS thread_images;
 DROP TABLE IF EXISTS threads;
 
 DROP TYPE IF EXISTS moment_origin;
+DROP EXTENSION IF EXISTS pg_trgm;

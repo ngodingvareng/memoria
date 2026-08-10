@@ -507,14 +507,30 @@ type Querier interface {
 	// win; the loser gets 0 affected rows and the usecase rolls back its
 	// whole transaction.
 	RotateRefreshToken(ctx context.Context, arg RotateRefreshTokenParams) (int64, error)
+	// Top-N moment matches for the live-typing search popover
+	// (GET /search/suggestions). Owner-only, same scope as SearchMoments.
+	// prefix_query is a caller-built ':*'-suffixed tsquery string (see
+	// usecase.buildPrefixTsQuery); query is the raw trimmed search text,
+	// used for the trigram fallback/ranking against place_name.
+	SearchMomentSuggestions(ctx context.Context, arg SearchMomentSuggestionsParams) ([]Moment, error)
 	// Global text Search (FEATURES.md, Looking Back) over one user's own
 	// Moments, backed by idx_moments_search_document.
 	SearchMoments(ctx context.Context, arg SearchMomentsParams) ([]Moment, error)
+	// Top-N thread matches for the live-typing search popover
+	// (GET /search/suggestions). Same "reachable" scope as SearchThreads,
+	// no archived/name filter args, no pagination — a fixed-size list.
+	// prefix_query is a caller-built ':*'-suffixed tsquery string (see
+	// usecase.buildPrefixTsQuery); query is the raw trimmed search text,
+	// used for the trigram fallback/ranking.
+	SearchThreadSuggestions(ctx context.Context, arg SearchThreadSuggestionsParams) ([]Thread, error)
 	// Search & filter the authenticated user's thread list: their own
 	// personal Threads, plus every collaborative Thread owned by a Circle
 	// they're an active member of (mirrors GetThreadWithAccess's notion of
 	// "reachable"). All filters are optional (NULL = "don't filter on this"):
-	//   - name: case-insensitive partial match (ILIKE) against threads.name
+	//   - name: fuzzy/typo-tolerant match against the thread's name and
+	//     description (search_document) — plainto_tsquery for word/stem
+	//     matching, OR pg_trgm similarity for typos, superseding the old
+	//     ILIKE '%...%' partial-substring-only match.
 	//   - archived: exact match against (archived_at IS NOT NULL)
 	// Ordered by sort_order then newest-first by default; passing
 	// sort_by_recency = true switches to updated_at DESC instead (backs the

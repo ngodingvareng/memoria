@@ -7,7 +7,7 @@
 
 export type GetThreadsParams = {
   /**
-   * Filter by name (partial, case-insensitive)
+   * Fuzzy/typo-tolerant match against the thread's name and description
    */
   name?: string;
   /**

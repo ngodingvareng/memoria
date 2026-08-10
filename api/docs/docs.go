@@ -2407,6 +2407,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/search/suggestions": {
+            "get": {
+                "description": "Top-5 matching Moments and top-5 matching Threads for the authenticated user, for a live-typing search popover",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Live search suggestions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search text",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_SearchSuggestionsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/threads": {
             "get": {
                 "description": "Search and filter the authenticated user's threads, with pagination",
@@ -2420,7 +2455,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Filter by name (partial, case-insensitive)",
+                        "description": "Fuzzy/typo-tolerant match against the thread's name and description",
                         "name": "name",
                         "in": "query"
                     },
@@ -3988,6 +4023,25 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentSuggestionResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "occurred_at": {
+                    "type": "string",
+                    "example": "2026-08-04T14:30:00+09:00"
+                },
+                "place_name": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MuteUserRequest": {
             "type": "object",
             "required": [
@@ -4286,6 +4340,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SearchSuggestionsResponse": {
+            "type": "object",
+            "properties": {
+                "moments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentSuggestionResponse"
+                    }
+                },
+                "threads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ThreadSuggestionResponse"
+                    }
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SearchThreadsResponse": {
             "type": "object",
             "properties": {
@@ -4406,6 +4477,22 @@ const docTemplate = `{
                 "user_id": {
                     "type": "string",
                     "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ThreadSuggestionResponse": {
+            "type": "object",
+            "properties": {
+                "color_hex": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Morning workout"
                 }
             }
         },
@@ -5264,6 +5351,23 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SearchMentionableUsersResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_SearchSuggestionsResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.SearchSuggestionsResponse"
                 },
                 "errors": {},
                 "message": {

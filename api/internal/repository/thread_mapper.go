@@ -5,6 +5,9 @@ import (
 	"github.com/ngodingvareng/memoria/internal/entity"
 )
 
+// toEntityThread deliberately leaves out row.SearchDocument — it's a
+// tsvector search index, not a domain value, and stays a repository
+// concern (see the Thread entity's own header comment).
 func toEntityThread(row db.Thread) *entity.Thread {
 	return &entity.Thread{
 		ID:          row.ID,

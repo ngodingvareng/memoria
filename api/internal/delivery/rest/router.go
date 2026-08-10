@@ -26,6 +26,7 @@ type Handlers struct {
 	Comment           *handler.CommentHandler
 	Reaction          *handler.ReactionHandler
 	Notification      *handler.NotificationHandler
+	Search            *handler.SearchHandler
 }
 
 // SetupRoutes wires every route. authRateLimiter is built in app.go
@@ -159,4 +160,7 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	notifications.Put("/preferences", h.Notification.UpdateNotificationPreferences)
 	notifications.Post("/read-all", h.Notification.MarkAllNotificationsRead)
 	notifications.Patch("/:id/read", h.Notification.MarkNotificationRead)
+
+	search := app.Group("/search", middleware.RequireAuth(issuer))
+	search.Get("/suggestions", h.Search.Suggestions)
 }

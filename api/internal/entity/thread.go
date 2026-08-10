@@ -9,6 +9,9 @@ import (
 // Thread is personal when CircleID is nil (owned by UserID) and
 // collaborative when it is set (owned by the Circle; access is governed
 // by CircleMember, not UserID).
+//
+// threads.search_document has no field here: it's a tsvector search
+// index, not a domain value, and stays a repository/mapper concern.
 type Thread struct {
 	ID          uuid.UUID
 	UserID      uuid.UUID

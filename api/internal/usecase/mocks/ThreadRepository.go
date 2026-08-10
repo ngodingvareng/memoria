@@ -324,6 +324,92 @@ func (_c *MockThreadRepository_Search_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// SearchSuggestions provides a mock function for the type MockThreadRepository
+func (_mock *MockThreadRepository) SearchSuggestions(ctx context.Context, userID uuid.UUID, query string, prefixQuery string, limit int32) ([]*entity.Thread, error) {
+	ret := _mock.Called(ctx, userID, query, prefixQuery, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchSuggestions")
+	}
+
+	var r0 []*entity.Thread
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, string, string, int32) ([]*entity.Thread, error)); ok {
+		return returnFunc(ctx, userID, query, prefixQuery, limit)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, string, string, int32) []*entity.Thread); ok {
+		r0 = returnFunc(ctx, userID, query, prefixQuery, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*entity.Thread)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, string, string, int32) error); ok {
+		r1 = returnFunc(ctx, userID, query, prefixQuery, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockThreadRepository_SearchSuggestions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchSuggestions'
+type MockThreadRepository_SearchSuggestions_Call struct {
+	*mock.Call
+}
+
+// SearchSuggestions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+//   - query string
+//   - prefixQuery string
+//   - limit int32
+func (_e *MockThreadRepository_Expecter) SearchSuggestions(ctx any, userID any, query any, prefixQuery any, limit any) *MockThreadRepository_SearchSuggestions_Call {
+	return &MockThreadRepository_SearchSuggestions_Call{Call: _e.mock.On("SearchSuggestions", ctx, userID, query, prefixQuery, limit)}
+}
+
+func (_c *MockThreadRepository_SearchSuggestions_Call) Run(run func(ctx context.Context, userID uuid.UUID, query string, prefixQuery string, limit int32)) *MockThreadRepository_SearchSuggestions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 int32
+		if args[4] != nil {
+			arg4 = args[4].(int32)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockThreadRepository_SearchSuggestions_Call) Return(threads []*entity.Thread, err error) *MockThreadRepository_SearchSuggestions_Call {
+	_c.Call.Return(threads, err)
+	return _c
+}
+
+func (_c *MockThreadRepository_SearchSuggestions_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID, query string, prefixQuery string, limit int32) ([]*entity.Thread, error)) *MockThreadRepository_SearchSuggestions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SoftDelete provides a mock function for the type MockThreadRepository
 func (_mock *MockThreadRepository) SoftDelete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
 	ret := _mock.Called(ctx, id, userID)

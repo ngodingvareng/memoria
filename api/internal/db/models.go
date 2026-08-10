@@ -1105,17 +1105,18 @@ type ResurfacingExclusion struct {
 }
 
 type Thread struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
-	CircleID    pgtype.UUID
-	Name        string
-	Description pgtype.Text
-	ColorHex    pgtype.Text
-	SortOrder   int32
-	ArchivedAt  pgtype.Timestamptz
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
-	DeletedAt   pgtype.Timestamptz
+	ID             uuid.UUID
+	UserID         uuid.UUID
+	CircleID       pgtype.UUID
+	Name           string
+	Description    pgtype.Text
+	ColorHex       pgtype.Text
+	SearchDocument interface{}
+	SortOrder      int32
+	ArchivedAt     pgtype.Timestamptz
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+	DeletedAt      pgtype.Timestamptz
 }
 
 type ThreadImage struct {

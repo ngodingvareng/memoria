@@ -159,6 +159,20 @@ func (r *momentRepository) Search(ctx context.Context, userID uuid.UUID, query s
 	return toEntityMoments(rows), nil
 }
 
+// SearchSuggestions implements [usecase.MomentRepository].
+func (r *momentRepository) SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Moment, error) {
+	rows, err := r.q.SearchMomentSuggestions(ctx, db.SearchMomentSuggestionsParams{
+		UserID:      userID,
+		Query:       query,
+		PrefixQuery: prefixQuery,
+		LimitCount:  limit,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("search moment suggestions: %w", err)
+	}
+	return toEntityMoments(rows), nil
+}
+
 // GetWithAccess implements [usecase.MomentReader]. Unlike GetByID, the
 // viewer here is frequently not the owner — access is granted through
 // ownership, an active mention, a Circle share, or membership in the

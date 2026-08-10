@@ -51,6 +51,12 @@ type MomentRepository interface {
 	ListByCircle(ctx context.Context, circleID uuid.UUID, limit, offset int32) ([]*entity.Moment, error)
 	// Search is the global text Search over one user's own Moments.
 	Search(ctx context.Context, userID uuid.UUID, query string, limit, offset int32) ([]*entity.Moment, error)
+	// SearchSuggestions returns up to limit of this user's own Moments
+	// matching query, for the live-typing search popover
+	// (GET /search/suggestions). query is the raw trimmed search text
+	// (used for trigram ranking/fallback); prefixQuery is a caller-built
+	// ':*'-suffixed tsquery string (see SearchUsecase's buildPrefixTsQuery).
+	SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Moment, error)
 	WithTransaction(ctx context.Context, fn func(MomentRepository) error) error
 }
 

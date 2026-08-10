@@ -127,6 +127,24 @@ func (r *threadRepository) Search(ctx context.Context, params usecase.SearchThre
 	return threads, total, nil
 }
 
+// SearchSuggestions implements [usecase.ThreadRepository].
+func (r *threadRepository) SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Thread, error) {
+	rows, err := r.q.SearchThreadSuggestions(ctx, db.SearchThreadSuggestionsParams{
+		UserID:      userID,
+		Query:       query,
+		PrefixQuery: prefixQuery,
+		LimitCount:  limit,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("search thread suggestions: %w", err)
+	}
+	threads := make([]*entity.Thread, len(rows))
+	for i, row := range rows {
+		threads[i] = toEntityThread(row)
+	}
+	return threads, nil
+}
+
 // ListByCircle implements [usecase.ThreadRepository].
 func (r *threadRepository) ListByCircle(ctx context.Context, circleID uuid.UUID) ([]*entity.Thread, error) {
 	rows, err := r.q.ListThreadsByCircleID(ctx, ptrToPgUUID(&circleID))

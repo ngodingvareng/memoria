@@ -255,6 +255,9 @@ func setupTestApp(t *testing.T) *testApp {
 	reactionUsecase := usecase.NewReactionUsecase(reactionRepo, responseAccessChecker, responseEventRepo)
 	reactionHandler := handler.NewReactionHandler(reactionUsecase)
 
+	searchUsecase := usecase.NewSearchUsecase(threadRepo, momentRepo)
+	searchHandler := handler.NewSearchHandler(searchUsecase)
+
 	fiberApp := fiber.New(fiber.Config{ErrorHandler: middleware.NewErrorHandler(true)})
 	fiberApp.Use(recover.New())
 
@@ -276,6 +279,7 @@ func setupTestApp(t *testing.T) *testApp {
 		Mention:           mentionHandler,
 		Comment:           commentHandler,
 		Reaction:          reactionHandler,
+		Search:            searchHandler,
 	})
 
 	return &testApp{app: fiberApp, pool: pool, issuer: accessTokenIssuer}
