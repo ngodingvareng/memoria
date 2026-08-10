@@ -332,8 +332,49 @@ type Querier interface {
 	// Every live push target for a recipient — notifications queued in
 	// `notifications` are delivered to each of these.
 	ListActiveUserDevicesByUserID(ctx context.Context, userID uuid.UUID) ([]UserDevice, error)
+	// The Personal Album (FEATURES.md, Looking Back): every photo
+	// attachment from every Moment this user owns, newest occurrence
+	// first — "the Album is exactly this table [moment_images] joined
+	// back to moments for ordering and visibility" (see that table's own
+	// comment above). occurred_local/occurred_utc_offset_minutes are
+	// returned instead of occurred_at so the caller can bucket by the
+	// Moment's local calendar day, not a UTC one.
+	//
+	// A missed Commitment occurrence produces no moments row at all, so it
+	// can produce no moment_images row either — the Commitment Firewall
+	// holds here structurally, no extra predicate needed. Resurfacing
+	// exclusions (resurfacing_exclusions) are deliberately NOT filtered
+	// here either: FEATURES.md limits that mechanism to *automatic*
+	// surfacing (Echoes, Recap, notifications, algorithmic Album
+	// groupings) and says excluded content "stays fully in the archive,
+	// searchable and browsable" — this is plain chronological browsing,
+	// never algorithmic.
+	ListAlbumImages(ctx context.Context, arg ListAlbumImagesParams) ([]ListAlbumImagesRow, error)
 	// "Blocked users" settings surface.
 	ListBlockedUsersByBlockerID(ctx context.Context, blockerUserID uuid.UUID) ([]UserBlock, error)
+	// The Circle's Album (FEATURES.md, Looking Back): every photo
+	// attachment from every Moment visible in this Circle — both its own
+	// collaborative Threads' Moments and personal Moments shared into it
+	// via mentioning. Mirrors ListCircleMoments' two-source union, but
+	// additionally carries an is_shared discriminator plus the sharer's
+	// user id/username, so the caller can render the "from @username"
+	// attribution label the spec requires on shared-in images only.
+	//
+	// native_circle_moments / shared_circle_moments are split into two
+	// CTEs (rather than one UNION like ListCircleMoments) specifically so
+	// the shared branch can NOT EXISTS-exclude anything already native:
+	// ShareToCircle only checks moment ownership + circle membership, not
+	// "unless this moment is already native to this circle" — so a Moment
+	// captured directly into the Circle's own Thread could also pick up a
+	// moment_circles row for that same Circle. A plain UNION would not
+	// collapse that duplicate, because is_shared/shared_by_user_id differ
+	// between the two candidate rows for the same Moment. Native wins
+	// (unattributed) over shared.
+	//
+	// Firewall + resurfacing-exclusion reasoning: identical to
+	// ListAlbumImages above. Caller is responsible for the Circle
+	// membership check before calling this query.
+	ListCircleAlbumImages(ctx context.Context, arg ListCircleAlbumImagesParams) ([]ListCircleAlbumImagesRow, error)
 	// Which Circles a personal Moment is currently shared into, for its
 	// own edit/unshare UI.
 	ListCircleIDsByMomentID(ctx context.Context, momentID uuid.UUID) ([]uuid.UUID, error)

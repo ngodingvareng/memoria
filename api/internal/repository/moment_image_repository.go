@@ -14,6 +14,7 @@ import (
 )
 
 var _ usecase.MomentImageRepository = (*momentImageRepository)(nil)
+var _ usecase.AlbumRepository = (*momentImageRepository)(nil)
 
 type momentImageRepository struct {
 	q *db.Queries
@@ -63,4 +64,33 @@ func (r *momentImageRepository) Delete(ctx context.Context, momentID, imageID uu
 		return nil, fmt.Errorf("delete moment image: %w", err)
 	}
 	return toEntityMomentImage(row), nil
+}
+
+// ListPersonalImages implements [usecase.AlbumRepository].
+func (r *momentImageRepository) ListPersonalImages(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.AlbumImage, error) {
+	rows, err := r.q.ListAlbumImages(ctx, db.ListAlbumImagesParams{
+		UserID:     userID,
+		PageLimit:  limit,
+		PageOffset: offset,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list album images: %w", err)
+	}
+	return toEntityAlbumImages(rows), nil
+}
+
+// ListCircleImages implements [usecase.AlbumRepository]. No membership
+// filter at the query level — access is checked upstream by
+// AlbumUsecase via CircleAccessChecker, same pattern as
+// MomentUsecase.ListCircleMoments.
+func (r *momentImageRepository) ListCircleImages(ctx context.Context, circleID uuid.UUID, limit, offset int32) ([]*entity.AlbumImage, error) {
+	rows, err := r.q.ListCircleAlbumImages(ctx, db.ListCircleAlbumImagesParams{
+		CircleID:   ptrToPgUUID(&circleID),
+		PageLimit:  limit,
+		PageOffset: offset,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list circle album images: %w", err)
+	}
+	return toEntityCircleAlbumImages(rows), nil
 }

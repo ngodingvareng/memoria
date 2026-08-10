@@ -27,6 +27,7 @@ type Handlers struct {
 	Reaction          *handler.ReactionHandler
 	Notification      *handler.NotificationHandler
 	Search            *handler.SearchHandler
+	Album             *handler.AlbumHandler
 }
 
 // SetupRoutes wires every route. authRateLimiter is built in app.go
@@ -140,6 +141,7 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 
 	circles.Get("/:id/threads", h.Thread.ListCircleThreads)
 	circles.Get("/:id/moments", h.Moment.ListCircleMoments)
+	circles.Get("/:id/album", h.Album.ListCircleAlbum)
 
 	circles.Get("/:id/join-requests", h.CircleJoinRequest.ListPending)
 	circles.Post("/:id/join-requests/:requestId/approve", h.CircleJoinRequest.Approve)
@@ -163,4 +165,7 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 
 	search := app.Group("/search", middleware.RequireAuth(issuer))
 	search.Get("/suggestions", h.Search.Suggestions)
+
+	album := app.Group("/album", middleware.RequireAuth(issuer))
+	album.Get("/", h.Album.ListAlbum)
 }

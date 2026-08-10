@@ -1,5 +1,44 @@
 basePath: /api/v1
 definitions:
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.AlbumImageResponse:
+    properties:
+      height:
+        type: integer
+      id:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      image_alt:
+        type: string
+      is_shared:
+        description: |-
+          IsShared/SharedBy are always false/omitted on GET /album. On
+          GET /circles/{id}/album, IsShared is true and SharedBy is set iff
+          this image's Moment reached the Circle via the mention/share
+          flow rather than one of the Circle's own collaborative Threads.
+        type: boolean
+      moment_id:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      occurred_at:
+        example: "2026-08-04T14:30:00+09:00"
+        type: string
+      shared_by:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.AlbumSharedByResponse'
+      url:
+        example: https://storage.example.com/moments/.../abc123.jpg?X-Amz-...
+        type: string
+      width:
+        type: integer
+    type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.AlbumSharedByResponse:
+    properties:
+      id:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      username:
+        example: budisantoso
+        type: string
+    type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.BlockUserRequest:
     properties:
       username:
@@ -312,6 +351,15 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListAlbumResponse:
+    properties:
+      images:
+        items:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.AlbumImageResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse'
     type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListBlockedUsersResponse:
     properties:
@@ -1217,6 +1265,18 @@ definitions:
         example: Success
         type: string
     type: object
+  ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListAlbumResponse
+  : properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListAlbumResponse'
+      errors: {}
+      message:
+        example: Success
+        type: string
+    type: object
   ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListBlockedUsersResponse
   : properties:
       code:
@@ -1570,6 +1630,29 @@ info:
   title: Book API
   version: "1.0"
 paths:
+  /album:
+    get:
+      description: Every photo attachment from every Moment the authenticated user
+        owns, newest occurrence first (FEATURES.md, Looking Back)
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Images per page (default 20, max 100)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListAlbumResponse'
+      summary: List the personal Album
+      tags:
+      - album
   /auth/forgot-password:
     post:
       consumes:
@@ -1949,6 +2032,40 @@ paths:
       summary: Update a circle
       tags:
       - circles
+  /circles/{id}/album:
+    get:
+      description: Every photo attachment from every Moment visible in the Circle
+        — its own collaborative Threads plus Moments shared into it — newest occurrence
+        first, with "from @username" attribution on shared-in images (FEATURES.md,
+        Looking Back)
+      parameters:
+      - description: Circle ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Images per page (default 20, max 100)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListAlbumResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: List a circle's Album
+      tags:
+      - album
   /circles/{id}/image:
     post:
       consumes:

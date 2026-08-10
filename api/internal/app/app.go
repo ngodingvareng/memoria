@@ -117,6 +117,13 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	searchUsecase := usecase.NewSearchUsecase(threadRepo, momentRepo)
 	searchHandler := handler.NewSearchHandler(searchUsecase)
 
+	// 3c-album. Personal + Circle Album feeds — reuses momentImageRepo
+	// (already constructed above) through the narrow AlbumRepository
+	// interface, and circleRepo for circle-membership checks, same
+	// pattern as searchUsecase reusing threadRepo/momentRepo above.
+	albumUsecase := usecase.NewAlbumUsecase(momentImageRepo, objectStorage, circleRepo)
+	albumHandler := handler.NewAlbumHandler(albumUsecase)
+
 	// 3d-notifications. NotificationCreator is needed by CircleInvite,
 	// CircleJoinRequest, and Mention below for their real-time triggers
 	// (FEATURES.md, Notification) — built here, just ahead of them.
@@ -215,6 +222,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		Reaction:          reactionHandler,
 		Notification:      notificationHandler,
 		Search:            searchHandler,
+		Album:             albumHandler,
 	})
 
 	return &Container{

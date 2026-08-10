@@ -258,6 +258,9 @@ func setupTestApp(t *testing.T) *testApp {
 	searchUsecase := usecase.NewSearchUsecase(threadRepo, momentRepo)
 	searchHandler := handler.NewSearchHandler(searchUsecase)
 
+	albumUsecase := usecase.NewAlbumUsecase(momentImageRepo, storage, circleRepo)
+	albumHandler := handler.NewAlbumHandler(albumUsecase)
+
 	fiberApp := fiber.New(fiber.Config{ErrorHandler: middleware.NewErrorHandler(true)})
 	fiberApp.Use(recover.New())
 
@@ -280,6 +283,7 @@ func setupTestApp(t *testing.T) *testApp {
 		Comment:           commentHandler,
 		Reaction:          reactionHandler,
 		Search:            searchHandler,
+		Album:             albumHandler,
 	})
 
 	return &testApp{app: fiberApp, pool: pool, issuer: accessTokenIssuer}
