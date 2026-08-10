@@ -244,8 +244,10 @@ func TestThreadImageUsecase_DeleteThreadImage_Success(t *testing.T) {
 	uc := usecase.NewThreadImageUsecase(repo, store, threads)
 
 	threadID, imageID, userID := uuid.New(), uuid.New(), uuid.New()
+	deleted := &entity.ThreadImage{ID: imageID, ThreadID: threadID, ImagePath: "threads/x/a.jpg"}
 	threads.EXPECT().GetByID(mock.Anything, threadID, userID).Return(&entity.Thread{}, nil)
-	repo.EXPECT().Delete(mock.Anything, threadID, imageID).Return(nil)
+	repo.EXPECT().Delete(mock.Anything, threadID, imageID).Return(deleted, nil)
+	store.EXPECT().Delete(mock.Anything, deleted.ImagePath).Return(nil)
 
 	err := uc.DeleteThreadImage(context.Background(), threadID, imageID, userID)
 
@@ -275,7 +277,7 @@ func TestThreadImageUsecase_DeleteThreadImage_RepoError(t *testing.T) {
 
 	wantErr := errors.New("not found")
 	threads.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).Return(&entity.Thread{}, nil)
-	repo.EXPECT().Delete(mock.Anything, mock.Anything, mock.Anything).Return(wantErr)
+	repo.EXPECT().Delete(mock.Anything, mock.Anything, mock.Anything).Return(nil, wantErr)
 
 	err := uc.DeleteThreadImage(context.Background(), uuid.New(), uuid.New(), uuid.New())
 

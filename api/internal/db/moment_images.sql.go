@@ -63,10 +63,11 @@ func (q *Queries) AddMomentImage(ctx context.Context, arg AddMomentImageParams) 
 	return i, err
 }
 
-const deleteMomentImage = `-- name: DeleteMomentImage :exec
+const deleteMomentImage = `-- name: DeleteMomentImage :one
 DELETE FROM moment_images
 WHERE id = $1
     AND moment_id = $2
+RETURNING id, moment_id, image_path, image_alt, content_type, byte_size, width, height, metadata_stripped, sort_order, created_at
 `
 
 type DeleteMomentImageParams struct {
@@ -74,9 +75,29 @@ type DeleteMomentImageParams struct {
 	MomentID uuid.UUID
 }
 
-func (q *Queries) DeleteMomentImage(ctx context.Context, arg DeleteMomentImageParams) error {
-	_, err := q.db.Exec(ctx, deleteMomentImage, arg.ID, arg.MomentID)
-	return err
+// Returns the deleted row (specifically image_path) so the caller can
+// remove the matching storage object after the DB record is gone — see
+// MomentImageUsecase.DeleteMomentImage for the ordering rationale. No
+// matching row (already deleted / wrong moment) surfaces as
+// pgx.ErrNoRows, which the repository treats as a silent no-op, same as
+// the :exec version this replaces.
+func (q *Queries) DeleteMomentImage(ctx context.Context, arg DeleteMomentImageParams) (MomentImage, error) {
+	row := q.db.QueryRow(ctx, deleteMomentImage, arg.ID, arg.MomentID)
+	var i MomentImage
+	err := row.Scan(
+		&i.ID,
+		&i.MomentID,
+		&i.ImagePath,
+		&i.ImageAlt,
+		&i.ContentType,
+		&i.ByteSize,
+		&i.Width,
+		&i.Height,
+		&i.MetadataStripped,
+		&i.SortOrder,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const listMomentImagesByMomentID = `-- name: ListMomentImagesByMomentID :many

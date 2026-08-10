@@ -79,8 +79,10 @@ func TestThreadImageRepository_Delete(t *testing.T) {
 	created, err := repo.Create(ctx, &entity.ThreadImage{ThreadID: threadID, ImagePath: "threads/x/1.jpg"})
 	require.NoError(t, err)
 
-	err = repo.Delete(ctx, threadID, created.ID)
+	deleted, err := repo.Delete(ctx, threadID, created.ID)
 	require.NoError(t, err)
+	require.NotNil(t, deleted)
+	require.Equal(t, "threads/x/1.jpg", deleted.ImagePath)
 
 	images, err := repo.ListByThreadID(ctx, threadID)
 	require.NoError(t, err)
@@ -101,12 +103,13 @@ func TestThreadImageRepository_Delete_WrongThreadID_NoOp(t *testing.T) {
 	created, err := repo.Create(ctx, &entity.ThreadImage{ThreadID: threadID, ImagePath: "threads/x/1.jpg"})
 	require.NoError(t, err)
 
-	// DeleteThreadImage's underlying query is a no-op (0 rows
-	// affected) when the id/thread_id pair doesn't match — sqlc's
-	// :exec query mode doesn't surface that as an error, so the image
-	// should still be there afterwards.
-	err = repo.Delete(ctx, otherThreadID, created.ID)
+	// DeleteThreadImage's underlying query returns no rows when the
+	// id/thread_id pair doesn't match — the repository treats
+	// pgx.ErrNoRows as a silent no-op (nil, nil), so the image should
+	// still be there afterwards.
+	deleted, err := repo.Delete(ctx, otherThreadID, created.ID)
 	require.NoError(t, err)
+	require.Nil(t, deleted)
 
 	images, err := repo.ListByThreadID(ctx, threadID)
 	require.NoError(t, err)

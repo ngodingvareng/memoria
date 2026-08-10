@@ -267,6 +267,26 @@ func TestCircleHandler_RemoveMember_SelfLeave(t *testing.T) {
 	require.Equal(t, adminID.String(), members[0].UserID)
 }
 
+func TestCircleHandler_RemoveMember_SelfLeave_SoleAdmin_Rejected(t *testing.T) {
+	// A Circle's only active admin self-leaving would orphan it — no
+	// one left could manage it, its invites, or its join requests.
+	testApp := setupTestApp(t)
+	adminID := seedTestUser(t, testApp.pool)
+	adminAuth := testApp.authHeader(t, adminID)
+
+	circle := createCircle(t, testApp, adminAuth, "Solo")
+
+	resp := testApp.doRequest(t, http.MethodDelete,
+		"/circles/"+circle.ID+"/members/"+adminID.String(), nil,
+		map[string]string{"Authorization": adminAuth})
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	membersResp := testApp.doRequest(t, http.MethodGet, "/circles/"+circle.ID+"/members", nil,
+		map[string]string{"Authorization": adminAuth})
+	members := decodeBody[dto.WebResponse[dto.ListCircleMembersResponse]](t, membersResp).Data.Members
+	require.Len(t, members, 1, "the sole admin must still be seated — the leave was rejected")
+}
+
 func TestCircleHandler_RemoveMember_AdminForcedRemoval(t *testing.T) {
 	testApp := setupTestApp(t)
 	adminID := seedTestUser(t, testApp.pool)
@@ -334,6 +354,26 @@ func TestCircleHandler_UpdateMemberRole_AdminOnly_Success(t *testing.T) {
 	// chk_circle_members_admin_can_invite: promoting to admin forces
 	// can_invite = TRUE in the same statement.
 	require.True(t, body.Data.CanInvite)
+}
+
+func TestCircleHandler_UpdateMemberRole_DemoteSoleAdmin_Rejected(t *testing.T) {
+	testApp := setupTestApp(t)
+	adminID := seedTestUser(t, testApp.pool)
+	adminAuth := testApp.authHeader(t, adminID)
+
+	circle := createCircle(t, testApp, adminAuth, "Solo")
+
+	resp := testApp.doRequest(t, http.MethodPatch,
+		"/circles/"+circle.ID+"/members/"+adminID.String()+"/role",
+		dto.UpdateCircleMemberRoleRequest{Role: "member"},
+		map[string]string{"Authorization": adminAuth})
+
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	membersResp := testApp.doRequest(t, http.MethodGet, "/circles/"+circle.ID+"/members", nil,
+		map[string]string{"Authorization": adminAuth})
+	members := decodeBody[dto.WebResponse[dto.ListCircleMembersResponse]](t, membersResp).Data.Members
+	require.Equal(t, "admin", members[0].Role, "the sole admin's role must be unchanged")
 }
 
 func TestCircleHandler_UpdateMemberRole_NonAdmin_NotFound(t *testing.T) {

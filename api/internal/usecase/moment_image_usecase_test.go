@@ -242,8 +242,10 @@ func TestMomentImageUsecase_DeleteMomentImage_Success(t *testing.T) {
 	uc := usecase.NewMomentImageUsecase(repo, store, moments)
 
 	momentID, imageID, userID := uuid.New(), uuid.New(), uuid.New()
+	deleted := &entity.MomentImage{ID: imageID, MomentID: momentID, ImagePath: "moments/x/a.jpg"}
 	moments.EXPECT().GetByID(mock.Anything, momentID, userID).Return(&entity.Moment{}, nil)
-	repo.EXPECT().Delete(mock.Anything, momentID, imageID).Return(nil)
+	repo.EXPECT().Delete(mock.Anything, momentID, imageID).Return(deleted, nil)
+	store.EXPECT().Delete(mock.Anything, deleted.ImagePath).Return(nil)
 
 	err := uc.DeleteMomentImage(context.Background(), momentID, imageID, userID)
 
@@ -273,7 +275,7 @@ func TestMomentImageUsecase_DeleteMomentImage_RepoError(t *testing.T) {
 
 	wantErr := errors.New("not found")
 	moments.EXPECT().GetByID(mock.Anything, mock.Anything, mock.Anything).Return(&entity.Moment{}, nil)
-	repo.EXPECT().Delete(mock.Anything, mock.Anything, mock.Anything).Return(wantErr)
+	repo.EXPECT().Delete(mock.Anything, mock.Anything, mock.Anything).Return(nil, wantErr)
 
 	err := uc.DeleteMomentImage(context.Background(), uuid.New(), uuid.New(), uuid.New())
 
