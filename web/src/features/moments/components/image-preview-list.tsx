@@ -24,13 +24,13 @@ export function ImagePreviewList({ images, onRemove }: ImagePreviewListProps) {
       {previews.map((url, index) => (
         <div
           key={url}
-          className="relative size-20 rounded-lg overflow-hidden group"
+          className="group relative size-20 overflow-hidden rounded-lg"
         >
           <img src={url} alt="" className="size-full object-cover" />
           <button
             type="button"
             onClick={() => onRemove(index)}
-            className="absolute top-1 right-1 rounded-full bg-black/60 text-white size-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
           >
             <HugeiconsIcon
               icon={Cancel01Icon}

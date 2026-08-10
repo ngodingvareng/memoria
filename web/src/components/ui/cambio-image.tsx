@@ -435,7 +435,7 @@ export function CambioImage({
             }}
             onError={() => setIsLoaded(true)}
             className={cn(
-              'block w-full select-none transition-opacity duration-200 ease-out group-hover:opacity-90 group-active:opacity-90',
+              'block w-full transition-opacity duration-200 ease-out select-none group-hover:opacity-90 group-active:opacity-90',
               aspect != null ? 'h-full object-cover' : 'h-auto',
               !isLoaded && 'opacity-0',
               className

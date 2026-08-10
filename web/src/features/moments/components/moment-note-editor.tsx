@@ -51,7 +51,7 @@ export function MomentNoteEditor({
         onKeyUp={mentionAutocomplete.handleSelectionChange}
         maxLength={10000}
         autoFocus
-        className="text-base min-h-24"
+        className="min-h-24 text-base"
         disabled={isSaving}
       />
       <MentionAutocompletePopover
@@ -63,7 +63,7 @@ export function MomentNoteEditor({
         isLoading={mentionAutocomplete.isLoading}
         onSelect={mentionAutocomplete.handleSelect}
       />
-      <div className="flex gap-2 justify-between">
+      <div className="flex justify-between gap-2">
         <AddMentionButton onInsert={mentionAutocomplete.insertAtCursor} />
         <div className="flex gap-2">
           <Button

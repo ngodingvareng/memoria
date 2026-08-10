@@ -125,7 +125,7 @@ export function EditThreadDetailsSection({
                           : '#94a3b8'
                       }
                       onChange={(e) => field.handleChange(e.target.value)}
-                      className="size-9 cursor-pointer rounded-full border border-border bg-transparent p-0"
+                      className="border-border size-9 cursor-pointer rounded-full border bg-transparent p-0"
                       aria-label="Pick a color"
                     />
                     <Input

@@ -51,7 +51,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="flex flex-col gap-12 max-w-xl">
+    <div className="flex max-w-xl flex-col gap-12">
       <div className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold">Details</h2>
         {viewerIsAdmin && (

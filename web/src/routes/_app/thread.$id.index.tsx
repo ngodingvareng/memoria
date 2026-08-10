@@ -185,13 +185,13 @@ function RouteComponent() {
         </Wrapper>
 
         {moments.length > 0 && (
-          <Wrapper className="flex justify-center text-center items-center p-0">
+          <Wrapper className="flex items-center justify-center p-0 text-center">
             <p className="text-muted-foreground text-xl">End of history</p>
           </Wrapper>
         )}
 
         {moments.length == 0 && (
-          <Wrapper className="flex justify-center text-center items-center p-0">
+          <Wrapper className="flex items-center justify-center p-0 text-center">
             <p className="text-muted-foreground text-xl">
               Start your story by adding the first moment
             </p>

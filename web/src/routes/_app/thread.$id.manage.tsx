@@ -36,11 +36,11 @@ function RouteComponent() {
 
   return (
     <Wrapper>
-      <div className="pb-4 -ml-4">
+      <div className="-ml-4 pb-4">
         <Button
           variant="ghost"
           size="lg"
-          className="text-xl [&_svg]:size-6! [&_svg]:text-muted-foreground!"
+          className="[&_svg]:text-muted-foreground! text-xl [&_svg]:size-6!"
           render={<Link to="/thread/$id" params={{ id }} />}
         >
           <HugeiconsIcon icon={ArrowLeft02Icon} strokeWidth={2} /> Back
@@ -83,10 +83,10 @@ function RouteComponent() {
                 336k moments over the last year
               </h2>
 
-              <div className="grow flex justify-end">
+              <div className="flex grow justify-end">
                 <DropdownMenu>
                   <DropdownMenuTrigger render={<Button variant="secondary" />}>
-                    <span className="font-semibold text-muted-foreground">
+                    <span className="text-muted-foreground font-semibold">
                       Year
                     </span>{' '}
                     2077

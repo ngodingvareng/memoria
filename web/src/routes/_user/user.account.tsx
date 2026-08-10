@@ -26,7 +26,7 @@ function RouteComponent() {
   const name = userQuery.data?.name ?? session?.user.name ?? '';
 
   return (
-    <div className="flex flex-col gap-6 max-w-xl">
+    <div className="flex max-w-xl flex-col gap-6">
       <ProfileImageUploader
         imagePath={userQuery.data?.image_path}
         name={name}

@@ -15,7 +15,7 @@ export function MentionBadge({ username, className }: MentionBadgeProps) {
       params={{ username }}
       onClick={(e) => e.stopPropagation()}
       className={cn(
-        'font-bold text-blue-600 dark:text-blue-400 hover:underline underline-offset-2',
+        'font-bold text-blue-600 underline-offset-2 hover:underline dark:text-blue-400',
         className
       )}
     >

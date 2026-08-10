@@ -129,7 +129,7 @@ function UserRestrictionList({ kind }: UserRestrictionListProps) {
           </InputGroupButton>
         </InputGroup>
         {addError && (
-          <p className="text-destructive text-sm mt-1">{addError}</p>
+          <p className="text-destructive mt-1 text-sm">{addError}</p>
         )}
       </form>
 

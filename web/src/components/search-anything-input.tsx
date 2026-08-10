@@ -4,7 +4,7 @@ import { Search01Icon } from '@hugeicons/core-free-icons';
 
 export default function SearchAnythingInput() {
   return (
-    <InputGroup className="max-w-2xl w-full h-10 [&_svg]:size-5!">
+    <InputGroup className="h-10 w-full max-w-2xl [&_svg]:size-5!">
       <InputGroupInput
         placeholder="Search anything..."
         type="search"

@@ -54,24 +54,24 @@ export function MomentCardCover({
         backgroundColor: colorHex ? hexToRgba(colorHex, 1) : undefined,
       }}
       className={cn(
-        'max-w-2xs flex flex-none flex-col rounded-xl w-full overflow-hidden relative isolate text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+        'focus-visible:ring-ring/50 relative isolate flex w-full max-w-2xs flex-none flex-col overflow-hidden rounded-xl text-left outline-none focus-visible:ring-[3px]',
         !colorHex && 'bg-gray-500',
         coverImage && 'cursor-pointer'
       )}
     >
       <div
         ref={labelRef}
-        className="items-end text-right text-white flex flex-col gap-1 flex-none relative z-10 px-4 py-3.5"
+        className="relative z-10 flex flex-none flex-col items-end gap-1 px-4 py-3.5 text-right text-white"
       >
         <div className="flex flex-col">
-          <p className="font-bold text-lg">
+          <p className="text-lg font-bold">
             {capturedAt.toLocaleDateString('id-ID', {
               day: 'numeric',
               month: 'long',
               year: 'numeric',
             })}
           </p>
-          <p className="font-medium text-xl/4">
+          <p className="text-xl/4 font-medium">
             {capturedAt.toLocaleTimeString('id-ID', {
               hour: '2-digit',
               minute: '2-digit',

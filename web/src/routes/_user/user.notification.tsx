@@ -8,10 +8,10 @@ export const Route = createFileRoute('/_user/user/notification')({
 function RouteComponent() {
   return (
     <div className="max-w-xl">
-      <h1 className="font-heading text-xl font-semibold tracking-tight mb-1">
+      <h1 className="font-heading mb-1 text-xl font-semibold tracking-tight">
         Notifications
       </h1>
-      <p className="text-muted-foreground text-sm mb-6">
+      <p className="text-muted-foreground mb-6 text-sm">
         Choose what you hear about, and when.
       </p>
       <NotificationPreferencesForm />

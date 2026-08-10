@@ -27,11 +27,11 @@ export const ColorPickerDialog: React.FC<ColorPickerDialogProps> = ({
           <DialogTitle>Set color</DialogTitle>
         </DialogHeader>
         <div className="flex gap-2">
-          <div className="bg-zinc-200 size-4 rounded-full cursor-pointer hover:ring-2 ring-primary ring-offset-2 transition-all" />
-          <div className="bg-red-200 size-4 rounded-full cursor-pointer hover:ring-2 ring-primary ring-offset-2 transition-all" />
-          <div className="bg-green-200 size-4 rounded-full cursor-pointer hover:ring-2 ring-primary ring-offset-2 transition-all" />
-          <div className="bg-blue-200 size-4 rounded-full cursor-pointer hover:ring-2 ring-primary ring-offset-2 transition-all" />
-          <div className="bg-yellow-200 size-4 rounded-full cursor-pointer hover:ring-2 ring-primary ring-offset-2 transition-all" />
+          <div className="ring-primary size-4 cursor-pointer rounded-full bg-zinc-200 ring-offset-2 transition-all hover:ring-2" />
+          <div className="ring-primary size-4 cursor-pointer rounded-full bg-red-200 ring-offset-2 transition-all hover:ring-2" />
+          <div className="ring-primary size-4 cursor-pointer rounded-full bg-green-200 ring-offset-2 transition-all hover:ring-2" />
+          <div className="ring-primary size-4 cursor-pointer rounded-full bg-blue-200 ring-offset-2 transition-all hover:ring-2" />
+          <div className="ring-primary size-4 cursor-pointer rounded-full bg-yellow-200 ring-offset-2 transition-all hover:ring-2" />
         </div>
         <DialogFooter>
           <DialogClose render={<Button type="button" variant="ghost" />}>

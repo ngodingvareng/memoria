@@ -25,7 +25,7 @@ export function ThreadSuggestions({
 }: ThreadSuggestionsProps) {
   if (threads.length === 0) {
     return (
-      <p className="px-2 py-1.5 text-sm text-muted-foreground">
+      <p className="text-muted-foreground px-2 py-1.5 text-sm">
         {isLoading ? 'Loading…' : 'No matching threads.'}
       </p>
     );
@@ -47,13 +47,13 @@ export function ThreadSuggestions({
           )}
         >
           <span
-            className="size-2.5 shrink-0 rounded-full border border-foreground/20"
+            className="border-foreground/20 size-2.5 shrink-0 rounded-full border"
             style={{ backgroundColor: thread.color_hex || undefined }}
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{thread.name}</p>
             {thread.updated_at && (
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="text-muted-foreground truncate text-xs">
                 Updated{' '}
                 {formatDistanceToNow(thread.updated_at, { addSuffix: true })}
               </p>

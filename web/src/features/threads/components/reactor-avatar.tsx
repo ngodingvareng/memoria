@@ -11,7 +11,7 @@ export function ReactorAvatar({ userId }: ReactorAvatarProps) {
 
   return (
     <span title={name}>
-      <Avatar size="sm" className="ring-2 ring-background">
+      <Avatar size="sm" className="ring-background ring-2">
         <AvatarImage src={user?.image_path ?? undefined} alt={name} />
         <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>

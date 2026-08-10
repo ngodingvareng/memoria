@@ -50,7 +50,7 @@ export function CirclePermissionToggle({
         disabled={updatePermissions.isPending}
         onCheckedChange={handleChange}
       />
-      <Label htmlFor={inputId} className="text-sm text-muted-foreground">
+      <Label htmlFor={inputId} className="text-muted-foreground text-sm">
         {label}
       </Label>
     </div>

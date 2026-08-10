@@ -29,10 +29,10 @@ export function ThreadHeader({
   onShare,
 }: ThreadHeaderProps) {
   return (
-    <div className="flex flex-col gap-2 mt-4">
+    <div className="mt-4 flex flex-col gap-2">
       <div className="flex items-start justify-end gap-1">
-        <div className="grow flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold font-heading">{threadName}</h1>
+        <div className="flex grow flex-col gap-1">
+          <h1 className="font-heading text-2xl font-semibold">{threadName}</h1>
           {circleId && <ThreadCircleBadge circleId={circleId} />}
         </div>
 

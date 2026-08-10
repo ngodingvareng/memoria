@@ -38,7 +38,7 @@ function RouteComponent() {
     <div className="[--header-height:calc(--spacing(16))]">
       <SidebarProvider className="flex flex-col">
         <AppHeader />
-        <div className="flex pt-16 flex-1">
+        <div className="flex flex-1 pt-16">
           <AppSidebar />
           <SidebarInset>
             <main>

@@ -49,7 +49,7 @@ export function MentionAutocompletePopover({
             initialFocus={anchorRef}
             finalFocus={anchorRef}
             className={cn(
-              'z-50 flex max-h-64 w-72 origin-(--transform-origin) flex-col gap-0.5 overflow-y-auto rounded-2xl bg-popover p-1.5 text-sm text-popover-foreground shadow-lg ring-1 ring-foreground/5 outline-hidden dark:ring-foreground/10'
+              'bg-popover text-popover-foreground ring-foreground/5 dark:ring-foreground/10 z-50 flex max-h-64 w-72 origin-(--transform-origin) flex-col gap-0.5 overflow-y-auto rounded-2xl p-1.5 text-sm shadow-lg ring-1 outline-hidden'
             )}
           >
             <MentionSuggestions

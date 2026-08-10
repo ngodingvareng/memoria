@@ -37,13 +37,13 @@ export function UserSettingsSidebar({
   return (
     <Sidebar
       collapsible="none"
-      className="sticky top-0 hidden h-svh border-l lg:flex bg-transparent"
+      className="sticky top-0 hidden h-svh border-l bg-transparent lg:flex"
       {...props}
     >
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <p className="text-lg font-semibold px-3 py-2">Settings</p>
+            <p className="px-3 py-2 text-lg font-semibold">Settings</p>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

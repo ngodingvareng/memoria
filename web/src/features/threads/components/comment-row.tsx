@@ -104,7 +104,7 @@ export function CommentRow({
             </Badge>
           )}
           {comment.created_at && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {formatDistanceToNow(comment.created_at, { addSuffix: true })}
             </span>
           )}

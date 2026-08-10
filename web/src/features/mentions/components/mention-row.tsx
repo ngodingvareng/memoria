@@ -25,7 +25,7 @@ export function MentionRow({ mention }: MentionRowProps) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{name}</p>
         {!isAnonymized && userQuery.data?.username && (
-          <p className="truncate text-xs text-muted-foreground">
+          <p className="text-muted-foreground truncate text-xs">
             @{userQuery.data.username}
           </p>
         )}

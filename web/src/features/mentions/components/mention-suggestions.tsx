@@ -26,7 +26,7 @@ export function MentionSuggestions({
 }: MentionSuggestionsProps) {
   if (users.length === 0) {
     return (
-      <p className="px-2 py-1.5 text-sm text-muted-foreground">
+      <p className="text-muted-foreground px-2 py-1.5 text-sm">
         {isLoading ? 'Searching…' : 'No matching users.'}
       </p>
     );
@@ -56,7 +56,7 @@ export function MentionSuggestions({
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{user.name}</p>
             {user.username && (
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="text-muted-foreground truncate text-xs">
                 @{user.username}
               </p>
             )}

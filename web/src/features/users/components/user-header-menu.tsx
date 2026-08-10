@@ -106,7 +106,7 @@ export function UserHeaderMenu() {
       />
       <DropdownMenuContent className="w-72">
         <DropdownMenuGroup>
-          <div className="flex gap-3 items-center px-3 py-1">
+          <div className="flex items-center gap-3 px-3 py-1">
             <Avatar>
               <AvatarImage
                 src={userQuery.data?.image_path ?? undefined}
@@ -117,7 +117,7 @@ export function UserHeaderMenu() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-medium text-base/3">{session?.user.name}</p>
+              <p className="text-base/3 font-medium">{session?.user.name}</p>
               <p>{session?.user.username ? `@${session.user.username}` : ''}</p>
             </div>
           </div>

@@ -7,8 +7,8 @@ import { CreateMenu } from './create-menu';
 
 export default function AppHeader() {
   return (
-    <header className="h-16 fixed w-full gap-4 top-0 z-50 bg-background border-b px-4 grid grid-cols-3 items-center">
-      <div className="flex items-center gap-2 ">
+    <header className="bg-background fixed top-0 z-50 grid h-16 w-full grid-cols-3 items-center gap-4 border-b px-4">
+      <div className="flex items-center gap-2">
         <SidebarTrigger size="icon-lg" className="[&_svg]:size-5!" />
         <AppHeaderTitle />
       </div>
@@ -17,7 +17,7 @@ export default function AppHeader() {
         <SearchAnythingInput />
       </div>
 
-      <div className="flex items-center gap-3 pr-2 justify-end ">
+      <div className="flex items-center justify-end gap-3 pr-2">
         <CreateMenu />
         <NotificationHeaderLink />
         <UserHeaderMenu />

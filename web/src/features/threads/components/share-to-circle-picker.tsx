@@ -35,7 +35,7 @@ export function ShareToCirclePicker({ momentId }: ShareToCirclePickerProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm text-muted-foreground">Shared with</p>
+      <p className="text-muted-foreground text-sm">Shared with</p>
       <div className="flex flex-wrap gap-2">
         {circleIds.map((circleId) => (
           <Badge key={circleId} variant="secondary" className="gap-1">

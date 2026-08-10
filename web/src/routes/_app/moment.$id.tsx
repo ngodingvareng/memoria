@@ -19,11 +19,11 @@ function RouteComponent() {
 
   return (
     <Wrapper>
-      <div className="pb-4 -ml-4">
+      <div className="-ml-4 pb-4">
         <Button
           variant="ghost"
           size="lg"
-          className="text-xl [&_svg]:size-6! [&_svg]:text-muted-foreground!"
+          className="[&_svg]:text-muted-foreground! text-xl [&_svg]:size-6!"
           onClick={() => router.history.back()}
         >
           <HugeiconsIcon icon={ArrowLeft02Icon} strokeWidth={2} /> Back

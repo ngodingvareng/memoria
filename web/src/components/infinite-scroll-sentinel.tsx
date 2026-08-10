@@ -42,7 +42,7 @@ export function InfiniteScrollSentinel({
         <HugeiconsIcon
           icon={Loading03Icon}
           strokeWidth={2}
-          className="size-6 animate-spin text-muted-foreground"
+          className="text-muted-foreground size-6 animate-spin"
         />
       )}
     </div>

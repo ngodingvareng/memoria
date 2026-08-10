@@ -68,7 +68,7 @@ export function ThreadPickerField({
           {selectedThread ? (
             <>
               <span
-                className="size-2.5 shrink-0 rounded-full border border-foreground/20"
+                className="border-foreground/20 size-2.5 shrink-0 rounded-full border"
                 style={{
                   backgroundColor: selectedThread.color_hex || undefined,
                 }}

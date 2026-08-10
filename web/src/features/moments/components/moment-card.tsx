@@ -173,7 +173,7 @@ export function MomentCard({
   return (
     <Item size="xs">
       <ItemContent className="flex flex-col gap-4">
-        <div className="flex group relative select-text hover:cursor-default selection:bg-primary selection:text-primary-foreground gap-4">
+        <div className="group selection:bg-primary selection:text-primary-foreground relative flex gap-4 select-text hover:cursor-default">
           {showMenu && (
             <div className="absolute top-0 -right-6 z-20">
               <DropdownMenu>
@@ -245,7 +245,7 @@ export function MomentCard({
                 <Link
                   to="/@{$username}"
                   params={{ username: user.username }}
-                  className="flex shrink-0 gap-2 items-center"
+                  className="flex shrink-0 items-center gap-2"
                 >
                   <Avatar>
                     <AvatarImage src={user.imageSrc} alt={user.imageAlt} />
@@ -259,7 +259,7 @@ export function MomentCard({
                 </Link>
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
-                  className="size-4 shrink-0 font-bold text-muted-foreground"
+                  className="text-muted-foreground size-4 shrink-0 font-bold"
                 />
                 <div className="min-w-0 flex-1 font-medium">
                   {thread.id ? (
@@ -274,8 +274,8 @@ export function MomentCard({
                     <p className="truncate">{thread.name}</p>
                   )}
                 </div>
-                <div className="shrink-0 flex gap-1 items-center">
-                  <p className="font-medium text-muted-foreground">
+                <div className="flex shrink-0 items-center gap-1">
+                  <p className="text-muted-foreground font-medium">
                     {formatDistanceToNow(createdAt, {
                       addSuffix: true,
                     })}
@@ -294,7 +294,7 @@ export function MomentCard({
                   }}
                 />
               ) : (
-                <p className="whitespace-pre-wrap text-base/7">
+                <p className="text-base/7 whitespace-pre-wrap">
                   {renderTextWithMentions(content)}
                 </p>
               )}
@@ -305,7 +305,7 @@ export function MomentCard({
               )}
             </ItemContent>
             {id && hasAudience && (
-              <ItemFooter className="flex gap-2 -ml-3 justify-start items-center">
+              <ItemFooter className="-ml-3 flex items-center justify-start gap-2">
                 <ReactionPicker momentId={id} />
                 <ReactionSummary momentId={id} />
                 <Button

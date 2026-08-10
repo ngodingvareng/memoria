@@ -77,7 +77,7 @@ export function InviteLinkPanel({ circleId }: InviteLinkPanelProps) {
           />
           <Label
             htmlFor={`invite-link-approval-${circleId}`}
-            className="text-sm text-muted-foreground"
+            className="text-muted-foreground text-sm"
           >
             Require approval to join via link
           </Label>
@@ -98,7 +98,7 @@ export function InviteLinkPanel({ circleId }: InviteLinkPanelProps) {
           </Button>
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           {invite && !inviteLinkQuery.isError
             ? "The link's full URL is only ever shown once, right after it's generated. Rotate it to get a fresh copy."
             : 'No invite link yet.'}

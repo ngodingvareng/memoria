@@ -22,7 +22,7 @@ function RouteComponent() {
   const canInvite = viewer?.role === 'admin' || viewer?.can_invite === true;
 
   return (
-    <div className="flex flex-col gap-8 max-w-xl">
+    <div className="flex max-w-xl flex-col gap-8">
       <div className="-ml-4">
         <Button
           variant="ghost"

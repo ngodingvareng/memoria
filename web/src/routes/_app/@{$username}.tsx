@@ -76,9 +76,9 @@ function RouteComponent() {
         </Avatar>
         <div className="flex flex-col gap-1">
           <div>
-            <p className="font-medium text-2xl/5">{user.name}</p>
+            <p className="text-2xl/5 font-medium">{user.name}</p>
             {user.username && (
-              <p className="text-lg/5 text-muted-foreground">
+              <p className="text-muted-foreground text-lg/5">
                 @{user.username}
               </p>
             )}

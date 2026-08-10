@@ -44,7 +44,7 @@ export function ThreadCircleBadge({
         title={circle.name}
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          'shrink-0 text-muted-foreground hover:text-foreground',
+          'text-muted-foreground hover:text-foreground shrink-0',
           className
         )}
       >

@@ -36,7 +36,7 @@ function RouteComponent() {
     <Wrapper>
       <div className="flex flex-col gap-6">
         <div className="flex items-center">
-          <div className="flex gap-3 items-center">
+          <div className="flex items-center gap-3">
             {circleQuery.isPending ? (
               <>
                 <Skeleton className="size-12 rounded-xl" />
@@ -46,9 +46,9 @@ function RouteComponent() {
               <>
                 <CircleProfileImage circle={circle ?? {}} size="xl" />
                 <div>
-                  <p className="font-medium text-2xl">{circle?.name}</p>
+                  <p className="text-2xl font-medium">{circle?.name}</p>
                   {circle?.description && (
-                    <p className="text-lg/5 text-muted-foreground">
+                    <p className="text-muted-foreground text-lg/5">
                       {circle.description}
                     </p>
                   )}

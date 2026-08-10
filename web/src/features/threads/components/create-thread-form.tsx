@@ -83,7 +83,7 @@ export function CreateThreadForm({ circleId }: CreateThreadFormProps = {}) {
                     <InputGroupAddon align="block-start">
                       <InputGroupText>Name</InputGroupText>
 
-                      <InputGroupText className="ml-auto tabular-nums text-xs text-muted-foreground">
+                      <InputGroupText className="text-muted-foreground ml-auto text-xs tabular-nums">
                         {field.state.value.length}/255
                       </InputGroupText>
                     </InputGroupAddon>

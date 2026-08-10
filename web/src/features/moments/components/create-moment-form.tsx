@@ -185,7 +185,7 @@ export function CreateMomentForm() {
                   <InputGroupAddon align="block-start">
                     <InputGroupText>Note</InputGroupText>
 
-                    <InputGroupText className="ml-auto tabular-nums text-xs text-muted-foreground">
+                    <InputGroupText className="text-muted-foreground ml-auto text-xs tabular-nums">
                       {field.state.value.length}/10000
                     </InputGroupText>
                   </InputGroupAddon>
@@ -202,7 +202,7 @@ export function CreateMomentForm() {
                     aria-invalid={isInvalid}
                     placeholder="Watching movies"
                     autoComplete="off"
-                    className="text-lg! min-h-40"
+                    className="min-h-40 text-lg!"
                   />
                 </InputGroup>
                 <MentionAutocompletePopover

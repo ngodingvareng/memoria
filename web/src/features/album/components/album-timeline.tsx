@@ -33,7 +33,7 @@ export function AlbumTimeline({ albums }: AlbumTimelineProps) {
           </div>
           <div className="flex flex-1 flex-col gap-4 pb-11 pl-3 md:pl-6 lg:pl-9">
             <div className="flex flex-col gap-2 md:hidden">
-              <div className="font-medium text-xl">{album.date}</div>
+              <div className="text-xl font-medium">{album.date}</div>
             </div>
             {album.content}
           </div>

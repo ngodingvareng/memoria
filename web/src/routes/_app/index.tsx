@@ -40,7 +40,7 @@ function Index() {
     <Wrapper>
       <div className="flex flex-col gap-12">
         <div className="flex items-center">
-          <div className="flex gap-2 items-center">
+          <div className="flex items-center gap-2">
             <Avatar size="xl">
               <AvatarImage
                 src={userQuery.data?.image_path ?? undefined}
@@ -51,9 +51,9 @@ function Index() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-medium text-2xl/5">{session?.user.name}</p>
+              <p className="text-2xl/5 font-medium">{session?.user.name}</p>
               {session?.user.username && (
-                <p className="text-lg/5 text-muted-foreground">
+                <p className="text-muted-foreground text-lg/5">
                   @{session.user.username}
                 </p>
               )}

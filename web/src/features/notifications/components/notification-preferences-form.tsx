@@ -225,7 +225,7 @@ export function NotificationPreferencesForm() {
                   type="time"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+                  className="bg-input/50 focus-visible:border-ring focus-visible:ring-ring/30 h-9 rounded-3xl border border-transparent px-3 text-sm outline-none focus-visible:ring-3"
                 />
               )}
             />
@@ -237,7 +237,7 @@ export function NotificationPreferencesForm() {
                   type="time"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  className="h-9 rounded-3xl border border-transparent bg-input/50 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+                  className="bg-input/50 focus-visible:border-ring focus-visible:ring-ring/30 h-9 rounded-3xl border border-transparent px-3 text-sm outline-none focus-visible:ring-3"
                 />
               )}
             />

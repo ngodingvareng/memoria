@@ -55,13 +55,13 @@ export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
   };
 
   return (
-    <div className="sticky bottom-0 pb-6 z-30 bg-linear-to-t from-background pt-20 from-60% to-transparent w-full">
+    <div className="from-background sticky bottom-0 z-30 w-full bg-linear-to-t from-60% to-transparent pt-20 pb-6">
       <Item
         variant="outline"
-        className="mx-auto shadow-sm bg-card max-w-5xl rounded-4xl"
+        className="bg-card mx-auto max-w-5xl rounded-4xl shadow-sm"
       >
-        <ItemContent className="flex flex-col min-h-20 max-h-[calc(100vh-10rem)]">
-          <div className="grow overflow-y-auto flex flex-col gap-2">
+        <ItemContent className="flex max-h-[calc(100vh-10rem)] min-h-20 flex-col">
+          <div className="flex grow flex-col gap-2 overflow-y-auto">
             <InputGroupTextarea
               ref={textareaRef}
               value={note}
@@ -71,7 +71,7 @@ export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
               onKeyUp={mentionAutocomplete.handleSelectionChange}
               placeholder="Woylah cikk, ketik sini..."
               maxLength={10000}
-              className="text-foreground! text-base! min-h-16"
+              className="text-foreground! min-h-16 text-base!"
             />
             <MentionAutocompletePopover
               anchorRef={textareaRef}
@@ -121,7 +121,7 @@ export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
                   render={<Button variant="secondary" size="sm" />}
                 >
                   <span
-                    className="size-4 rounded-full border border-foreground"
+                    className="border-foreground size-4 rounded-full border"
                     style={{ backgroundColor: colorHex || undefined }}
                   />
                   <span>Color</span>

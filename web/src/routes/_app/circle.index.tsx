@@ -30,7 +30,7 @@ function RouteComponent() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center">
             <h1 className="text-2xl font-semibold">My circles</h1>
-            <div className="grow justify-end gap-2 flex items-center">
+            <div className="flex grow items-center justify-end gap-2">
               <Button render={<Link to="/circle/new" />}>
                 <HugeiconsIcon icon={PlusSignIcon} /> New circle
               </Button>

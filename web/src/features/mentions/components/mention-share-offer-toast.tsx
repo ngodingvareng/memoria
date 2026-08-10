@@ -43,7 +43,7 @@ function MentionShareOfferToast({
   };
 
   return (
-    <div className="flex w-full flex-col gap-2 rounded-2xl bg-popover p-3 text-sm text-popover-foreground shadow-lg ring-1 ring-foreground/5 dark:ring-foreground/10">
+    <div className="bg-popover text-popover-foreground ring-foreground/5 dark:ring-foreground/10 flex w-full flex-col gap-2 rounded-2xl p-3 text-sm shadow-lg ring-1">
       <p>
         You and {offer.displayName} are both in these circles — share this
         moment there too?

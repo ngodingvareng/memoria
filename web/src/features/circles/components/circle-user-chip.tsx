@@ -34,9 +34,9 @@ export function CircleUserChip({
         <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
       <div className="min-w-0">
-        <p className="truncate font-medium leading-tight">{name}</p>
+        <p className="truncate leading-tight font-medium">{name}</p>
         {user?.username && (
-          <p className="truncate text-sm text-muted-foreground leading-tight">
+          <p className="text-muted-foreground truncate text-sm leading-tight">
             @{user.username}
           </p>
         )}

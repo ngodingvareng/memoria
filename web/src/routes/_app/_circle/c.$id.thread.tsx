@@ -20,7 +20,7 @@ function RouteComponent() {
     <div className="flex flex-col gap-8">
       <div className="flex items-center">
         <h1 className="text-2xl font-semibold">Threads</h1>
-        <div className="grow justify-end gap-2 flex items-center">
+        <div className="flex grow items-center justify-end gap-2">
           <Button render={<Link to="/thread/new" search={{ circleId: id }} />}>
             <HugeiconsIcon icon={PlusSignIcon} /> New Thread
           </Button>

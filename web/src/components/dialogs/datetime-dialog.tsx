@@ -145,7 +145,7 @@ export const DateTimeDialog: React.FC<DateTimeDialogProps> = ({
               </ButtonGroup>
             </Field>
           </div>
-          <div className="flex gap-1 flex-wrap">
+          <div className="flex flex-wrap gap-1">
             <Button variant="outline" size="xs">
               Now
             </Button>
