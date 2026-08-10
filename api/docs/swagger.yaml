@@ -326,6 +326,14 @@ definitions:
     required:
     - email
     type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.GoogleLoginRequest:
+    properties:
+      id_token:
+        example: eyJhbGciOiJSUzI1NiIs...
+        type: string
+    required:
+    - id_token
+    type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.InviteDirectRequest:
     properties:
       usernames:
@@ -1679,6 +1687,43 @@ paths:
           schema:
             $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
       summary: Request a password reset link
+      tags:
+      - auth
+  /auth/google:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Verifies a Google Identity Services ID token server-side
+        and either logs into the account already linked to it,
+        or creates a new one. If the token's email already
+        belongs to a different, non-Google account, this returns
+        409 rather than silently linking — the user should log
+        in with their existing method instead.
+      operationId: GoogleLogin
+      parameters:
+      - description: Google ID token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.GoogleLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_LoginResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Log in (or sign up) with a Google ID token
       tags:
       - auth
   /auth/login:

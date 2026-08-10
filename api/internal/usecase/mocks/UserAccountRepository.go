@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/enum"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -116,6 +117,160 @@ func (_c *MockUserAccountRepository_CreateCredential_Call) Return(userAccount *e
 }
 
 func (_c *MockUserAccountRepository_CreateCredential_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID, accountID string, passwordHash string) (*entity.UserAccount, error)) *MockUserAccountRepository_CreateCredential_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateOAuth provides a mock function for the type MockUserAccountRepository
+func (_mock *MockUserAccountRepository) CreateOAuth(ctx context.Context, userID uuid.UUID, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error) {
+	ret := _mock.Called(ctx, userID, provider, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateOAuth")
+	}
+
+	var r0 *entity.UserAccount
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, enum.AuthProvider, string) (*entity.UserAccount, error)); ok {
+		return returnFunc(ctx, userID, provider, accountID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, enum.AuthProvider, string) *entity.UserAccount); ok {
+		r0 = returnFunc(ctx, userID, provider, accountID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.UserAccount)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, enum.AuthProvider, string) error); ok {
+		r1 = returnFunc(ctx, userID, provider, accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUserAccountRepository_CreateOAuth_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateOAuth'
+type MockUserAccountRepository_CreateOAuth_Call struct {
+	*mock.Call
+}
+
+// CreateOAuth is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+//   - provider enum.AuthProvider
+//   - accountID string
+func (_e *MockUserAccountRepository_Expecter) CreateOAuth(ctx any, userID any, provider any, accountID any) *MockUserAccountRepository_CreateOAuth_Call {
+	return &MockUserAccountRepository_CreateOAuth_Call{Call: _e.mock.On("CreateOAuth", ctx, userID, provider, accountID)}
+}
+
+func (_c *MockUserAccountRepository_CreateOAuth_Call) Run(run func(ctx context.Context, userID uuid.UUID, provider enum.AuthProvider, accountID string)) *MockUserAccountRepository_CreateOAuth_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 enum.AuthProvider
+		if args[2] != nil {
+			arg2 = args[2].(enum.AuthProvider)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserAccountRepository_CreateOAuth_Call) Return(userAccount *entity.UserAccount, err error) *MockUserAccountRepository_CreateOAuth_Call {
+	_c.Call.Return(userAccount, err)
+	return _c
+}
+
+func (_c *MockUserAccountRepository_CreateOAuth_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error)) *MockUserAccountRepository_CreateOAuth_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetByProvider provides a mock function for the type MockUserAccountRepository
+func (_mock *MockUserAccountRepository) GetByProvider(ctx context.Context, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error) {
+	ret := _mock.Called(ctx, provider, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByProvider")
+	}
+
+	var r0 *entity.UserAccount
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, enum.AuthProvider, string) (*entity.UserAccount, error)); ok {
+		return returnFunc(ctx, provider, accountID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, enum.AuthProvider, string) *entity.UserAccount); ok {
+		r0 = returnFunc(ctx, provider, accountID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.UserAccount)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, enum.AuthProvider, string) error); ok {
+		r1 = returnFunc(ctx, provider, accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUserAccountRepository_GetByProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByProvider'
+type MockUserAccountRepository_GetByProvider_Call struct {
+	*mock.Call
+}
+
+// GetByProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - provider enum.AuthProvider
+//   - accountID string
+func (_e *MockUserAccountRepository_Expecter) GetByProvider(ctx any, provider any, accountID any) *MockUserAccountRepository_GetByProvider_Call {
+	return &MockUserAccountRepository_GetByProvider_Call{Call: _e.mock.On("GetByProvider", ctx, provider, accountID)}
+}
+
+func (_c *MockUserAccountRepository_GetByProvider_Call) Run(run func(ctx context.Context, provider enum.AuthProvider, accountID string)) *MockUserAccountRepository_GetByProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 enum.AuthProvider
+		if args[1] != nil {
+			arg1 = args[1].(enum.AuthProvider)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserAccountRepository_GetByProvider_Call) Return(userAccount *entity.UserAccount, err error) *MockUserAccountRepository_GetByProvider_Call {
+	_c.Call.Return(userAccount, err)
+	return _c
+}
+
+func (_c *MockUserAccountRepository_GetByProvider_Call) RunAndReturn(run func(ctx context.Context, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error)) *MockUserAccountRepository_GetByProvider_Call {
 	_c.Call.Return(run)
 	return _c
 }

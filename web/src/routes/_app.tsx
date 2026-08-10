@@ -12,8 +12,15 @@ import { useEffect } from 'react';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: () => {
-    if (!getSession()) {
+    const session = getSession();
+    if (!session) {
       throw redirect({ to: '/signin' });
+    }
+    // Picking a username is mandatory — an account created but never
+    // finished onboarding (e.g. closed the tab right after a Google
+    // sign-in that created it) must not reach any inner page.
+    if (!session.user.username) {
+      throw redirect({ to: '/welcome' });
     }
   },
   component: RouteComponent,

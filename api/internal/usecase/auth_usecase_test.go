@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/enum"
 	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	"github.com/ngodingvareng/memoria/internal/usecase/mocks"
@@ -48,6 +49,7 @@ func newAuthUsecase(t *testing.T) (
 	*mocks.MockRefreshTokenGenerator,
 	*mocks.MockUserVerificationRepository,
 	*mocks.MockMailer,
+	*mocks.MockGoogleIDTokenVerifier,
 ) {
 	users := mocks.NewMockUserRepository(t)
 	userAccounts := mocks.NewMockUserAccountRepository(t)
@@ -58,9 +60,10 @@ func newAuthUsecase(t *testing.T) (
 	refreshTokenGen := mocks.NewMockRefreshTokenGenerator(t)
 	verifications := mocks.NewMockUserVerificationRepository(t)
 	mailer := mocks.NewMockMailer(t)
+	googleVerifier := mocks.NewMockGoogleIDTokenVerifier(t)
 
-	uc := usecase.NewAuthUsecase(uow, users, userAccounts, refreshTokens, verifications, hasher, accessTokens, refreshTokenGen, mailer, testWebBaseURL, testRefreshTokenTTL, testMaxFailedLoginAttempts, testLoginLockoutDuration)
-	return uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen, verifications, mailer
+	uc := usecase.NewAuthUsecase(uow, users, userAccounts, refreshTokens, verifications, hasher, accessTokens, refreshTokenGen, mailer, testWebBaseURL, testRefreshTokenTTL, testMaxFailedLoginAttempts, testLoginLockoutDuration, googleVerifier)
+	return uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen, verifications, mailer, googleVerifier
 }
 
 // --- Register ---
@@ -70,7 +73,7 @@ func newAuthUsecase(t *testing.T) (
 // credential rows, exactly like Login does.
 
 func TestAuthUsecase_Register_Success(t *testing.T) {
-	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").Return(nil, errs.ErrNotFound)
 	hasher.EXPECT().Hash("s3cur3-password").Return("hashed-password", nil)
@@ -116,7 +119,7 @@ func TestAuthUsecase_Register_Success(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_EmailAlreadyExists(t *testing.T) {
-	uc, users, _, _, _, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, _, _, _, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").
 		Return(&entity.User{ID: uuid.New(), Email: "budi@example.com"}, nil)
@@ -135,7 +138,7 @@ func TestAuthUsecase_Register_EmailAlreadyExists(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_HashingFails(t *testing.T) {
-	uc, users, _, _, _, hasher, _, _, _, _ := newAuthUsecase(t)
+	uc, users, _, _, _, hasher, _, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 	wantErr := errors.New("hashing exploded")
@@ -150,7 +153,7 @@ func TestAuthUsecase_Register_HashingFails(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_TransactionFails(t *testing.T) {
-	uc, users, userAccounts, _, uow, hasher, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, uow, hasher, _, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 	hasher.EXPECT().Hash(mock.Anything).Return("hashed", nil)
@@ -175,7 +178,7 @@ func TestAuthUsecase_Register_TransactionFails(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_IssueSessionFails(t *testing.T) {
-	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 	hasher.EXPECT().Hash(mock.Anything).Return("hashed", nil)
@@ -207,7 +210,7 @@ func TestAuthUsecase_Register_IssueSessionFails(t *testing.T) {
 // --- Login ---
 
 func TestAuthUsecase_Login_Success(t *testing.T) {
-	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New(), Email: "budi@example.com"}
 	passwordHash := "scrypt-hash"
@@ -245,7 +248,7 @@ func TestAuthUsecase_Login_Success(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_EmailNotFound(t *testing.T) {
-	uc, users, _, _, _, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, _, _, _, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 
@@ -259,7 +262,7 @@ func TestAuthUsecase_Login_EmailNotFound(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_NoCredentialAccount(t *testing.T) {
-	uc, users, userAccounts, _, _, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(user, nil)
@@ -271,7 +274,7 @@ func TestAuthUsecase_Login_NoCredentialAccount(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_WrongPassword(t *testing.T) {
-	uc, users, userAccounts, _, _, hasher, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, hasher, _, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	hash := "some-hash"
@@ -289,7 +292,7 @@ func TestAuthUsecase_Login_WrongPassword(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_WrongPassword_LocksAccountAtThreshold(t *testing.T) {
-	uc, users, userAccounts, _, _, hasher, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, hasher, _, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	hash := "some-hash"
@@ -311,7 +314,7 @@ func TestAuthUsecase_Login_WrongPassword_LocksAccountAtThreshold(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_AccountLocked_RejectsBeforePasswordCheck(t *testing.T) {
-	uc, users, userAccounts, _, _, hasher, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, hasher, _, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	hash := "some-hash"
@@ -329,7 +332,7 @@ func TestAuthUsecase_Login_AccountLocked_RejectsBeforePasswordCheck(t *testing.T
 }
 
 func TestAuthUsecase_Login_LockExpired_AllowsPasswordCheck(t *testing.T) {
-	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	passwordHash := "scrypt-hash"
@@ -350,7 +353,7 @@ func TestAuthUsecase_Login_LockExpired_AllowsPasswordCheck(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_NilPasswordHash_OAuthOnlyAccount(t *testing.T) {
-	uc, users, userAccounts, _, _, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(user, nil)
@@ -367,7 +370,7 @@ func TestAuthUsecase_Login_NilPasswordHash_OAuthOnlyAccount(t *testing.T) {
 // --- Refresh ---
 
 func TestAuthUsecase_Refresh_Success_RotatesToken(t *testing.T) {
-	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	familyID := uuid.New()
@@ -412,7 +415,7 @@ func TestAuthUsecase_Refresh_Success_RotatesToken(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_TokenNotFound(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	refreshTokenGen.EXPECT().Hash("unknown-token").Return("unknown-hash")
 	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "unknown-hash").Return(nil, errs.ErrNotFound)
@@ -423,7 +426,7 @@ func TestAuthUsecase_Refresh_TokenNotFound(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_Expired(t *testing.T) {
-	uc, users, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, users, _, refreshTokens, _, _, _, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	existing := &entity.RefreshToken{
 		ID:        uuid.New(),
@@ -443,7 +446,7 @@ func TestAuthUsecase_Refresh_Expired(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_ReuseDetected_RevokesEntireFamily(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	familyID := uuid.New()
 	revokedAt := time.Now().Add(-1 * time.Minute)
@@ -466,7 +469,7 @@ func TestAuthUsecase_Refresh_ReuseDetected_RevokesEntireFamily(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_UserNotFound(t *testing.T) {
-	uc, users, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, users, _, refreshTokens, _, _, _, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	existing := &entity.RefreshToken{
 		ID: uuid.New(), UserID: uuid.New(), FamilyID: uuid.New(),
@@ -482,7 +485,7 @@ func TestAuthUsecase_Refresh_UserNotFound(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_ConflictOnRotate_TreatedAsUnauthorized(t *testing.T) {
-	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	existing := &entity.RefreshToken{
@@ -516,7 +519,7 @@ func TestAuthUsecase_Refresh_ConflictOnRotate_TreatedAsUnauthorized(t *testing.T
 // --- Logout ---
 
 func TestAuthUsecase_Logout_Success(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	row := &entity.RefreshToken{ID: uuid.New()}
 	refreshTokenGen.EXPECT().Hash("raw-token").Return("hashed-token")
@@ -529,7 +532,7 @@ func TestAuthUsecase_Logout_Success(t *testing.T) {
 }
 
 func TestAuthUsecase_Logout_TokenNotFound_IsIdempotent(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	refreshTokenGen.EXPECT().Hash("already-gone").Return("gone-hash")
 	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "gone-hash").Return(nil, errs.ErrNotFound)
@@ -542,7 +545,7 @@ func TestAuthUsecase_Logout_TokenNotFound_IsIdempotent(t *testing.T) {
 }
 
 func TestAuthUsecase_Logout_AlreadyRevoked_IsIdempotent(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	revokedAt := time.Now().Add(-time.Minute)
 	row := &entity.RefreshToken{ID: uuid.New(), RevokedAt: &revokedAt}
@@ -557,7 +560,7 @@ func TestAuthUsecase_Logout_AlreadyRevoked_IsIdempotent(t *testing.T) {
 }
 
 func TestAuthUsecase_Logout_RevokeError(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _, _ := newAuthUsecase(t)
 
 	row := &entity.RefreshToken{ID: uuid.New()}
 	wantErr := errors.New("db exploded")
@@ -573,7 +576,7 @@ func TestAuthUsecase_Logout_RevokeError(t *testing.T) {
 // --- ForgotPassword ---
 
 func TestAuthUsecase_ForgotPassword_UnknownEmail_SilentSuccess(t *testing.T) {
-	uc, users, _, _, _, _, _, _, verifications, mailer := newAuthUsecase(t)
+	uc, users, _, _, _, _, _, _, verifications, mailer, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, "ghost@example.com").Return(nil, errs.ErrNotFound)
 	// Nothing else must be reached — no expectations set on verifications
@@ -589,7 +592,7 @@ func TestAuthUsecase_ForgotPassword_UnknownEmail_SilentSuccess(t *testing.T) {
 }
 
 func TestAuthUsecase_ForgotPassword_KnownEmail_SendsResetLink(t *testing.T) {
-	uc, users, _, _, _, _, _, refreshTokenGen, verifications, mailer := newAuthUsecase(t)
+	uc, users, _, _, _, _, _, refreshTokenGen, verifications, mailer, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New(), Name: "Budi", Email: "budi@example.com"}
 	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").Return(user, nil)
@@ -613,7 +616,7 @@ func TestAuthUsecase_ForgotPassword_KnownEmail_SendsResetLink(t *testing.T) {
 // --- ResetPassword ---
 
 func TestAuthUsecase_ResetPassword_InvalidOrExpiredToken(t *testing.T) {
-	uc, _, _, _, _, _, _, refreshTokenGen, verifications, _ := newAuthUsecase(t)
+	uc, _, _, _, _, _, _, refreshTokenGen, verifications, _, _ := newAuthUsecase(t)
 
 	refreshTokenGen.EXPECT().Hash("bad-token").Return("hashed-bad-token")
 	verifications.EXPECT().
@@ -628,7 +631,7 @@ func TestAuthUsecase_ResetPassword_InvalidOrExpiredToken(t *testing.T) {
 }
 
 func TestAuthUsecase_ResetPassword_Success(t *testing.T) {
-	uc, users, userAccounts, refreshTokens, _, hasher, _, refreshTokenGen, verifications, _ := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, _, hasher, _, refreshTokenGen, verifications, _, _ := newAuthUsecase(t)
 
 	userID := uuid.New()
 	user := &entity.User{ID: userID, Email: "budi@example.com"}
@@ -650,4 +653,146 @@ func TestAuthUsecase_ResetPassword_Success(t *testing.T) {
 	})
 
 	assert.NoError(t, err)
+}
+
+// --- LoginWithGoogle ---
+
+func TestAuthUsecase_LoginWithGoogle_ExistingGoogleAccount_Success(t *testing.T) {
+	uc, users, userAccounts, refreshTokens, uow, _, accessTokens, refreshTokenGen, _, _, googleVerifier := newAuthUsecase(t)
+
+	identity := &usecase.GoogleIdentity{Subject: "google-sub-123", Email: "budi@example.com", EmailVerified: true, Name: "Budi"}
+	user := &entity.User{ID: uuid.New(), Name: "Budi", Email: "budi@example.com"}
+	accessExpiresAt := time.Now().Add(15 * time.Minute)
+	wantRefreshExpiresAt := time.Now().Add(testRefreshTokenTTL)
+
+	googleVerifier.EXPECT().Verify(mock.Anything, "google-id-token").Return(identity, nil)
+	uow.EXPECT().
+		WithTransaction(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, fn func(usecase.AuthRepositories) error) error {
+			return fn(usecase.AuthRepositories{User: users, UserAccount: userAccounts, RefreshToken: refreshTokens})
+		})
+	userAccounts.EXPECT().
+		GetByProvider(mock.Anything, enum.AuthProviderGoogle, "google-sub-123").
+		Return(&entity.UserAccount{UserID: user.ID}, nil)
+	users.EXPECT().GetByID(mock.Anything, user.ID).Return(user, nil)
+	accessTokens.EXPECT().Generate(user.ID).Return("access-token", accessExpiresAt, nil)
+	refreshTokenGen.EXPECT().Generate().Return("raw-refresh-token", nil)
+	refreshTokenGen.EXPECT().Hash("raw-refresh-token").Return("hashed-refresh-token")
+	refreshTokens.EXPECT().
+		Create(mock.Anything, mock.MatchedBy(func(rt *entity.RefreshToken) bool {
+			return rt.UserID == user.ID && rt.TokenHash == "hashed-refresh-token"
+		})).
+		Return(&entity.RefreshToken{ID: uuid.New()}, nil)
+	// users.Create / userAccounts.CreateOAuth deliberately not stubbed —
+	// an already-linked account must never take the create-new path.
+
+	result, err := uc.LoginWithGoogle(context.Background(), usecase.GoogleLoginInput{IDToken: "google-id-token"})
+
+	require.NoError(t, err)
+	assert.Equal(t, user, result.User)
+	assert.Equal(t, "access-token", result.AccessToken)
+	assert.Equal(t, accessExpiresAt, result.AccessTokenExpiresAt)
+	assert.Equal(t, "raw-refresh-token", result.RefreshToken)
+	assert.WithinDuration(t, wantRefreshExpiresAt, result.RefreshTokenExpiresAt, time.Second)
+}
+
+func TestAuthUsecase_LoginWithGoogle_NewUser_CreatesAccountAndSession(t *testing.T) {
+	uc, users, userAccounts, refreshTokens, uow, _, accessTokens, refreshTokenGen, _, _, googleVerifier := newAuthUsecase(t)
+
+	identity := &usecase.GoogleIdentity{Subject: "google-sub-123", Email: "baru@example.com", EmailVerified: true, Name: "Baru"}
+	created := &entity.User{ID: uuid.New(), Name: "Baru", Email: "baru@example.com"}
+	accessExpiresAt := time.Now().Add(15 * time.Minute)
+
+	googleVerifier.EXPECT().Verify(mock.Anything, "google-id-token").Return(identity, nil)
+	uow.EXPECT().
+		WithTransaction(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, fn func(usecase.AuthRepositories) error) error {
+			return fn(usecase.AuthRepositories{User: users, UserAccount: userAccounts, RefreshToken: refreshTokens})
+		})
+	userAccounts.EXPECT().
+		GetByProvider(mock.Anything, enum.AuthProviderGoogle, "google-sub-123").
+		Return(nil, errs.ErrNotFound)
+	users.EXPECT().GetByEmail(mock.Anything, "baru@example.com").Return(nil, errs.ErrNotFound)
+	users.EXPECT().
+		Create(mock.Anything, mock.MatchedBy(func(u *entity.User) bool {
+			return u.Name == "Baru" && u.Email == "baru@example.com" && u.EmailVerified && u.Timezone == "UTC"
+		})).
+		Return(created, nil)
+	userAccounts.EXPECT().
+		CreateOAuth(mock.Anything, created.ID, enum.AuthProviderGoogle, "google-sub-123").
+		Return(&entity.UserAccount{}, nil)
+	accessTokens.EXPECT().Generate(created.ID).Return("access-token", accessExpiresAt, nil)
+	refreshTokenGen.EXPECT().Generate().Return("raw-refresh-token", nil)
+	refreshTokenGen.EXPECT().Hash("raw-refresh-token").Return("hashed-refresh-token")
+	refreshTokens.EXPECT().
+		Create(mock.Anything, mock.MatchedBy(func(rt *entity.RefreshToken) bool {
+			return rt.UserID == created.ID && rt.TokenHash == "hashed-refresh-token"
+		})).
+		Return(&entity.RefreshToken{ID: uuid.New()}, nil)
+
+	result, err := uc.LoginWithGoogle(context.Background(), usecase.GoogleLoginInput{IDToken: "google-id-token"})
+
+	require.NoError(t, err)
+	assert.Equal(t, created, result.User)
+	assert.Equal(t, "access-token", result.AccessToken)
+}
+
+func TestAuthUsecase_LoginWithGoogle_EmailBelongsToDifferentAccount_Rejected(t *testing.T) {
+	uc, users, userAccounts, _, uow, _, _, _, _, _, googleVerifier := newAuthUsecase(t)
+
+	identity := &usecase.GoogleIdentity{Subject: "google-sub-123", Email: "budi@example.com", EmailVerified: true, Name: "Budi"}
+	existing := &entity.User{ID: uuid.New(), Email: "budi@example.com"}
+
+	googleVerifier.EXPECT().Verify(mock.Anything, "google-id-token").Return(identity, nil)
+	uow.EXPECT().
+		WithTransaction(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, fn func(usecase.AuthRepositories) error) error {
+			return fn(usecase.AuthRepositories{User: users, UserAccount: userAccounts})
+		})
+	userAccounts.EXPECT().
+		GetByProvider(mock.Anything, enum.AuthProviderGoogle, "google-sub-123").
+		Return(nil, errs.ErrNotFound)
+	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").Return(existing, nil)
+	// users.Create / userAccounts.CreateOAuth deliberately not stubbed —
+	// an email conflict must reject rather than auto-link or create.
+
+	result, err := uc.LoginWithGoogle(context.Background(), usecase.GoogleLoginInput{IDToken: "google-id-token"})
+
+	assert.Nil(t, result)
+	assert.ErrorIs(t, err, errs.ErrEmailAlreadyExists)
+}
+
+func TestAuthUsecase_LoginWithGoogle_InvalidIDToken(t *testing.T) {
+	uc, _, _, _, _, _, _, _, _, _, googleVerifier := newAuthUsecase(t)
+
+	googleVerifier.EXPECT().Verify(mock.Anything, "bad-token").Return(nil, errs.ErrInvalidToken)
+	// uow.WithTransaction deliberately not stubbed — an invalid token
+	// must short-circuit before touching any repository.
+
+	result, err := uc.LoginWithGoogle(context.Background(), usecase.GoogleLoginInput{IDToken: "bad-token"})
+
+	assert.Nil(t, result)
+	assert.ErrorIs(t, err, errs.ErrInvalidToken)
+}
+
+func TestAuthUsecase_LoginWithGoogle_TransactionFails(t *testing.T) {
+	uc, users, userAccounts, _, uow, _, _, _, _, _, googleVerifier := newAuthUsecase(t)
+
+	identity := &usecase.GoogleIdentity{Subject: "google-sub-123", Email: "budi@example.com", EmailVerified: true, Name: "Budi"}
+	googleVerifier.EXPECT().Verify(mock.Anything, "google-id-token").Return(identity, nil)
+
+	wantErr := errors.New("db exploded mid-transaction")
+	uow.EXPECT().
+		WithTransaction(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, fn func(usecase.AuthRepositories) error) error {
+			return fn(usecase.AuthRepositories{User: users, UserAccount: userAccounts})
+		})
+	userAccounts.EXPECT().
+		GetByProvider(mock.Anything, enum.AuthProviderGoogle, "google-sub-123").
+		Return(nil, wantErr)
+
+	result, err := uc.LoginWithGoogle(context.Background(), usecase.GoogleLoginInput{IDToken: "google-id-token"})
+
+	assert.Nil(t, result)
+	assert.ErrorIs(t, err, wantErr)
 }

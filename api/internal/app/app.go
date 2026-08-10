@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v3"
@@ -77,8 +78,12 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		Password: cfg.SMTPPassword,
 		From:     cfg.SMTPFrom,
 	})
+	if cfg.GoogleClientID == "" {
+		return nil, fmt.Errorf("GOOGLE_CLIENT_ID is not configured")
+	}
+	googleVerifier := security.NewGoogleIDTokenVerifier(cfg.GoogleClientID)
 
-	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, userVerificationRepo, hasher, accessTokenIssuer, refreshTokenGenerator, smtpMailer, cfg.WebBaseURL, cfg.JWTRefreshTokenTTL, cfg.LoginMaxFailedAttempts, cfg.LoginLockoutDuration)
+	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, userVerificationRepo, hasher, accessTokenIssuer, refreshTokenGenerator, smtpMailer, cfg.WebBaseURL, cfg.JWTRefreshTokenTTL, cfg.LoginMaxFailedAttempts, cfg.LoginLockoutDuration, googleVerifier)
 	authHandler := handler.NewAuthHandler(authUsecase, cfg.SecureCookies)
 
 	// userPrivacyRepo is constructed here (ahead of 3d below) because
@@ -205,8 +210,13 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		},
 	})
 
+	// requireUsername gates every "activity" route behind having claimed
+	// a username — see middleware.RequireUsername's doc comment for why
+	// it needs a DB hit unlike RequireAuth.
+	requireUsername := middleware.RequireUsername(userRepo)
+
 	// 5. Router
-	rest.SetupRoutes(fiberApp, accessTokenIssuer, authRateLimiter, rest.Handlers{
+	rest.SetupRoutes(fiberApp, accessTokenIssuer, authRateLimiter, requireUsername, rest.Handlers{
 		Health:            healthHandler,
 		Auth:              authHandler,
 		User:              userHandler,

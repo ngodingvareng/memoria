@@ -39,6 +39,7 @@ export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateThrea
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoFollowInviteLinkRequest';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoFollowInviteLinkResponse';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest';
+export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoInviteDirectRequest';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoInviteDirectResponse';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoListAlbumResponse';

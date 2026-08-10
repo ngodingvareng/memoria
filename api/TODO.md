@@ -14,7 +14,7 @@ Both Commitment workers below are **deferred on purpose** — see `COMMITMENT.md
 
 ## Tier 3 — Auth feature completeness
 
-- [ ] **OAuth (Google/GitHub)** — not implemented, only the `credential` provider path exists. `user_accounts.provider_id` and the schema already support it; no usecase/handler yet.
+- [x] ~~OAuth (Google)~~ — `POST /auth/google` verifies a Google ID token (`google.golang.org/api/idtoken`) and finds-or-creates the user; an email already registered under a different provider is rejected (409) rather than auto-linked. GitHub remains unimplemented — `AuthProviderGitHub` exists in `enum` but not in the DB `auth_provider_id` type.
 - [ ] **Email verification** — not implemented. `SetUserEmailVerified` / `user_verifications` queries exist but nothing calls them yet.
 - [ ] **Password reset** — not implemented.
 

@@ -136,6 +136,20 @@ func seedTestUser(t *testing.T, pool *pgxpool.Pool) uuid.UUID {
 	return id
 }
 
+// seedTestUserWithoutUsername mirrors seedTestUser but leaves username
+// NULL — the state an account is in right after Register/LoginWithGoogle
+// creates it, before the mandatory /users/me/username onboarding step.
+func seedTestUserWithoutUsername(t *testing.T, pool *pgxpool.Pool) uuid.UUID {
+	t.Helper()
+	var id uuid.UUID
+	err := pool.QueryRow(context.Background(),
+		`INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id`,
+		"Test User", uuid.NewString()+"@example.com",
+	).Scan(&id)
+	require.NoError(t, err)
+	return id
+}
+
 // fakeStorage satisfies usecase.Storage without touching any real
 // object storage backend. The real S3-backed implementation
 // (internal/storage/s3_storage.go) already has its own integration
@@ -198,8 +212,9 @@ func setupTestApp(t *testing.T) *testApp {
 	refreshTokenRepo := repository.NewRefreshTokenRepository(pool)
 	userVerificationRepo := repository.NewUserVerificationRepository(pool)
 	authUoW := repository.NewAuthUnitOfWork(pool)
+	googleVerifier := security.NewGoogleIDTokenVerifier("test-google-client-id")
 	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, userVerificationRepo, hasher,
-		accessTokenIssuer, refreshTokenGenerator, mailer, "https://memoria-test.example", 30*24*time.Hour, 5, 15*time.Minute)
+		accessTokenIssuer, refreshTokenGenerator, mailer, "https://memoria-test.example", 30*24*time.Hour, 5, 15*time.Minute, googleVerifier)
 	authHandler := handler.NewAuthHandler(authUsecase, false)
 
 	userPrivacyRepo := repository.NewUserPrivacyRepository(pool)
@@ -268,8 +283,9 @@ func setupTestApp(t *testing.T) *testApp {
 	// transport-level concerns wired in internal/app.NewContainer, not
 	// route-level behavior SetupRoutes itself is responsible for.
 	noOpRateLimiter := func(c fiber.Ctx) error { return c.Next() }
+	requireUsername := middleware.RequireUsername(userRepo)
 
-	rest.SetupRoutes(fiberApp, accessTokenIssuer, noOpRateLimiter, rest.Handlers{
+	rest.SetupRoutes(fiberApp, accessTokenIssuer, noOpRateLimiter, requireUsername, rest.Handlers{
 		Auth:              authHandler,
 		User:              userHandler,
 		Thread:            threadHandler,

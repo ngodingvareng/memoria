@@ -38,6 +38,12 @@ var (
 	ErrForbidden              = New(http.StatusForbidden, "forbidden")
 	ErrAccessDenied           = New(http.StatusForbidden, "access denied")
 	ErrInsufficientPermission = New(http.StatusForbidden, "insufficient permission")
+	// ErrUsernameRequired guards every activity endpoint behind
+	// middleware.RequireUsername — an account that hasn't claimed a
+	// username yet (the mandatory post-register/post-Google-login
+	// onboarding step) can only call the endpoints needed to finish that
+	// step, nothing else.
+	ErrUsernameRequired = New(http.StatusForbidden, "username required")
 
 	// 404 Not Found
 	ErrNotFound = New(http.StatusNotFound, "not found")

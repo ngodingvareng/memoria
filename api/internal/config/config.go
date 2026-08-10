@@ -77,6 +77,12 @@ type Config struct {
 	// deployments don't leak internal call-path/DB error details
 	// unless explicitly enabled.
 	DebugMode bool `mapstructure:"DEBUG_MODE"`
+
+	// GoogleClientID is the OAuth 2.0 Client ID (Google Cloud Console)
+	// used as the expected `aud` claim when verifying a Google-issued ID
+	// token in POST /auth/google — must match web/.env's
+	// VITE_GOOGLE_CLIENT_ID.
+	GoogleClientID string `mapstructure:"GOOGLE_CLIENT_ID"`
 }
 
 func (c *Config) GetDSN() string {

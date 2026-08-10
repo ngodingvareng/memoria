@@ -28,6 +28,13 @@ type ForgotPasswordRequest struct {
 	Email string `json:"email" validate:"required,email,max=255" example:"budi@example.com"`
 }
 
+// GoogleLoginRequest is used by /auth/google. IDToken is the JWT ID
+// token obtained client-side from Google Identity Services — NOT an
+// OAuth access token or authorization code.
+type GoogleLoginRequest struct {
+	IDToken string `json:"id_token" validate:"required" example:"eyJhbGciOiJSUzI1NiIs..."`
+}
+
 type ResetPasswordRequest struct {
 	Email string `json:"email" validate:"required,email,max=255" example:"budi@example.com"`
 	// Token is the raw value from the emailed reset link, never the

@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/enum"
 	"github.com/ngodingvareng/memoria/internal/errs"
 )
 
@@ -53,6 +54,16 @@ type UserAccountRepository interface {
 	// UpdatePasswordHash overwrites the credential account's password —
 	// the write side of the reset-password flow.
 	UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error
+	// GetByProvider looks up an OAuth-linked account by provider + the
+	// provider's own account id (e.g. Google's `sub` claim). Returns
+	// errs.ErrNotFound if this provider identity hasn't been linked to
+	// any user yet — the caller decides find-vs-create from there.
+	GetByProvider(ctx context.Context, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error)
+	// CreateOAuth links a non-credential provider identity to userID.
+	// Token/scope fields aren't part of this signature — flows that only
+	// verify an ID token (rather than completing an authorization-code
+	// exchange) never obtain a provider access/refresh token to store.
+	CreateOAuth(ctx context.Context, userID uuid.UUID, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error)
 }
 
 // UserVerificationRepository backs single-use, expiring, identifier/
@@ -135,6 +146,27 @@ type RefreshTokenGenerator interface {
 	Hash(raw string) string
 }
 
+// GoogleIDTokenVerifier validates a Google Identity Services ID token
+// (a signed JWT the frontend obtains directly from Google — not an
+// OAuth access token or authorization code) and extracts the identity
+// claims LoginWithGoogle needs. Any invalid token collapses to
+// errs.ErrInvalidToken.
+type GoogleIDTokenVerifier interface {
+	Verify(ctx context.Context, idToken string) (*GoogleIdentity, error)
+}
+
+// GoogleIdentity is the subset of a verified Google ID token's claims
+// LoginWithGoogle acts on.
+type GoogleIdentity struct {
+	// Subject is Google's `sub` claim — the stable, provider-scoped
+	// account id used as UserAccountRepository's accountID, since email
+	// alone isn't a safe join key (it can change on Google's side).
+	Subject       string
+	Email         string
+	EmailVerified bool
+	Name          string
+}
+
 // --- Inputs / outputs ---
 
 type RegisterInput struct {
@@ -162,6 +194,12 @@ type ResetPasswordInput struct {
 	Email       string
 	Token       string
 	NewPassword string
+}
+
+type GoogleLoginInput struct {
+	IDToken   string
+	IPAddress *string
+	UserAgent *string
 }
 
 // passwordResetTokenTTL is how long a requested reset link stays valid.
@@ -201,6 +239,14 @@ type AuthUsecase interface {
 	// ResetPassword returns errs.ErrInvalidToken for a wrong or expired
 	// token — deliberately not distinguishing the two.
 	ResetPassword(ctx context.Context, input ResetPasswordInput) error
+	// LoginWithGoogle verifies a Google ID token and either logs into
+	// the account already linked to it, or — if this Google identity has
+	// never signed in before AND its email isn't already registered
+	// under a different provider — creates a new account and logs into
+	// it. If the email IS already registered elsewhere, this returns
+	// errs.ErrEmailAlreadyExists rather than auto-linking; the user
+	// should log in with their existing method instead.
+	LoginWithGoogle(ctx context.Context, input GoogleLoginInput) (*AuthTokens, error)
 }
 
 type authUsecase struct {
@@ -220,6 +266,7 @@ type authUsecase struct {
 	// limiting applied at the HTTP layer.
 	maxFailedLoginAttempts int
 	loginLockoutDuration   time.Duration
+	googleVerifier         GoogleIDTokenVerifier
 }
 
 func NewAuthUsecase(
@@ -236,6 +283,7 @@ func NewAuthUsecase(
 	refreshTokenTTL time.Duration,
 	maxFailedLoginAttempts int,
 	loginLockoutDuration time.Duration,
+	googleVerifier GoogleIDTokenVerifier,
 ) AuthUsecase {
 	return &authUsecase{
 		uow: uow, users: users, userAccounts: userAccounts, refreshTokens: refreshTokens,
@@ -246,6 +294,7 @@ func NewAuthUsecase(
 		refreshTokenTTL:        refreshTokenTTL,
 		maxFailedLoginAttempts: maxFailedLoginAttempts,
 		loginLockoutDuration:   loginLockoutDuration,
+		googleVerifier:         googleVerifier,
 	}
 }
 
@@ -556,4 +605,65 @@ func (u *authUsecase) ResetPassword(ctx context.Context, input ResetPasswordInpu
 	}
 
 	return nil
+}
+
+// LoginWithGoogle implements [AuthUsecase].
+func (u *authUsecase) LoginWithGoogle(ctx context.Context, input GoogleLoginInput) (*AuthTokens, error) {
+	identity, err := u.googleVerifier.Verify(ctx, input.IDToken)
+	if err != nil {
+		return nil, err
+	}
+
+	var tokens *AuthTokens
+	err = u.uow.WithTransaction(ctx, func(repos AuthRepositories) error {
+		account, err := repos.UserAccount.GetByProvider(ctx, enum.AuthProviderGoogle, identity.Subject)
+		if err == nil {
+			user, err := repos.User.GetByID(ctx, account.UserID)
+			if err != nil {
+				return fmt.Errorf("looking up google-linked user: %w", err)
+			}
+			t, err := u.issueSession(ctx, repos.RefreshToken, user, uuid.New(), input.IPAddress, input.UserAgent)
+			if err != nil {
+				return fmt.Errorf("issuing session: %w", err)
+			}
+			tokens = t
+			return nil
+		}
+		if !errors.Is(err, errs.ErrNotFound) {
+			return fmt.Errorf("looking up google account: %w", err)
+		}
+
+		// No user_accounts row links this Google identity yet. If the
+		// email is already registered some other way, reject rather
+		// than silently taking over that account — see LoginWithGoogle's
+		// doc comment.
+		existingUser, err := repos.User.GetByEmail(ctx, identity.Email)
+		if err == nil && existingUser != nil {
+			return errs.ErrEmailAlreadyExists
+		}
+		if err != nil && !errors.Is(err, errs.ErrNotFound) {
+			return fmt.Errorf("checking existing email: %w", err)
+		}
+
+		user, err := repos.User.Create(ctx, &entity.User{
+			Name: identity.Name, Email: identity.Email,
+			EmailVerified: identity.EmailVerified, Timezone: "UTC",
+		})
+		if err != nil {
+			return fmt.Errorf("creating user: %w", err)
+		}
+		if _, err := repos.UserAccount.CreateOAuth(ctx, user.ID, enum.AuthProviderGoogle, identity.Subject); err != nil {
+			return fmt.Errorf("creating google account: %w", err)
+		}
+		t, err := u.issueSession(ctx, repos.RefreshToken, user, uuid.New(), input.IPAddress, input.UserAgent)
+		if err != nil {
+			return fmt.Errorf("issuing session: %w", err)
+		}
+		tokens = t
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("google login: %w", err)
+	}
+	return tokens, nil
 }

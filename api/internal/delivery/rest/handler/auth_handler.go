@@ -129,6 +129,55 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 	})
 }
 
+// GoogleLogin godoc
+// @Summary      Log in (or sign up) with a Google ID token
+// @Description  Verifies a Google Identity Services ID token server-side
+// @Description  and either logs into the account already linked to it,
+// @Description  or creates a new one. If the token's email already
+// @Description  belongs to a different, non-Google account, this returns
+// @Description  409 rather than silently linking — the user should log
+// @Description  in with their existing method instead.
+// @ID           GoogleLogin
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.GoogleLoginRequest true "Google ID token"
+// @Success      200 {object} dto.WebResponse[dto.LoginResponse]
+// @Failure      401 {object} dto.WebResponse[any]
+// @Failure      409 {object} dto.WebResponse[any]
+// @Router       /auth/google [post]
+func (h *AuthHandler) GoogleLogin(c fiber.Ctx) error {
+	var req dto.GoogleLoginRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(req); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	ip := c.IP()
+	userAgent := string(c.Request().Header.UserAgent())
+
+	tokens, err := h.usecase.LoginWithGoogle(c, usecase.GoogleLoginInput{
+		IDToken:   req.IDToken,
+		IPAddress: &ip,
+		UserAgent: &userAgent,
+	})
+	if err != nil {
+		return err
+	}
+
+	h.setRefreshCookie(c, tokens.RefreshToken, tokens.RefreshTokenExpiresAt)
+
+	slog.InfoContext(c, "user logged in via google", "user_id", tokens.User.ID)
+
+	return c.JSON(dto.WebResponse[dto.LoginResponse]{
+		Code:    fiber.StatusOK,
+		Message: "logged in",
+		Data:    newLoginResponse(tokens),
+	})
+}
+
 // Refresh godoc
 // @Summary      Exchange the refresh token cookie for a new access/refresh token pair
 // @Description  Reads the refresh token from the httpOnly cookie, rotates

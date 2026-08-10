@@ -14,6 +14,7 @@ import type {
 
 import type {
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoRegisterRequest,
@@ -126,6 +127,115 @@ export const useForgotPassword = <
   TContext
 > => {
   return useMutation(getForgotPasswordMutationOptions(options), queryClient);
+};
+export const getGoogleLoginUrl = () => {
+  return `/auth/google`;
+};
+
+/**
+ * Verifies a Google Identity Services ID token server-side
+ * and either logs into the account already linked to it,
+ * or creates a new one. If the token's email already
+ * belongs to a different, non-Google account, this returns
+ * 409 rather than silently linking — the user should log
+ * in with their existing method instead.
+ * @summary Log in (or sign up) with a Google ID token
+ */
+export const googleLogin = async (
+  githubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginResponse>(
+    getGoogleLoginUrl(),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(
+        githubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest
+      ),
+    }
+  );
+};
+
+export const getGoogleLoginMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof googleLogin>>,
+    TError,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest;
+    },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof googleLogin>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest;
+  },
+  TContext
+> => {
+  const mutationKey = ['googleLogin'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof googleLogin>>,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest;
+    }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return googleLogin(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GoogleLoginMutationResult = NonNullable<
+  Awaited<ReturnType<typeof googleLogin>>
+>;
+export type GoogleLoginMutationBody =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest;
+export type GoogleLoginMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Log in (or sign up) with a Google ID token
+ */
+export const useGoogleLogin = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof googleLogin>>,
+      TError,
+      {
+        data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest;
+      },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof googleLogin>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest;
+  },
+  TContext
+> => {
+  return useMutation(getGoogleLoginMutationOptions(options), queryClient);
 };
 export const getLoginUrl = () => {
   return `/auth/login`;

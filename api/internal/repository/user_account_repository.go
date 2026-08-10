@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/db"
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/enum"
 	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 )
@@ -93,4 +94,33 @@ func (r *userAccountRepository) UpdatePasswordHash(ctx context.Context, userID u
 		return fmt.Errorf("update password hash: %w", err)
 	}
 	return nil
+}
+
+// GetByProvider implements [usecase.UserAccountRepository].
+func (r *userAccountRepository) GetByProvider(ctx context.Context, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error) {
+	row, err := r.q.GetUserAccountByProvider(ctx, db.GetUserAccountByProviderParams{
+		ProviderID: db.AuthProviderID(provider),
+		AccountID:  accountID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("get user account by provider: %w", err)
+	}
+	return toEntityUserAccount(row), nil
+}
+
+// CreateOAuth implements [usecase.UserAccountRepository]. Token/scope
+// columns are left unset (Valid: false) — see the interface doc comment.
+func (r *userAccountRepository) CreateOAuth(ctx context.Context, userID uuid.UUID, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error) {
+	row, err := r.q.CreateOAuthUserAccount(ctx, db.CreateOAuthUserAccountParams{
+		UserID:     userID,
+		AccountID:  accountID,
+		ProviderID: db.AuthProviderID(provider),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("create oauth account: %w", err)
+	}
+	return toEntityUserAccount(row), nil
 }
