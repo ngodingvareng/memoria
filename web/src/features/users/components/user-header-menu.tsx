@@ -5,7 +5,6 @@ import {
   Logout01Icon,
   Settings02Icon,
   Sun01Icon,
-  Tick02Icon,
   UserCircleIcon,
 } from '@hugeicons/core-free-icons';
 import {
@@ -13,80 +12,17 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { useTheme, type Theme } from '@/components/theme-provider';
+import { useNavigate } from '@tanstack/react-router';
+import { useTheme } from '@/components/theme-provider';
 import { useSession, setSession } from '@/lib/session';
 import { useLogout } from '@/lib/api/generated/auth/auth';
 import { useGetUserByID } from '@/lib/api/generated/users/users';
-
-type MenuGroup = {
-  title: string;
-  icon: Parameters<typeof HugeiconsIcon>[0]['icon'];
-  url?: string;
-  submenu?: { title: string; value: string }[];
-}[];
-
-function MenuGroupItems({
-  group,
-  theme,
-  setTheme,
-}: {
-  group: MenuGroup;
-  theme: string;
-  setTheme: (theme: Theme) => void;
-}) {
-  return (
-    <>
-      {group.map((item) =>
-        item.submenu ? (
-          <DropdownMenuSub key={item.title}>
-            <DropdownMenuSubTrigger>
-              <HugeiconsIcon icon={item.icon} strokeWidth={2} /> {item.title}
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                {item.submenu.map((subitem) => (
-                  <DropdownMenuItem
-                    key={subitem.title}
-                    onClick={
-                      subitem.value
-                        ? () => setTheme(subitem.value as Theme)
-                        : undefined
-                    }
-                    className="flex items-center justify-between"
-                  >
-                    {subitem.title}
-                    {subitem.value === theme && (
-                      <HugeiconsIcon icon={Tick02Icon} />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-        ) : (
-          <DropdownMenuItem
-            key={item.title}
-            render={
-              <Link to={item.url!}>
-                <HugeiconsIcon icon={item.icon} strokeWidth={2} /> {item.title}
-              </Link>
-            }
-          />
-        )
-      )}
-    </>
-  );
-}
+import { MenuGroupItems, type MenuGroup } from './menu-group-items';
 
 export function UserHeaderMenu() {
   const { theme, setTheme } = useTheme();

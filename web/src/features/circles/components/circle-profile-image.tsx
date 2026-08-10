@@ -2,15 +2,15 @@ import type { ComponentProps } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
-type CircleProfileImageProps = Omit<
+interface CircleProfileImageProps extends Omit<
   ComponentProps<typeof Avatar>,
   'children'
-> & {
+> {
   circle: {
     name?: string | null;
     image_path?: string | null;
   };
-};
+}
 
 export function CircleProfileImage({
   circle,

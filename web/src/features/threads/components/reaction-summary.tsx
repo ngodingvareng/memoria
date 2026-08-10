@@ -1,10 +1,9 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   REACTION_EMOJI,
   REACTION_KINDS,
 } from '@/features/moments/lib/reaction-emoji';
 import { useGetMomentsIdReactions } from '@/lib/api/generated/reactions/reactions';
-import { useGetUserByID } from '@/lib/api/generated/users/users';
+import { ReactorAvatar } from './reactor-avatar';
 
 interface ReactionSummaryProps {
   momentId: string;
@@ -38,19 +37,5 @@ export function ReactionSummary({ momentId }: ReactionSummaryProps) {
         </div>
       ))}
     </div>
-  );
-}
-
-function ReactorAvatar({ userId }: { userId: string }) {
-  const { data: user } = useGetUserByID(userId);
-  const name = user?.name ?? '';
-
-  return (
-    <span title={name}>
-      <Avatar size="sm" className="ring-2 ring-background">
-        <AvatarImage src={user?.image_path ?? undefined} alt={name} />
-        <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
-      </Avatar>
-    </span>
   );
 }
