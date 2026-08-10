@@ -204,7 +204,7 @@ func setupTestApp(t *testing.T) *testApp {
 
 	userPrivacyRepo := repository.NewUserPrivacyRepository(pool)
 
-	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, storage)
+	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, userPrivacyRepo, userPrivacyRepo, storage)
 	userHandler := handler.NewUserHandler(userUsecase)
 
 	circleRepo := repository.NewCircleRepository(pool)
@@ -225,19 +225,23 @@ func setupTestApp(t *testing.T) *testApp {
 	momentImageUsecase := usecase.NewMomentImageUsecase(momentImageRepo, storage, momentRepo)
 	momentImageHandler := handler.NewMomentImageHandler(momentImageUsecase)
 
+	notificationRepo := repository.NewNotificationRepository(pool)
+	notificationPreferenceRepo := repository.NewNotificationPreferenceRepository(pool)
+	notificationUsecase := usecase.NewNotificationUsecase(notificationRepo, notificationPreferenceRepo, userRepo)
+
 	circleUsecase := usecase.NewCircleUsecase(circleRepo, storage)
 	circleHandler := handler.NewCircleHandler(circleUsecase)
 
 	circleInviteRepo := repository.NewCircleInviteRepository(pool)
-	circleInviteUsecase := usecase.NewCircleInviteUsecase(circleInviteRepo, circleRepo, userRepo, userPrivacyRepo, refreshTokenGenerator)
+	circleInviteUsecase := usecase.NewCircleInviteUsecase(circleInviteRepo, circleRepo, userRepo, userPrivacyRepo, refreshTokenGenerator, notificationUsecase)
 	circleInviteHandler := handler.NewCircleInviteHandler(circleInviteUsecase)
 
 	circleJoinRequestRepo := repository.NewCircleJoinRequestRepository(pool)
-	circleJoinRequestUsecase := usecase.NewCircleJoinRequestUsecase(circleJoinRequestRepo, circleRepo, circleInviteRepo, refreshTokenGenerator)
+	circleJoinRequestUsecase := usecase.NewCircleJoinRequestUsecase(circleJoinRequestRepo, circleRepo, circleRepo, circleInviteRepo, refreshTokenGenerator, notificationUsecase)
 	circleJoinRequestHandler := handler.NewCircleJoinRequestHandler(circleJoinRequestUsecase)
 
 	mentionRepo := repository.NewMentionRepository(pool)
-	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo, userRepo)
+	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo, userRepo, notificationUsecase)
 	mentionHandler := handler.NewMentionHandler(mentionUsecase)
 
 	responseEventRepo := repository.NewResponseEventRepository(pool)
