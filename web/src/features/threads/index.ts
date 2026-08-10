@@ -1,4 +1,5 @@
 export { AudiencePicker } from './components/audience-picker';
+export { CommentAuthorsAvatarGroup } from './components/comment-authors-avatar-group';
 export { CommentInput } from './components/comment-input';
 export { CommentList } from './components/comment-list';
 export { CreateHeaderLink } from './components/create-header-link';
@@ -13,3 +14,5 @@ export { ShareToCirclePicker } from './components/share-to-circle-picker';
 export { ThreadCircleBadge } from './components/thread-circle-badge';
 export { ThreadHeader } from './components/thread-header';
 export { ThreadHero } from './components/thread-hero';
+export { ThreadListItem } from './components/thread-list-item';
+export { ThreadPickerField } from './components/thread-picker-field';

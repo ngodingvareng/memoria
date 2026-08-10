@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/db"
 	"github.com/ngodingvareng/memoria/internal/entity"
@@ -87,6 +89,46 @@ func (r *userRepository) GetByUsername(ctx context.Context, username string) (*e
 		return nil, fmt.Errorf("get user by username: %w", err)
 	}
 	return toEntityUser(row), nil
+}
+
+// UpdateImagePath implements [usecase.UserRepository].
+func (r *userRepository) UpdateImagePath(ctx context.Context, id uuid.UUID, imagePath *string) (*entity.User, error) {
+	row, err := r.q.UpdateUserImagePath(ctx, db.UpdateUserImagePathParams{
+		ID:        id,
+		ImagePath: ptrToPgText(imagePath),
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("update user image path: %w", err)
+	}
+	return toEntityUser(row), nil
+}
+
+// SearchByUsernamePrefix implements [usecase.UserSearcher].
+func (r *userRepository) SearchByUsernamePrefix(ctx context.Context, excludeUserID uuid.UUID, query string, limit int32) ([]*entity.User, error) {
+	rows, err := r.q.SearchUsersByUsername(ctx, db.SearchUsersByUsernameParams{
+		ExcludeUserID: excludeUserID,
+		Query:         pgtype.Text{String: escapeLikePattern(query), Valid: true},
+		PageLimit:     limit,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("search users by username: %w", err)
+	}
+	users := make([]*entity.User, len(rows))
+	for i, row := range rows {
+		users[i] = toEntityUser(row)
+	}
+	return users, nil
+}
+
+// escapeLikePattern escapes ILIKE's own wildcard characters in
+// caller-supplied search text, so a query like "50%" or "a_b" is
+// matched literally instead of being (mis)interpreted as a pattern.
+func escapeLikePattern(s string) string {
+	replacer := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
+	return replacer.Replace(s)
 }
 
 // SetUsername implements [usecase.UserRepository].

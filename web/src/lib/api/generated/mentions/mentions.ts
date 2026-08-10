@@ -22,12 +22,14 @@ import type {
 
 import type {
   GetMentionsParams,
+  GetMentionsUsersParams,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateMentionRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMentionsResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMomentSharesResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMomentsResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMentionResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMomentCircleResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoSearchMentionableUsersResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoShareMomentToCircleRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
 } from '../models';
@@ -197,6 +199,184 @@ export function useGetMentions<
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
   const queryOptions = getGetMentionsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetMentionsUsersUrl = (params: GetMentionsUsersParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/mentions/users?${stringifiedParams}`
+    : `/mentions/users`;
+};
+
+/**
+ * Typeahead search over discoverable usernames the caller is currently allowed to mention
+ * @summary Search users to mention
+ */
+export const getMentionsUsers = async (
+  params: GetMentionsUsersParams,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoSearchMentionableUsersResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoSearchMentionableUsersResponse>(
+    getGetMentionsUsersUrl(params),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetMentionsUsersQueryKey = (
+  params?: GetMentionsUsersParams
+) => {
+  return [`/mentions/users`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetMentionsUsersQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMentionsUsers>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  params: GetMentionsUsersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMentionsUsers>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetMentionsUsersQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMentionsUsers>>
+  > = ({ signal }) => getMentionsUsers(params, { signal });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMentionsUsers>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetMentionsUsersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMentionsUsers>>
+>;
+export type GetMentionsUsersQueryError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+export function useGetMentionsUsers<
+  TData = Awaited<ReturnType<typeof getMentionsUsers>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  params: GetMentionsUsersParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMentionsUsers>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMentionsUsers>>,
+          TError,
+          Awaited<ReturnType<typeof getMentionsUsers>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetMentionsUsers<
+  TData = Awaited<ReturnType<typeof getMentionsUsers>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  params: GetMentionsUsersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMentionsUsers>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMentionsUsers>>,
+          TError,
+          Awaited<ReturnType<typeof getMentionsUsers>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetMentionsUsers<
+  TData = Awaited<ReturnType<typeof getMentionsUsers>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  params: GetMentionsUsersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMentionsUsers>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Search users to mention
+ */
+
+export function useGetMentionsUsers<
+  TData = Awaited<ReturnType<typeof getMentionsUsers>>,
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+>(
+  params: GetMentionsUsersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMentionsUsers>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetMentionsUsersQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

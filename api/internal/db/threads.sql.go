@@ -324,17 +324,21 @@ WHERE (
         $3::bool IS NULL
         OR (archived_at IS NOT NULL) = $3::bool
     )
-ORDER BY sort_order, created_at DESC
-LIMIT $5
-OFFSET $4
+ORDER BY
+    CASE WHEN $4::bool THEN updated_at END DESC NULLS LAST,
+    sort_order,
+    created_at DESC
+LIMIT $6
+OFFSET $5
 `
 
 type SearchThreadsParams struct {
-	UserID     uuid.UUID
-	Name       pgtype.Text
-	Archived   pgtype.Bool
-	PageOffset int32
-	PageLimit  int32
+	UserID        uuid.UUID
+	Name          pgtype.Text
+	Archived      pgtype.Bool
+	SortByRecency bool
+	PageOffset    int32
+	PageLimit     int32
 }
 
 // Search & filter the authenticated user's thread list: their own
@@ -344,13 +348,19 @@ type SearchThreadsParams struct {
 //   - name: case-insensitive partial match (ILIKE) against threads.name
 //   - archived: exact match against (archived_at IS NOT NULL)
 //
-// Ordered by sort_order then newest-first; paginated via
-// page_limit / page_offset.
+// Ordered by sort_order then newest-first by default; passing
+// sort_by_recency = true switches to updated_at DESC instead (backs the
+// moment-creation Thread picker's "most recently updated" suggestions).
+// The CASE evaluates to NULL for every row when false, so all rows tie
+// on that key and the ordering falls through to sort_order/created_at
+// unchanged — same query, same default behavior for every other caller.
+// Paginated via page_limit / page_offset.
 func (q *Queries) SearchThreads(ctx context.Context, arg SearchThreadsParams) ([]Thread, error) {
 	rows, err := q.db.Query(ctx, searchThreads,
 		arg.UserID,
 		arg.Name,
 		arg.Archived,
+		arg.SortByRecency,
 		arg.PageOffset,
 		arg.PageLimit,
 	)

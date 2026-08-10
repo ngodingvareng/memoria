@@ -27,6 +27,7 @@ import type {
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoSetUsernameRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUserResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  UploadProfileImageBody,
 } from '../models';
 
 import { apiMutator } from '../../mutator';
@@ -49,6 +50,104 @@ const withQueryKey = <T extends object, K>(
   return result;
 };
 
+export const getUploadProfileImageUrl = () => {
+  return `/users/me/image`;
+};
+
+/**
+ * Replaces any existing photo. Publicly readable by URL, no signing.
+ * @summary Upload the current user's profile photo
+ */
+export const uploadProfileImage = async (
+  uploadProfileImageBody?: UploadProfileImageBody,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPublicUserResponse> => {
+  const formData = new FormData();
+  if (uploadProfileImageBody?.image !== undefined) {
+    formData.append(`image`, uploadProfileImageBody.image);
+  }
+
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPublicUserResponse>(
+    getUploadProfileImageUrl(),
+    {
+      ...options,
+      method: 'POST',
+      body: formData,
+    }
+  );
+};
+
+export const getUploadProfileImageMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadProfileImage>>,
+    TError,
+    { data?: UploadProfileImageBody },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof uploadProfileImage>>,
+  TError,
+  { data?: UploadProfileImageBody },
+  TContext
+> => {
+  const mutationKey = ['uploadProfileImage'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof uploadProfileImage>>,
+    { data?: UploadProfileImageBody }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return uploadProfileImage(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UploadProfileImageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadProfileImage>>
+>;
+export type UploadProfileImageMutationBody = UploadProfileImageBody | undefined;
+export type UploadProfileImageMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Upload the current user's profile photo
+ */
+export const useUploadProfileImage = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof uploadProfileImage>>,
+      TError,
+      { data?: UploadProfileImageBody },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof uploadProfileImage>>,
+  TError,
+  { data?: UploadProfileImageBody },
+  TContext
+> => {
+  return useMutation(
+    getUploadProfileImageMutationOptions(options),
+    queryClient
+  );
+};
 export const getSetUsernameUrl = () => {
   return `/users/me/username`;
 };

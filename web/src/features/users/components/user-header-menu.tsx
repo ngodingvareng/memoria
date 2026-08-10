@@ -26,6 +26,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useTheme, type Theme } from '@/components/theme-provider';
 import { useSession, setSession } from '@/lib/session';
 import { useLogout } from '@/lib/api/generated/auth/auth';
+import { useGetUserByID } from '@/lib/api/generated/users/users';
 
 type MenuGroup = {
   title: string;
@@ -92,6 +93,9 @@ export function UserHeaderMenu() {
   const session = useSession();
   const navigate = useNavigate();
   const logoutMutation = useLogout();
+  const userQuery = useGetUserByID(session?.user.id ?? '', {
+    query: { enabled: !!session?.user.id },
+  });
 
   const handleSignOut = async () => {
     try {
@@ -110,7 +114,7 @@ export function UserHeaderMenu() {
       {
         title: 'Profile',
         icon: UserCircleIcon,
-        url: session?.user.username ? `/${session.user.username}` : '/user',
+        url: session?.user.username ? `/@${session.user.username}` : '/user',
       },
     ],
     [
@@ -155,9 +159,8 @@ export function UserHeaderMenu() {
         render={
           <Avatar size="lg">
             <AvatarImage
-              src="https://github.com/shadcn.png"
+              src={userQuery.data?.image_path ?? undefined}
               alt={session?.user.name}
-              className="grayscale"
             />
             <AvatarFallback>
               {session?.user.name.slice(0, 2).toUpperCase()}
@@ -170,9 +173,8 @@ export function UserHeaderMenu() {
           <div className="flex gap-3 items-center px-3 py-1">
             <Avatar>
               <AvatarImage
-                src="https://github.com/shadcn.png"
+                src={userQuery.data?.image_path ?? undefined}
                 alt={session?.user.name}
-                className="grayscale"
               />
               <AvatarFallback>
                 {session?.user.name.slice(0, 2).toUpperCase()}

@@ -265,7 +265,7 @@ export const getGetMomentsUrl = (params?: GetMomentsParams) => {
 };
 
 /**
- * The authenticated user's personal archive timeline, newest occurrence first
+ * The authenticated user's home feed — their own Moments, every Moment in a Circle they belong to, and every Moment they're mentioned in — newest occurrence first
  * @summary List moments
  */
 export const getMoments = async (

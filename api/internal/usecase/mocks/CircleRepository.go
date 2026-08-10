@@ -810,6 +810,86 @@ func (_c *MockCircleRepository_Update_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// UpdateImagePath provides a mock function for the type MockCircleRepository
+func (_mock *MockCircleRepository) UpdateImagePath(ctx context.Context, id uuid.UUID, userID uuid.UUID, imagePath *string) (*entity.Circle, error) {
+	ret := _mock.Called(ctx, id, userID, imagePath)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateImagePath")
+	}
+
+	var r0 *entity.Circle
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, *string) (*entity.Circle, error)); ok {
+		return returnFunc(ctx, id, userID, imagePath)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, *string) *entity.Circle); ok {
+		r0 = returnFunc(ctx, id, userID, imagePath)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Circle)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, *string) error); ok {
+		r1 = returnFunc(ctx, id, userID, imagePath)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockCircleRepository_UpdateImagePath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateImagePath'
+type MockCircleRepository_UpdateImagePath_Call struct {
+	*mock.Call
+}
+
+// UpdateImagePath is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+//   - userID uuid.UUID
+//   - imagePath *string
+func (_e *MockCircleRepository_Expecter) UpdateImagePath(ctx any, id any, userID any, imagePath any) *MockCircleRepository_UpdateImagePath_Call {
+	return &MockCircleRepository_UpdateImagePath_Call{Call: _e.mock.On("UpdateImagePath", ctx, id, userID, imagePath)}
+}
+
+func (_c *MockCircleRepository_UpdateImagePath_Call) Run(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID, imagePath *string)) *MockCircleRepository_UpdateImagePath_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 uuid.UUID
+		if args[2] != nil {
+			arg2 = args[2].(uuid.UUID)
+		}
+		var arg3 *string
+		if args[3] != nil {
+			arg3 = args[3].(*string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockCircleRepository_UpdateImagePath_Call) Return(circle *entity.Circle, err error) *MockCircleRepository_UpdateImagePath_Call {
+	_c.Call.Return(circle, err)
+	return _c
+}
+
+func (_c *MockCircleRepository_UpdateImagePath_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID, userID uuid.UUID, imagePath *string) (*entity.Circle, error)) *MockCircleRepository_UpdateImagePath_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateMemberPermissions provides a mock function for the type MockCircleRepository
 func (_mock *MockCircleRepository) UpdateMemberPermissions(ctx context.Context, circleID uuid.UUID, userID uuid.UUID, changedByUserID uuid.UUID, canInvite bool, canCapture bool) (*entity.CircleMember, error) {
 	ret := _mock.Called(ctx, circleID, userID, changedByUserID, canInvite, canCapture)

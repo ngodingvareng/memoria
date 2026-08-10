@@ -307,7 +307,7 @@ func TestMomentUsecase_ListMoments_DefaultsPagination(t *testing.T) {
 	userID := uuid.New()
 	moments := []*entity.Moment{{ID: uuid.New(), UserID: userID}}
 
-	repo.EXPECT().ListByUserID(mock.Anything, userID, int32(20), int32(0)).Return(moments, nil)
+	repo.EXPECT().ListHomeFeed(mock.Anything, userID, int32(20), int32(0)).Return(moments, nil)
 
 	result, err := uc.ListMoments(context.Background(), usecase.ListMomentsInput{UserID: userID})
 
@@ -323,7 +323,7 @@ func TestMomentUsecase_ListMoments_CapsPageSize(t *testing.T) {
 	uc := usecase.NewMomentUsecase(repo, threads, mocks.NewMockCircleAccessChecker(t))
 
 	userID := uuid.New()
-	repo.EXPECT().ListByUserID(mock.Anything, userID, int32(100), int32(200)).Return(nil, nil)
+	repo.EXPECT().ListHomeFeed(mock.Anything, userID, int32(100), int32(200)).Return(nil, nil)
 
 	result, err := uc.ListMoments(context.Background(), usecase.ListMomentsInput{
 		UserID:   userID,

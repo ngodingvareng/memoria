@@ -7,6 +7,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { InputGroupTextarea } from '@/components/ui/input-group';
 import { Item, ItemContent } from '@/components/ui/item';
+import {
+  AddMentionButton,
+  MentionAutocompletePopover,
+  useInlineMentionAutocomplete,
+} from '@/features/mentions';
 import { ArrowUp02Icon, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useRef, useState } from 'react';
@@ -21,31 +26,36 @@ export interface MomentDraft {
 
 interface MomentInputProps {
   onOpenTimeDialog: () => void;
-  onPublish: (draft: MomentDraft) => void | Promise<void>;
+  onCapture: (draft: MomentDraft) => void | Promise<void>;
 }
 
-export function MomentInput({ onOpenTimeDialog, onPublish }: MomentInputProps) {
+export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [note, setNote] = useState('');
   const [colorHex, setColorHex] = useState('');
   const [images, setImages] = useState<File[]>([]);
-  const [isPublishing, setIsPublishing] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const mentionAutocomplete = useInlineMentionAutocomplete({
+    onChange: setNote,
+    textareaRef,
+  });
 
-  const handlePublish = async () => {
+  const handleCapture = async () => {
     if (!note.trim() && images.length === 0) return;
-    setIsPublishing(true);
+    setIsCapturing(true);
     try {
-      await onPublish({ note, colorHex, images });
+      await onCapture({ note, colorHex, images });
       setNote('');
       setColorHex('');
       setImages([]);
     } finally {
-      setIsPublishing(false);
+      setIsCapturing(false);
     }
   };
 
   return (
-    <div className="sticky bottom-0 pb-6 left-0 z-30 bg-linear-to-t from-background pt-20 from-60% to-transparent w-full">
+    <div className="sticky bottom-0 pb-6 z-30 bg-linear-to-t from-background pt-20 from-60% to-transparent w-full">
       <Item
         variant="outline"
         className="mx-auto shadow-sm bg-card max-w-5xl rounded-4xl"
@@ -53,11 +63,26 @@ export function MomentInput({ onOpenTimeDialog, onPublish }: MomentInputProps) {
         <ItemContent className="flex flex-col min-h-20 max-h-[calc(100vh-10rem)]">
           <div className="grow overflow-y-auto flex flex-col gap-2">
             <InputGroupTextarea
+              ref={textareaRef}
               value={note}
-              onChange={(e) => setNote(e.target.value)}
+              onChange={mentionAutocomplete.handleChange}
+              onKeyDown={mentionAutocomplete.handleKeyDown}
+              onClick={mentionAutocomplete.handleSelectionChange}
+              onKeyUp={mentionAutocomplete.handleSelectionChange}
               placeholder="Woylah cikk, ketik sini..."
               maxLength={10000}
               className="text-foreground! text-base! min-h-16"
+            />
+            <MentionAutocompletePopover
+              anchorRef={textareaRef}
+              open={mentionAutocomplete.isOpen}
+              onOpenChange={(open) =>
+                !open && mentionAutocomplete.closeSuggestions()
+              }
+              users={mentionAutocomplete.suggestions}
+              activeIndex={mentionAutocomplete.activeIndex}
+              isLoading={mentionAutocomplete.isLoading}
+              onSelect={mentionAutocomplete.handleSelect}
             />
             <ImagePreviewList
               images={images}
@@ -93,13 +118,13 @@ export function MomentInput({ onOpenTimeDialog, onPublish }: MomentInputProps) {
 
               <DropdownMenu>
                 <DropdownMenuTrigger
-                  render={<Button variant="secondary" size="icon-sm" />}
+                  render={<Button variant="secondary" size="sm" />}
                 >
                   <span
-                    className="size-5 rounded-full border border-foreground"
+                    className="size-4 rounded-full border border-foreground"
                     style={{ backgroundColor: colorHex || undefined }}
                   />
-                  <span className="sr-only">Color</span>
+                  <span>Color</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <ColorSwatchPicker
@@ -109,6 +134,8 @@ export function MomentInput({ onOpenTimeDialog, onPublish }: MomentInputProps) {
                   />
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              <AddMentionButton onInsert={mentionAutocomplete.insertAtCursor} />
             </div>
 
             <div className="flex items-center gap-2">
@@ -122,8 +149,8 @@ export function MomentInput({ onOpenTimeDialog, onPublish }: MomentInputProps) {
                 </Button>
                 <Button
                   size="icon-sm"
-                  onClick={handlePublish}
-                  disabled={isPublishing}
+                  onClick={handleCapture}
+                  disabled={isCapturing}
                 >
                   <HugeiconsIcon strokeWidth={2.5} icon={ArrowUp02Icon} />
                 </Button>

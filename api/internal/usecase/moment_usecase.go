@@ -38,6 +38,10 @@ type MomentRepository interface {
 	// ListByUserID is the personal archive timeline: every Moment this
 	// user owns, newest occurrence first.
 	ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.Moment, error)
+	// ListHomeFeed is the home feed: every Moment reachable by this
+	// user — their own, every Moment in a Circle they're an active
+	// member of, and every Moment they're actively mentioned in.
+	ListHomeFeed(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.Moment, error)
 	// ListByThreadID is a single Thread's browsable timeline. Access to
 	// the Thread itself must be checked by the caller.
 	ListByThreadID(ctx context.Context, threadID uuid.UUID, limit, offset int32) ([]*entity.Moment, error)
@@ -293,11 +297,13 @@ func normalizedPage(page, pageSize int32) (int32, int32) {
 	return page, pageSize
 }
 
-// ListMoments implements [MomentUsecase]: the personal archive timeline.
+// ListMoments implements [MomentUsecase]: the home feed — this user's
+// own Moments, every Moment in a Circle they belong to, and every
+// Moment they're actively mentioned in (see ListHomeFeed).
 func (u *momentUsecase) ListMoments(ctx context.Context, input ListMomentsInput) (*MomentListResult, error) {
 	page, pageSize := normalizedPage(input.Page, input.PageSize)
 
-	moments, err := u.repo.ListByUserID(ctx, input.UserID, pageSize, (page-1)*pageSize)
+	moments, err := u.repo.ListHomeFeed(ctx, input.UserID, pageSize, (page-1)*pageSize)
 	if err != nil {
 		return nil, fmt.Errorf("listing moments: %w", err)
 	}

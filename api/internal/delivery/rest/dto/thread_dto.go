@@ -24,6 +24,11 @@ type UpdateThreadRequest struct {
 type SearchThreadsQuery struct {
 	Name     *string `query:"name" validate:"omitempty,max=255"`
 	Archived *bool   `query:"archived"`
+	// Sort is optional; the only supported value switches the default
+	// sort_order/created_at ordering to updated_at DESC — backs the
+	// moment-creation Thread picker's "most recently updated" default
+	// suggestions.
+	Sort     *string `query:"sort" validate:"omitempty,oneof=updated_at"`
 	Page     int32   `query:"page" validate:"omitempty,gt=0"`
 	PageSize int32   `query:"page_size" validate:"omitempty,gt=0,lte=100"`
 }

@@ -13,7 +13,16 @@ import {
   InputGroupText,
   InputGroupTextarea,
 } from '@/components/ui/input-group';
+import {
+  AddMentionButton,
+  MentionAutocompletePopover,
+  showMentionShareOffers,
+  syncMomentMentionsFromText,
+  useInlineMentionAutocomplete,
+} from '@/features/mentions';
+import { ThreadPickerField } from '@/features/threads';
 import { ApiError } from '@/lib/api-client';
+import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse } from '@/lib/api/generated/models';
 import {
   getGetMomentsQueryKey,
   usePostMoments,
@@ -31,6 +40,7 @@ import { ImagePreviewList } from './image-preview-list';
 import { toDatetimeLocalValue, toRFC3339WithOffset } from '../lib/occurred-at';
 
 const formSchema = z.object({
+  threadId: z.string().min(1, 'Please choose a thread.'),
   occurredAt: z.string().min(1, 'Date and time are required.'),
   note: z.string().max(10000, 'Note must be at most 10000 characters.'),
   colorHex: z.string(),
@@ -40,12 +50,23 @@ const formSchema = z.object({
 export function CreateMomentForm() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const noteChangeRef = useRef<(value: string) => void>(() => {});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [selectedThread, setSelectedThread] =
+    useState<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse | null>(
+      null
+    );
   const createMoment = usePostMoments();
   const uploadImage = usePostMomentsIdImages();
+  const mentionAutocomplete = useInlineMentionAutocomplete({
+    onChange: (value) => noteChangeRef.current(value),
+    textareaRef: noteTextareaRef,
+  });
 
   const form = useForm({
     defaultValues: {
+      threadId: '',
       occurredAt: toDatetimeLocalValue(new Date()),
       note: '',
       colorHex: '',
@@ -62,6 +83,7 @@ export function CreateMomentForm() {
         );
         const moment = await createMoment.mutateAsync({
           data: {
+            thread_id: value.threadId,
             occurred_at: occurredAt,
             occurred_utc_offset_minutes: offsetMinutes,
             note: value.note || undefined,
@@ -75,6 +97,16 @@ export function CreateMomentForm() {
               uploadImage.mutateAsync({ id: moment.id!, data: { image } })
             )
           );
+        }
+
+        if (moment.id && value.note) {
+          const { shareOffers } = await syncMomentMentionsFromText(
+            moment.id,
+            value.note
+          );
+          if (shareOffers.length > 0) {
+            showMentionShareOffers(moment.id, shareOffers);
+          }
         }
 
         await queryClient.invalidateQueries({
@@ -103,6 +135,29 @@ export function CreateMomentForm() {
     >
       <FieldGroup>
         <form.Field
+          name="threadId"
+          children={(field) => {
+            const isInvalid =
+              field.state.meta.isTouched && !field.state.meta.isValid;
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name}>Thread</FieldLabel>
+                <ThreadPickerField
+                  selectedThread={selectedThread}
+                  onSelect={(thread) => {
+                    setSelectedThread(thread);
+                    field.handleChange(thread.id!);
+                  }}
+                  onBlur={field.handleBlur}
+                  className="w-full justify-between"
+                />
+                {isInvalid && <FieldError errors={field.state.meta.errors} />}
+              </Field>
+            );
+          }}
+        />
+
+        <form.Field
           name="occurredAt"
           children={(field) => {
             const isInvalid =
@@ -128,6 +183,7 @@ export function CreateMomentForm() {
         <form.Field
           name="note"
           children={(field) => {
+            noteChangeRef.current = field.handleChange;
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -144,17 +200,32 @@ export function CreateMomentForm() {
                     </InputGroupText>
                   </InputGroupAddon>
                   <InputGroupTextarea
+                    ref={noteTextareaRef}
                     id={field.name}
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    onChange={mentionAutocomplete.handleChange}
+                    onKeyDown={mentionAutocomplete.handleKeyDown}
+                    onClick={mentionAutocomplete.handleSelectionChange}
+                    onKeyUp={mentionAutocomplete.handleSelectionChange}
                     aria-invalid={isInvalid}
                     placeholder="Watching movies"
                     autoComplete="off"
                     className="text-lg! min-h-40"
                   />
                 </InputGroup>
+                <MentionAutocompletePopover
+                  anchorRef={noteTextareaRef}
+                  open={mentionAutocomplete.isOpen}
+                  onOpenChange={(open) =>
+                    !open && mentionAutocomplete.closeSuggestions()
+                  }
+                  users={mentionAutocomplete.suggestions}
+                  activeIndex={mentionAutocomplete.activeIndex}
+                  isLoading={mentionAutocomplete.isLoading}
+                  onSelect={mentionAutocomplete.handleSelect}
+                />
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
             );
@@ -188,7 +259,7 @@ export function CreateMomentForm() {
                     )
                   }
                 />
-                <div>
+                <div className="flex gap-2">
                   <Button
                     type="button"
                     variant="secondary"
@@ -198,6 +269,9 @@ export function CreateMomentForm() {
                     <HugeiconsIcon strokeWidth={2.5} icon={PlusSignIcon} />
                     Add images
                   </Button>
+                  <AddMentionButton
+                    onInsert={mentionAutocomplete.insertAtCursor}
+                  />
                   <input
                     ref={fileInputRef}
                     type="file"

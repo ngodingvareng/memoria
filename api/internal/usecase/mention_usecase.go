@@ -3,11 +3,21 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
 	"github.com/ngodingvareng/memoria/internal/enum"
 	"github.com/ngodingvareng/memoria/internal/errs"
+)
+
+// mentionSearchOverfetchLimit is how many discoverable candidates
+// SearchMentionableUsers pulls before narrowing by mention_policy/
+// blocking; mentionSearchResultLimit is what actually reaches the
+// caller once that filtering is applied.
+const (
+	mentionSearchOverfetchLimit = 20
+	mentionSearchResultLimit    = 8
 )
 
 // --- Repository interface, defined here per the Dependency Rule ---
@@ -26,6 +36,16 @@ type MentionRepository interface {
 	ShareToCircle(ctx context.Context, momentID, circleID, sharedByUserID uuid.UUID) (*entity.MomentCircle, error)
 	ListSharedCircleIDs(ctx context.Context, momentID uuid.UUID) ([]uuid.UUID, error)
 	UnshareFromCircle(ctx context.Context, momentID, circleID uuid.UUID) error
+}
+
+// UserSearcher backs the mention-search typeahead (FEATURES.md, Mention)
+// — a candidate list of discoverable usernames matching a prefix, which
+// SearchMentionableUsers then narrows by mention_policy/blocking, the
+// same way CreateMention gates a single resolved username. Satisfied
+// structurally by the existing UserRepository (see user_repository.go's
+// SearchByUsernamePrefix) — no new repository needed.
+type UserSearcher interface {
+	SearchByUsernamePrefix(ctx context.Context, excludeUserID uuid.UUID, query string, limit int32) ([]*entity.User, error)
 }
 
 // --- Inputs / outputs ---
@@ -72,6 +92,12 @@ type MentionUsecase interface {
 	LeaveMention(ctx context.Context, momentID, mentionedUserID uuid.UUID) error
 	DeleteMention(ctx context.Context, mentionID, momentID, ownerUserID uuid.UUID) error
 	ListMentionedMoments(ctx context.Context, input ListMentionedMomentsInput) (*MomentListResult, error)
+	// SearchMentionableUsers backs the mention-search typeahead: a
+	// prefix match over discoverable usernames the requester is
+	// currently allowed to mention (FEATURES.md, Mention + Privacy &
+	// Control). Empty query returns an empty slice — no "browse
+	// everyone" mode.
+	SearchMentionableUsers(ctx context.Context, requestingUserID uuid.UUID, query string) ([]*entity.User, error)
 
 	ShareToCircle(ctx context.Context, input ShareMomentToCircleInput) (*entity.MomentCircle, error)
 	UnshareFromCircle(ctx context.Context, momentID, circleID, userID uuid.UUID) error
@@ -88,10 +114,11 @@ type mentionUsecase struct {
 	users        UserPolicyReader
 	knowns       UserKnownChecker
 	blocks       UserBlockChecker
+	searcher     UserSearcher
 }
 
-func NewMentionUsecase(repo MentionRepository, moments MomentAccessChecker, circles CircleAccessChecker, circleShares CircleShareChecker, users UserPolicyReader, knowns UserKnownChecker, blocks UserBlockChecker) MentionUsecase {
-	return &mentionUsecase{repo: repo, moments: moments, circles: circles, circleShares: circleShares, users: users, knowns: knowns, blocks: blocks}
+func NewMentionUsecase(repo MentionRepository, moments MomentAccessChecker, circles CircleAccessChecker, circleShares CircleShareChecker, users UserPolicyReader, knowns UserKnownChecker, blocks UserBlockChecker, searcher UserSearcher) MentionUsecase {
+	return &mentionUsecase{repo: repo, moments: moments, circles: circles, circleShares: circleShares, users: users, knowns: knowns, blocks: blocks, searcher: searcher}
 }
 
 // CreateMention implements [MentionUsecase]. Enforces
@@ -184,6 +211,54 @@ func (u *mentionUsecase) ListMentionedMoments(ctx context.Context, input ListMen
 		return nil, fmt.Errorf("listing mentioned moments: %w", err)
 	}
 	return &MomentListResult{Moments: moments, Page: page, PageSize: pageSize}, nil
+}
+
+// SearchMentionableUsers implements [MentionUsecase]. Applies the same
+// per-candidate checks CreateMention applies to a single resolved
+// username — blocking (either direction) and mention_policy, including
+// resolving audience_policy = "known" via IsKnownTo — just stopping
+// once mentionSearchResultLimit matches are found instead of failing on
+// the first disallowed one.
+func (u *mentionUsecase) SearchMentionableUsers(ctx context.Context, requestingUserID uuid.UUID, query string) ([]*entity.User, error) {
+	if strings.TrimSpace(query) == "" {
+		return []*entity.User{}, nil
+	}
+
+	candidates, err := u.searcher.SearchByUsernamePrefix(ctx, requestingUserID, query, mentionSearchOverfetchLimit)
+	if err != nil {
+		return nil, fmt.Errorf("searching users by username: %w", err)
+	}
+
+	results := make([]*entity.User, 0, mentionSearchResultLimit)
+	for _, candidate := range candidates {
+		if len(results) >= mentionSearchResultLimit {
+			break
+		}
+
+		blocked, err := u.blocks.IsBlockedEitherDirection(ctx, requestingUserID, candidate.ID)
+		if err != nil {
+			return nil, fmt.Errorf("checking block status: %w", err)
+		}
+		if blocked {
+			continue
+		}
+
+		switch candidate.MentionPolicy {
+		case enum.AudiencePolicyAnyone:
+			results = append(results, candidate)
+		case enum.AudiencePolicyKnown:
+			known, err := u.knowns.IsKnownTo(ctx, candidate.ID, requestingUserID)
+			if err != nil {
+				return nil, fmt.Errorf("checking known status: %w", err)
+			}
+			if known {
+				results = append(results, candidate)
+			}
+		default: // enum.AudiencePolicyNobody
+		}
+	}
+
+	return results, nil
 }
 
 // ShareToCircle implements [MentionUsecase]: the mention flow's

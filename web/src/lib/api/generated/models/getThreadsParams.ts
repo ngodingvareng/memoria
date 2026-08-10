@@ -15,6 +15,10 @@ export type GetThreadsParams = {
    */
   archived?: boolean;
   /**
+   * Sort order; only 'updated_at' is supported (switches to most-recently-updated first)
+   */
+  sort?: string;
+  /**
    * Page number (default 1)
    */
   page?: number;

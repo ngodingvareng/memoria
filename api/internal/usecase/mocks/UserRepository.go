@@ -384,3 +384,77 @@ func (_c *MockUserRepository_SetUsername_Call) RunAndReturn(run func(ctx context
 	_c.Call.Return(run)
 	return _c
 }
+
+// UpdateImagePath provides a mock function for the type MockUserRepository
+func (_mock *MockUserRepository) UpdateImagePath(ctx context.Context, id uuid.UUID, imagePath *string) (*entity.User, error) {
+	ret := _mock.Called(ctx, id, imagePath)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateImagePath")
+	}
+
+	var r0 *entity.User
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, *string) (*entity.User, error)); ok {
+		return returnFunc(ctx, id, imagePath)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, *string) *entity.User); ok {
+		r0 = returnFunc(ctx, id, imagePath)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.User)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, *string) error); ok {
+		r1 = returnFunc(ctx, id, imagePath)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUserRepository_UpdateImagePath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateImagePath'
+type MockUserRepository_UpdateImagePath_Call struct {
+	*mock.Call
+}
+
+// UpdateImagePath is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+//   - imagePath *string
+func (_e *MockUserRepository_Expecter) UpdateImagePath(ctx any, id any, imagePath any) *MockUserRepository_UpdateImagePath_Call {
+	return &MockUserRepository_UpdateImagePath_Call{Call: _e.mock.On("UpdateImagePath", ctx, id, imagePath)}
+}
+
+func (_c *MockUserRepository_UpdateImagePath_Call) Run(run func(ctx context.Context, id uuid.UUID, imagePath *string)) *MockUserRepository_UpdateImagePath_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		var arg2 *string
+		if args[2] != nil {
+			arg2 = args[2].(*string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserRepository_UpdateImagePath_Call) Return(user *entity.User, err error) *MockUserRepository_UpdateImagePath_Call {
+	_c.Call.Return(user, err)
+	return _c
+}
+
+func (_c *MockUserRepository_UpdateImagePath_Call) RunAndReturn(run func(ctx context.Context, id uuid.UUID, imagePath *string) (*entity.User, error)) *MockUserRepository_UpdateImagePath_Call {
+	_c.Call.Return(run)
+	return _c
+}

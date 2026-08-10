@@ -1,4 +1,6 @@
 import { cn } from '@/lib/utils';
+import { AtIcon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
 
 interface MentionBadgeProps {
@@ -13,11 +15,12 @@ export function MentionBadge({ username, className }: MentionBadgeProps) {
       params={{ username }}
       onClick={(e) => e.stopPropagation()}
       className={cn(
-        'font-medium text-primary hover:underline underline-offset-2',
+        'font-bold text-blue-600 dark:text-blue-400 hover:underline underline-offset-2',
         className
       )}
     >
-      @{username}
+      <HugeiconsIcon icon={AtIcon} className="inline" />
+      {username}
     </Link>
   );
 }

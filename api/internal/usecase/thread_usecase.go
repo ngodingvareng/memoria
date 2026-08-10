@@ -20,11 +20,12 @@ const (
 )
 
 type SearchThreadsParams struct {
-	UserID   uuid.UUID
-	Name     *string
-	Archived *bool
-	Limit    int32
-	Offset   int32
+	UserID        uuid.UUID
+	Name          *string
+	Archived      *bool
+	SortByRecency bool
+	Limit         int32
+	Offset        int32
 }
 
 type ThreadRepository interface {
@@ -75,11 +76,12 @@ type UpdateThreadInput struct {
 }
 
 type SearchThreadsInput struct {
-	UserID   uuid.UUID
-	Name     *string
-	Archived *bool
-	Page     int32
-	PageSize int32
+	UserID        uuid.UUID
+	Name          *string
+	Archived      *bool
+	SortByRecency bool
+	Page          int32
+	PageSize      int32
 }
 
 type SearchThreadsResult struct {
@@ -212,11 +214,12 @@ func (u *threadUsecase) SearchThreads(ctx context.Context, input SearchThreadsIn
 	}
 
 	threads, total, err := u.repo.Search(ctx, SearchThreadsParams{
-		UserID:   input.UserID,
-		Name:     input.Name,
-		Archived: input.Archived,
-		Limit:    pageSize,
-		Offset:   (page - 1) * pageSize,
+		UserID:        input.UserID,
+		Name:          input.Name,
+		Archived:      input.Archived,
+		SortByRecency: input.SortByRecency,
+		Limit:         pageSize,
+		Offset:        (page - 1) * pageSize,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("searching threads: %w", err)

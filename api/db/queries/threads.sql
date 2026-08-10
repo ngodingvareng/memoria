@@ -61,8 +61,13 @@ ORDER BY created_at DESC;
 -- "reachable"). All filters are optional (NULL = "don't filter on this"):
 --   - name: case-insensitive partial match (ILIKE) against threads.name
 --   - archived: exact match against (archived_at IS NOT NULL)
--- Ordered by sort_order then newest-first; paginated via
--- page_limit / page_offset.
+-- Ordered by sort_order then newest-first by default; passing
+-- sort_by_recency = true switches to updated_at DESC instead (backs the
+-- moment-creation Thread picker's "most recently updated" suggestions).
+-- The CASE evaluates to NULL for every row when false, so all rows tie
+-- on that key and the ordering falls through to sort_order/created_at
+-- unchanged — same query, same default behavior for every other caller.
+-- Paginated via page_limit / page_offset.
 SELECT *
 FROM threads
 WHERE (
@@ -83,7 +88,10 @@ WHERE (
         sqlc.narg(archived)::bool IS NULL
         OR (archived_at IS NOT NULL) = sqlc.narg(archived)::bool
     )
-ORDER BY sort_order, created_at DESC
+ORDER BY
+    CASE WHEN sqlc.arg(sort_by_recency)::bool THEN updated_at END DESC NULLS LAST,
+    sort_order,
+    created_at DESC
 LIMIT sqlc.arg(page_limit)
 OFFSET sqlc.arg(page_offset);
 

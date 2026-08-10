@@ -83,3 +83,14 @@ func (r *userAccountRepository) ResetFailedLoginAttempts(ctx context.Context, us
 	}
 	return nil
 }
+
+// UpdatePasswordHash implements [usecase.UserAccountRepository].
+func (r *userAccountRepository) UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error {
+	if err := r.q.UpdateUserAccountPasswordHash(ctx, db.UpdateUserAccountPasswordHashParams{
+		UserID:       userID,
+		PasswordHash: pgtype.Text{String: passwordHash, Valid: true},
+	}); err != nil {
+		return fmt.Errorf("update password hash: %w", err)
+	}
+	return nil
+}

@@ -266,7 +266,7 @@ func newListMomentsResponse(result *usecase.MomentListResult) dto.ListMomentsRes
 
 // ListMoments godoc
 // @Summary      List moments
-// @Description  The authenticated user's personal archive timeline, newest occurrence first
+// @Description  The authenticated user's home feed — their own Moments, every Moment in a Circle they belong to, and every Moment they're mentioned in — newest occurrence first
 // @Tags         moments
 // @Produce      json
 // @Param        page      query int false "Page number (default 1)"

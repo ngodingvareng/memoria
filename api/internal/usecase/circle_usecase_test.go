@@ -5,6 +5,7 @@ package usecase_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -27,7 +28,7 @@ func expectPassthroughCircleTransaction(repo *mocks.MockCircleRepository) {
 
 func TestCircleUsecase_CreateCircle_SeatsCreatorAsAdmin(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	userID := uuid.New()
 	created := &entity.Circle{ID: uuid.New(), Name: "NgodingVareng"}
@@ -48,7 +49,7 @@ func TestCircleUsecase_CreateCircle_SeatsCreatorAsAdmin(t *testing.T) {
 
 func TestCircleUsecase_CreateCircle_AdminSeatFailurePropagates(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	wantErr := errors.New("db exploded")
 	created := &entity.Circle{ID: uuid.New()}
@@ -65,7 +66,7 @@ func TestCircleUsecase_CreateCircle_AdminSeatFailurePropagates(t *testing.T) {
 
 func TestCircleUsecase_UpdateCircle_NotFound(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	repo.EXPECT().Update(mock.Anything, mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 
@@ -79,7 +80,7 @@ func TestCircleUsecase_UpdateCircle_NotFound(t *testing.T) {
 
 func TestCircleUsecase_DissolveCircle_Success(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	circleID, userID := uuid.New(), uuid.New()
 	repo.EXPECT().Dissolve(mock.Anything, circleID, userID).Return(nil)
@@ -91,7 +92,7 @@ func TestCircleUsecase_DissolveCircle_Success(t *testing.T) {
 
 func TestCircleUsecase_GetCircle_NotFound(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	circleID, userID := uuid.New(), uuid.New()
 	repo.EXPECT().GetByID(mock.Anything, circleID, userID).Return(nil, errs.ErrNotFound)
@@ -104,7 +105,7 @@ func TestCircleUsecase_GetCircle_NotFound(t *testing.T) {
 
 func TestCircleUsecase_ListMembers_ChecksAccessFirst(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	circleID, userID := uuid.New(), uuid.New()
 	repo.EXPECT().GetByID(mock.Anything, circleID, userID).Return(nil, errs.ErrNotFound)
@@ -119,7 +120,7 @@ func TestCircleUsecase_ListMembers_ChecksAccessFirst(t *testing.T) {
 
 func TestCircleUsecase_ListMembers_Success(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	circleID, userID := uuid.New(), uuid.New()
 	repo.EXPECT().GetByID(mock.Anything, circleID, userID).Return(&entity.Circle{ID: circleID}, nil)
@@ -134,7 +135,7 @@ func TestCircleUsecase_ListMembers_Success(t *testing.T) {
 
 func TestCircleUsecase_LeaveCircle_Success(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	circleID, userID := uuid.New(), uuid.New()
 	repo.EXPECT().Leave(mock.Anything, circleID, userID).Return(nil)
@@ -146,7 +147,7 @@ func TestCircleUsecase_LeaveCircle_Success(t *testing.T) {
 
 func TestCircleUsecase_RemoveMember_Success(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	circleID, targetUserID, removedByUserID := uuid.New(), uuid.New(), uuid.New()
 	repo.EXPECT().RemoveMember(mock.Anything, circleID, targetUserID, removedByUserID).Return(nil)
@@ -158,7 +159,7 @@ func TestCircleUsecase_RemoveMember_Success(t *testing.T) {
 
 func TestCircleUsecase_UpdateMemberRole_NotFound(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	repo.EXPECT().
 		UpdateMemberRole(mock.Anything, mock.Anything, mock.Anything, mock.Anything, enum.CircleRoleAdmin).
@@ -174,7 +175,7 @@ func TestCircleUsecase_UpdateMemberRole_NotFound(t *testing.T) {
 
 func TestCircleUsecase_UpdateMemberPermissions_Success(t *testing.T) {
 	repo := mocks.NewMockCircleRepository(t)
-	uc := usecase.NewCircleUsecase(repo)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	circleID, userID, changedBy := uuid.New(), uuid.New(), uuid.New()
 	expected := &entity.CircleMember{CircleID: circleID, UserID: userID, CanInvite: true, CanCapture: false}
@@ -188,4 +189,50 @@ func TestCircleUsecase_UpdateMemberPermissions_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
+}
+
+func TestCircleUsecase_UploadCircleImage_ReplacesExistingImage(t *testing.T) {
+	repo := mocks.NewMockCircleRepository(t)
+	storage := mocks.NewMockProfileImageStorage(t)
+	uc := usecase.NewCircleUsecase(repo, storage)
+
+	circleID, userID := uuid.New(), uuid.New()
+	body := strings.NewReader("fake image bytes")
+	oldURL := "https://cdn.example/circles/x/old.jpg"
+	current := &entity.Circle{ID: circleID, ImagePath: &oldURL}
+	newURL := "https://cdn.example/circles/x/new.jpg"
+	updated := &entity.Circle{ID: circleID, ImagePath: &newURL}
+	nonEmptyKey := mock.MatchedBy(func(k string) bool { return k != "" })
+
+	repo.EXPECT().GetByID(mock.Anything, circleID, userID).Return(current, nil)
+	storage.EXPECT().Put(mock.Anything, mock.Anything, body, int64(17), "image/png").Return(nil)
+	storage.EXPECT().PublicURL(nonEmptyKey).Return(newURL)
+	repo.EXPECT().UpdateImagePath(mock.Anything, circleID, userID, &newURL).Return(updated, nil)
+	storage.EXPECT().PublicURL("").Return("https://cdn.example/")
+	storage.EXPECT().Delete(mock.Anything, "circles/x/old.jpg").Return(nil)
+
+	result, err := uc.UploadCircleImage(context.Background(), usecase.UploadCircleImageInput{
+		CircleID: circleID, UserID: userID, FileName: "logo.png", ContentType: "image/png", Size: 17, Body: body,
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, updated, result)
+}
+
+func TestCircleUsecase_UploadCircleImage_NotAdmin_NotFound(t *testing.T) {
+	repo := mocks.NewMockCircleRepository(t)
+	storage := mocks.NewMockProfileImageStorage(t)
+	uc := usecase.NewCircleUsecase(repo, storage)
+
+	circleID, userID := uuid.New(), uuid.New()
+	repo.EXPECT().GetByID(mock.Anything, circleID, userID).Return(nil, errs.ErrNotFound)
+	// storage.Put must never be reached — no expectation set on it at
+	// all, so mockery's t.Cleanup assertion fails the test if it is.
+
+	_, err := uc.UploadCircleImage(context.Background(), usecase.UploadCircleImageInput{
+		CircleID: circleID, UserID: userID, FileName: "logo.png", ContentType: "image/png", Size: 17,
+		Body: strings.NewReader("fake"),
+	})
+
+	assert.ErrorIs(t, err, errs.ErrNotFound)
 }

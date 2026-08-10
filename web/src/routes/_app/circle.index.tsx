@@ -1,15 +1,14 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader } from '@/components/ui/empty';
 import {
   Item,
   ItemContent,
   ItemGroup,
-  ItemHeader,
+  ItemMedia,
   ItemTitle,
 } from '@/components/ui/item';
 import Wrapper from '@/components/wrapper';
-import { PendingCircleInvites } from '@/features/circles';
+import { CircleProfileImage, PendingCircleInvites } from '@/features/circles';
 import { useGetCircles } from '@/lib/api/generated/circles/circles';
 import { PlusSignIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -56,22 +55,11 @@ function RouteComponent() {
                   variant="outline"
                   render={
                     <Link to="/c/$id" params={{ id: circle.id! }}>
-                      <ItemContent className='flex gap-4'>
-                        <Avatar
-                          size="xl"
-                          className="rounded-xl after:rounded-xl"
-                        >
-                          <AvatarImage
-                            src={circle.image_path ?? undefined}
-                            alt={circle.name}
-                            className="rounded-xl"
-                          />
-                          <AvatarFallback className="rounded-xl">
-                            {circle.name?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-
-                        <ItemTitle>{circle.name}</ItemTitle>
+                      <ItemMedia variant="image">
+                        <CircleProfileImage circle={circle} size="xl" />
+                      </ItemMedia>
+                      <ItemContent className="flex gap-4">
+                        <ItemTitle className="text-lg">{circle.name}</ItemTitle>
                       </ItemContent>
                     </Link>
                   }

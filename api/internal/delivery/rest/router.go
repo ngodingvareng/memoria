@@ -50,6 +50,10 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	auth.Post("/login", authRateLimiter, h.Auth.Login)
 	auth.Post("/refresh", h.Auth.Refresh)
 	auth.Post("/logout", h.Auth.Logout)
+	// Same rate-limited group as register/login: both unauthenticated,
+	// guessable-input endpoints.
+	auth.Post("/forgot-password", authRateLimiter, h.Auth.ForgotPassword)
+	auth.Post("/reset-password", authRateLimiter, h.Auth.ResetPassword)
 
 	users := app.Group("/users", middleware.RequireAuth(issuer))
 	users.Get("/username-availability", h.User.CheckUsernameAvailability)
@@ -57,6 +61,7 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	users.Get("/:id", h.User.GetUserByID)
 	users.Get("/username/:username", h.User.GetUserByUsername)
 	users.Post("/username/:username/known", h.User.MarkUserKnown)
+	users.Post("/me/image", h.User.UploadProfileImage)
 
 	threads := app.Group("/threads", middleware.RequireAuth(issuer))
 	threads.Post("/", h.Thread.CreateThread)
@@ -103,12 +108,14 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 
 	mentioned := app.Group("/mentions", middleware.RequireAuth(issuer))
 	mentioned.Get("/", h.Mention.ListMentionedMoments)
+	mentioned.Get("/users", h.Mention.SearchMentionableUsers)
 
 	circles := app.Group("/circles", middleware.RequireAuth(issuer))
 	circles.Post("/", h.Circle.CreateCircle)
 	circles.Get("/", h.Circle.ListMyCircles)
 	circles.Get("/:id", h.Circle.GetCircle)
 	circles.Put("/:id", h.Circle.UpdateCircle)
+	circles.Post("/:id/image", h.Circle.UploadCircleImage)
 	circles.Delete("/:id", h.Circle.DissolveCircle)
 	circles.Get("/:id/members", h.Circle.ListMembers)
 	circles.Delete("/:id/members/:userId", h.Circle.RemoveMember)

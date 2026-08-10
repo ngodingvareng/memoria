@@ -5,6 +5,7 @@ import { InfiniteScrollSentinel } from '@/components/infinite-scroll-sentinel';
 import Wrapper from '@/components/wrapper';
 import { MomentFeedList } from '@/features/moments';
 import { getMoments } from '@/lib/api/generated/moments/moments';
+import { useGetUserByID } from '@/lib/api/generated/users/users';
 import { useSession } from '@/lib/session';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
@@ -17,6 +18,9 @@ export const Route = createFileRoute('/_app/')({
 
 function Index() {
   const session = useSession();
+  const userQuery = useGetUserByID(session?.user.id ?? '', {
+    query: { enabled: !!session?.user.id },
+  });
 
   const momentsQuery = useInfiniteQuery({
     queryKey: ['moments', 'feed'],
@@ -38,7 +42,10 @@ function Index() {
         <div className="flex items-center">
           <div className="flex gap-2 items-center">
             <Avatar size="xl">
-              <AvatarImage alt={session?.user.name} />
+              <AvatarImage
+                src={userQuery.data?.image_path ?? undefined}
+                alt={session?.user.name}
+              />
               <AvatarFallback>
                 {session?.user.name?.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -73,13 +80,16 @@ function Index() {
               </Empty>
             )}
 
-          {moments.length > 0 && <MomentFeedList moments={moments} />}
+          {moments.length > 0 && (
+            <MomentFeedList moments={moments} showHeader />
+          )}
 
           <InfiniteScrollSentinel
             enabled={
               Boolean(momentsQuery.hasNextPage) &&
               !momentsQuery.isFetchingNextPage
             }
+            isLoading={momentsQuery.isFetchingNextPage}
             onIntersect={() => momentsQuery.fetchNextPage()}
           />
         </div>

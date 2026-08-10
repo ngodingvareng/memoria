@@ -3,11 +3,14 @@ import { ShareDialog } from '@/components/dialogs/share-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Wrapper from '@/components/wrapper';
 import {
+  showMentionShareOffers,
+  syncMomentMentionsFromText,
+} from '@/features/mentions';
+import {
+  MomentFeedList,
   MomentInput,
-  MomentList,
   toDatetimeLocalValue,
   toRFC3339WithOffset,
-  type MomentCardParam,
   type MomentDraft,
 } from '@/features/moments';
 import { ThreadHeader, ThreadHero } from '@/features/threads';
@@ -25,7 +28,6 @@ import {
   useGetThreadsIdImages,
 } from '@/lib/api/generated/threads/threads';
 import { queryClient } from '@/lib/query-client';
-import { useSession } from '@/lib/session';
 import { createFileRoute } from '@tanstack/react-router';
 import React from 'react';
 
@@ -35,7 +37,6 @@ export const Route = createFileRoute('/_app/thread/$id/')({
 
 function RouteComponent() {
   const { id } = Route.useParams();
-  const session = useSession();
   const threadQuery = useGetThreadsId(id);
   const imagesQuery = useGetThreadsIdImages(id);
   const momentsQuery = useGetThreadsIdMoments(id);
@@ -47,33 +48,20 @@ function RouteComponent() {
   const [openShareDialog, setOpenShareDialog] = React.useState(false);
   const [openTimeDialog, setOpenTimeDialog] = React.useState(false);
   const [isReadMode, setIsReadMode] = React.useState(false);
-  const [publishError, setPublishError] = React.useState<string | null>(null);
+  const [captureError, setCaptureError] = React.useState<string | null>(null);
 
   const invalidateMoments = () =>
     queryClient.invalidateQueries({
       queryKey: getGetThreadsIdMomentsQueryKey(id),
     });
 
-  const moments: MomentCardParam[] = (momentsQuery.data?.moments ?? []).map(
-    (moment) => ({
-      id: moment.id,
-      user: {
-        name: session?.user.name ?? '',
-        username: session?.user.username ?? '',
-        imageSrc: '',
-        imageAlt: session?.user.name ?? '',
-      },
-      thread: { name: threadQuery.data?.name ?? '' },
-      colorHex: moment.color_hex,
-      content: moment.note ?? '',
-      createdAt: new Date(moment.created_at ?? moment.occurred_at ?? 0),
-      capturedAt: new Date(moment.occurred_at ?? 0),
-      isOwnedByCurrentUser: true,
-    })
-  );
+  const moments = momentsQuery.data?.moments ?? [];
+  // Only a Circle-owned thread's own page shows the creator/thread-name
+  // header — a personal thread is always "mine", so it'd be redundant.
+  const showHeader = !!threadQuery.data?.circle_id;
 
-  const handlePublish = async (draft: MomentDraft) => {
-    setPublishError(null);
+  const handleCapture = async (draft: MomentDraft) => {
+    setCaptureError(null);
     try {
       const { occurredAt, offsetMinutes } = toRFC3339WithOffset(
         toDatetimeLocalValue(new Date())
@@ -96,12 +84,22 @@ function RouteComponent() {
         );
       }
 
+      if (moment.id && draft.note) {
+        const { shareOffers } = await syncMomentMentionsFromText(
+          moment.id,
+          draft.note
+        );
+        if (shareOffers.length > 0) {
+          showMentionShareOffers(moment.id, shareOffers);
+        }
+      }
+
       await invalidateMoments();
     } catch (err) {
-      setPublishError(
+      setCaptureError(
         err instanceof ApiError
           ? err.message
-          : 'Failed to publish this moment. Please try again.'
+          : 'Failed to capture this moment. Please try again.'
       );
     }
   };
@@ -125,6 +123,10 @@ function RouteComponent() {
         longitude: existing.longitude,
       },
     });
+    const { shareOffers } = await syncMomentMentionsFromText(momentId, note);
+    if (shareOffers.length > 0) {
+      showMentionShareOffers(momentId, shareOffers);
+    }
     await invalidateMoments();
   };
 
@@ -154,62 +156,64 @@ function RouteComponent() {
 
   return (
     <>
-      <Wrapper>
-        <ThreadHero
-          isReadMode={isReadMode}
-          imageUrl={imagesQuery.data?.[0]?.url}
-          imageAlt={threadQuery.data?.name ?? ''}
-          colorHex={threadQuery.data?.color_hex}
-        />
-        <ThreadHeader
-          threadId={id}
-          threadName={threadQuery.data?.name ?? ''}
-          circleId={threadQuery.data?.circle_id}
-          isReadMode={isReadMode}
-          onToggleMode={() => setIsReadMode(!isReadMode)}
-          onShare={() => setOpenShareDialog(true)}
-        />
-      </Wrapper>
-
-      <Wrapper>
-        <MomentList
-          moments={moments}
-          isEditMode={!isReadMode}
-          onEditNote={handleEditNote}
-          onEditColor={handleEditColor}
-          onDelete={handleDelete}
-        />
-      </Wrapper>
-
-      {moments.length > 0 && (
-        <Wrapper className="flex justify-center text-center items-center p-0">
-          <p className="text-muted-foreground text-xl">End of history</p>
-        </Wrapper>
-      )}
-
-      {moments.length == 0 && (
-        <Wrapper className="flex justify-center text-center items-center p-0">
-          <p className="text-muted-foreground text-xl">
-            Start your story by adding the first moment
-          </p>
-        </Wrapper>
-      )}
-
-      {!isReadMode && (
-        <div className="flex flex-col gap-2">
-          {publishError && (
-            <Wrapper className="pb-0">
-              <Alert variant="destructive" className="mx-auto max-w-5xl">
-                <AlertDescription>{publishError}</AlertDescription>
-              </Alert>
-            </Wrapper>
-          )}
-          <MomentInput
-            onOpenTimeDialog={() => setOpenTimeDialog(true)}
-            onPublish={handlePublish}
+      <div className="flex flex-col">
+        <Wrapper>
+          <ThreadHero
+            isReadMode={isReadMode}
+            imageUrl={imagesQuery.data?.[0]?.url}
+            imageAlt={threadQuery.data?.name ?? ''}
+            colorHex={threadQuery.data?.color_hex}
           />
-        </div>
-      )}
+          <ThreadHeader
+            threadId={id}
+            threadName={threadQuery.data?.name ?? ''}
+            circleId={threadQuery.data?.circle_id}
+            isReadMode={isReadMode}
+            onToggleMode={() => setIsReadMode(!isReadMode)}
+            onShare={() => setOpenShareDialog(true)}
+          />
+        </Wrapper>
+
+        <Wrapper>
+          <MomentFeedList
+            moments={moments}
+            showHeader={showHeader}
+            onEditNote={handleEditNote}
+            onEditColor={handleEditColor}
+            onDelete={handleDelete}
+          />
+        </Wrapper>
+
+        {moments.length > 0 && (
+          <Wrapper className="flex justify-center text-center items-center p-0">
+            <p className="text-muted-foreground text-xl">End of history</p>
+          </Wrapper>
+        )}
+
+        {moments.length == 0 && (
+          <Wrapper className="flex justify-center text-center items-center p-0">
+            <p className="text-muted-foreground text-xl">
+              Start your story by adding the first moment
+            </p>
+          </Wrapper>
+        )}
+
+        {!isReadMode && (
+          <>
+            {captureError && (
+              <Wrapper className="pb-0">
+                <Alert variant="destructive" className="mx-auto max-w-5xl">
+                  <AlertDescription>{captureError}</AlertDescription>
+                </Alert>
+              </Wrapper>
+            )}
+            <MomentInput
+              onOpenTimeDialog={() => setOpenTimeDialog(true)}
+              onCapture={handleCapture}
+            />
+          </>
+        )}
+      </div>
 
       <DateTimeDialog
         open={openTimeDialog}

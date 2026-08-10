@@ -30,6 +30,7 @@ import type {
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdateCircleMemberRoleRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdateCircleRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  PostCirclesIdImageBody,
 } from '../models';
 
 import { apiMutator } from '../../mutator';
@@ -633,6 +634,105 @@ export const useDeleteCirclesId = <
   TContext
 > => {
   return useMutation(getDeleteCirclesIdMutationOptions(options), queryClient);
+};
+export const getPostCirclesIdImageUrl = (id: string) => {
+  return `/circles/${id}/image`;
+};
+
+/**
+ * Replaces any existing photo; admin-only. Publicly readable by URL, no signing.
+ * @summary Upload a circle's profile photo
+ */
+export const postCirclesIdImage = async (
+  id: string,
+  postCirclesIdImageBody?: PostCirclesIdImageBody,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCircleResponse> => {
+  const formData = new FormData();
+  if (postCirclesIdImageBody?.image !== undefined) {
+    formData.append(`image`, postCirclesIdImageBody.image);
+  }
+
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCircleResponse>(
+    getPostCirclesIdImageUrl(id),
+    {
+      ...options,
+      method: 'POST',
+      body: formData,
+    }
+  );
+};
+
+export const getPostCirclesIdImageMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postCirclesIdImage>>,
+    TError,
+    { id: string; data?: PostCirclesIdImageBody },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postCirclesIdImage>>,
+  TError,
+  { id: string; data?: PostCirclesIdImageBody },
+  TContext
+> => {
+  const mutationKey = ['postCirclesIdImage'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postCirclesIdImage>>,
+    { id: string; data?: PostCirclesIdImageBody }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return postCirclesIdImage(id, data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostCirclesIdImageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postCirclesIdImage>>
+>;
+export type PostCirclesIdImageMutationBody = PostCirclesIdImageBody | undefined;
+export type PostCirclesIdImageMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Upload a circle's profile photo
+ */
+export const usePostCirclesIdImage = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postCirclesIdImage>>,
+      TError,
+      { id: string; data?: PostCirclesIdImageBody },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof postCirclesIdImage>>,
+  TError,
+  { id: string; data?: PostCirclesIdImageBody },
+  TContext
+> => {
+  return useMutation(
+    getPostCirclesIdImageMutationOptions(options),
+    queryClient
+  );
 };
 export const getGetCirclesIdMembersUrl = (id: string) => {
   return `/circles/${id}/members`;

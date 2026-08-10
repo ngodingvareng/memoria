@@ -194,6 +194,73 @@ func (h *AuthHandler) Logout(c fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// ForgotPassword godoc
+// @Summary      Request a password reset link
+// @Description  Always responds the same way whether or not email belongs to an account, so this can never be used to check which emails are registered.
+// @ID           ForgotPassword
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.ForgotPasswordRequest true "Email to send the reset link to"
+// @Success      200 {object} dto.WebResponse[any]
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /auth/forgot-password [post]
+func (h *AuthHandler) ForgotPassword(c fiber.Ctx) error {
+	var req dto.ForgotPasswordRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(req); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	if err := h.usecase.ForgotPassword(c, req.Email); err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[any]{
+		Code:    fiber.StatusOK,
+		Message: "if that email is registered, a reset link has been sent",
+	})
+}
+
+// ResetPassword godoc
+// @Summary      Reset a password using the emailed token
+// @Description  Also revokes every existing session for the account, so a stolen session stops working the moment the password changes.
+// @ID           ResetPassword
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.ResetPasswordRequest true "Email, reset token, and new password"
+// @Success      200 {object} dto.WebResponse[any]
+// @Failure      400 {object} dto.WebResponse[any]
+// @Failure      401 {object} dto.WebResponse[any]
+// @Router       /auth/reset-password [post]
+func (h *AuthHandler) ResetPassword(c fiber.Ctx) error {
+	var req dto.ResetPasswordRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(req); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	if err := h.usecase.ResetPassword(c, usecase.ResetPasswordInput{
+		Email:       req.Email,
+		Token:       req.Token,
+		NewPassword: req.NewPassword,
+	}); err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "password reset", "email", req.Email)
+
+	return c.JSON(dto.WebResponse[any]{
+		Code:    fiber.StatusOK,
+		Message: "password reset",
+	})
+}
+
 // newLoginResponse builds the shared success body for both Login and
 // Refresh — the two endpoints return the exact same shape since Refresh
 // is really just "log in again using the refresh cookie instead of a

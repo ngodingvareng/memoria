@@ -10,6 +10,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CircleProfileImage } from '@/features/circles';
 import { ThreadCircleBadge } from '@/features/threads';
 import { useGetCircles } from '@/lib/api/generated/circles/circles';
 import { useGetThreads } from '@/lib/api/generated/threads/threads';
@@ -22,7 +23,6 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link, useRouterState } from '@tanstack/react-router';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 // How many threads to surface in the sidebar's "Recent Threads" section.
 const RECENT_THREADS_LIMIT = 5;
@@ -113,19 +113,7 @@ export default function AppSidebar({
                         isActive={pathname === `/c/${circle.id}`}
                         render={
                           <Link to="/c/$id" params={{ id: circle.id! }}>
-                            <Avatar
-                              size="sm"
-                              className="rounded-sm after:rounded-sm"
-                            >
-                              <AvatarImage
-                                src={circle.image_path ?? undefined}
-                                alt={circle.name}
-                                className="rounded-sm"
-                              />
-                              <AvatarFallback>
-                                {circle.name?.charAt(0).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
+                            <CircleProfileImage circle={circle} size="sm" />
                             <span className="min-w-0 truncate">
                               {circle.name}
                             </span>

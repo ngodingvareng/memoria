@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"log/slog"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -172,4 +174,63 @@ func (h *UserHandler) MarkUserKnown(c fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// UploadProfileImage godoc
+// @ID           UploadProfileImage
+// @Summary      Upload the current user's profile photo
+// @Description  Replaces any existing photo. Publicly readable by URL, no signing.
+// @Tags         users
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        image formData file true "Image file"
+// @Success      200 {object} dto.WebResponse[dto.PublicUserResponse]
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /users/me/image [post]
+func (h *UserHandler) UploadProfileImage(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	fileHeader, err := c.FormFile("image")
+	if err != nil {
+		return errs.New(fiber.StatusBadRequest, "image file is required")
+	}
+	if fileHeader.Size > maxImageUploadSize {
+		return errs.New(fiber.StatusBadRequest, "image exceeds the 10MB size limit")
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return errs.New(fiber.StatusBadRequest, "could not read uploaded file")
+	}
+	defer file.Close()
+
+	detectedType, body, err := detectImageContentType(file)
+	if err != nil {
+		return errs.New(fiber.StatusBadRequest, "could not read uploaded file")
+	}
+	if !allowedImageContentTypes[detectedType] {
+		return errs.New(fiber.StatusBadRequest, "uploaded file is not a supported image type")
+	}
+
+	user, err := h.usecase.UploadProfileImage(c, usecase.UploadProfileImageInput{
+		UserID:      userID,
+		FileName:    fileHeader.Filename,
+		ContentType: detectedType,
+		Size:        fileHeader.Size,
+		Body:        body,
+	})
+	if err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "profile image uploaded", "user_id", userID)
+
+	return c.JSON(dto.WebResponse[dto.PublicUserResponse]{
+		Code:    fiber.StatusOK,
+		Message: "profile image uploaded",
+		Data:    dto.NewPublicUserResponse(user),
+	})
 }

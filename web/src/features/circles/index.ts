@@ -1,6 +1,8 @@
 export { CircleMemberList } from './components/circle-member-list';
 export { CircleNameLabel } from './components/circle-name-label';
 export { CirclePermissionToggle } from './components/circle-permission-toggle';
+export { CircleImageUploader } from './components/circle-image-uploader';
+export { CircleProfileImage } from './components/circle-profile-image';
 export { CircleThreadCard } from './components/circle-thread-card';
 export { CircleUserChip } from './components/circle-user-chip';
 export { CreateCircleForm } from './components/create-circle-form';

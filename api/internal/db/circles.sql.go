@@ -214,3 +214,44 @@ func (q *Queries) UpdateCircle(ctx context.Context, arg UpdateCircleParams) (Cir
 	)
 	return i, err
 }
+
+const updateCircleImagePath = `-- name: UpdateCircleImagePath :one
+UPDATE circles
+SET image_path = $1,
+    updated_at = NOW()
+WHERE id = $2
+    AND dissolved_at IS NULL
+    AND EXISTS (
+        SELECT 1 FROM circle_members
+        WHERE circle_id = circles.id
+            AND user_id = $3
+            AND left_at IS NULL
+            AND role = 'admin'
+    )
+RETURNING id, name, description, color_hex, image_path, created_by_user_id, created_at, updated_at, dissolved_at
+`
+
+type UpdateCircleImagePathParams struct {
+	ImagePath pgtype.Text
+	ID        uuid.UUID
+	UserID    uuid.UUID
+}
+
+// Same admin-only gate as UpdateCircle, scoped to just the profile
+// image so an upload doesn't require resending name/description/color.
+func (q *Queries) UpdateCircleImagePath(ctx context.Context, arg UpdateCircleImagePathParams) (Circle, error) {
+	row := q.db.QueryRow(ctx, updateCircleImagePath, arg.ImagePath, arg.ID, arg.UserID)
+	var i Circle
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.ColorHex,
+		&i.ImagePath,
+		&i.CreatedByUserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DissolvedAt,
+	)
+	return i, err
+}

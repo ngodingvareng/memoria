@@ -5,6 +5,7 @@ package usecase_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -34,6 +35,8 @@ const (
 	testLoginLockoutDuration   = 15 * time.Minute
 )
 
+const testWebBaseURL = "http://localhost:5173"
+
 func newAuthUsecase(t *testing.T) (
 	usecase.AuthUsecase,
 	*mocks.MockUserRepository,
@@ -43,6 +46,8 @@ func newAuthUsecase(t *testing.T) (
 	*mocks.MockPasswordHasher,
 	*mocks.MockAccessTokenIssuer,
 	*mocks.MockRefreshTokenGenerator,
+	*mocks.MockUserVerificationRepository,
+	*mocks.MockMailer,
 ) {
 	users := mocks.NewMockUserRepository(t)
 	userAccounts := mocks.NewMockUserAccountRepository(t)
@@ -51,9 +56,11 @@ func newAuthUsecase(t *testing.T) (
 	hasher := mocks.NewMockPasswordHasher(t)
 	accessTokens := mocks.NewMockAccessTokenIssuer(t)
 	refreshTokenGen := mocks.NewMockRefreshTokenGenerator(t)
+	verifications := mocks.NewMockUserVerificationRepository(t)
+	mailer := mocks.NewMockMailer(t)
 
-	uc := usecase.NewAuthUsecase(uow, users, userAccounts, refreshTokens, hasher, accessTokens, refreshTokenGen, testRefreshTokenTTL, testMaxFailedLoginAttempts, testLoginLockoutDuration)
-	return uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen
+	uc := usecase.NewAuthUsecase(uow, users, userAccounts, refreshTokens, verifications, hasher, accessTokens, refreshTokenGen, mailer, testWebBaseURL, testRefreshTokenTTL, testMaxFailedLoginAttempts, testLoginLockoutDuration)
+	return uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen, verifications, mailer
 }
 
 // --- Register ---
@@ -63,7 +70,7 @@ func newAuthUsecase(t *testing.T) (
 // credential rows, exactly like Login does.
 
 func TestAuthUsecase_Register_Success(t *testing.T) {
-	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").Return(nil, errs.ErrNotFound)
 	hasher.EXPECT().Hash("s3cur3-password").Return("hashed-password", nil)
@@ -109,7 +116,7 @@ func TestAuthUsecase_Register_Success(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_EmailAlreadyExists(t *testing.T) {
-	uc, users, _, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, _, _, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").
 		Return(&entity.User{ID: uuid.New(), Email: "budi@example.com"}, nil)
@@ -128,7 +135,7 @@ func TestAuthUsecase_Register_EmailAlreadyExists(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_HashingFails(t *testing.T) {
-	uc, users, _, _, _, hasher, _, _ := newAuthUsecase(t)
+	uc, users, _, _, _, hasher, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 	wantErr := errors.New("hashing exploded")
@@ -143,7 +150,7 @@ func TestAuthUsecase_Register_HashingFails(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_TransactionFails(t *testing.T) {
-	uc, users, userAccounts, _, uow, hasher, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, uow, hasher, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 	hasher.EXPECT().Hash(mock.Anything).Return("hashed", nil)
@@ -168,7 +175,7 @@ func TestAuthUsecase_Register_TransactionFails(t *testing.T) {
 }
 
 func TestAuthUsecase_Register_IssueSessionFails(t *testing.T) {
-	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, _ := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, uow, hasher, accessTokens, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 	hasher.EXPECT().Hash(mock.Anything).Return("hashed", nil)
@@ -200,7 +207,7 @@ func TestAuthUsecase_Register_IssueSessionFails(t *testing.T) {
 // --- Login ---
 
 func TestAuthUsecase_Login_Success(t *testing.T) {
-	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New(), Email: "budi@example.com"}
 	passwordHash := "scrypt-hash"
@@ -238,7 +245,7 @@ func TestAuthUsecase_Login_Success(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_EmailNotFound(t *testing.T) {
-	uc, users, _, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, _, _, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
 
@@ -252,7 +259,7 @@ func TestAuthUsecase_Login_EmailNotFound(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_NoCredentialAccount(t *testing.T) {
-	uc, users, userAccounts, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(user, nil)
@@ -264,7 +271,7 @@ func TestAuthUsecase_Login_NoCredentialAccount(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_WrongPassword(t *testing.T) {
-	uc, users, userAccounts, _, _, hasher, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, hasher, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	hash := "some-hash"
@@ -282,7 +289,7 @@ func TestAuthUsecase_Login_WrongPassword(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_WrongPassword_LocksAccountAtThreshold(t *testing.T) {
-	uc, users, userAccounts, _, _, hasher, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, hasher, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	hash := "some-hash"
@@ -304,7 +311,7 @@ func TestAuthUsecase_Login_WrongPassword_LocksAccountAtThreshold(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_AccountLocked_RejectsBeforePasswordCheck(t *testing.T) {
-	uc, users, userAccounts, _, _, hasher, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, hasher, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	hash := "some-hash"
@@ -322,7 +329,7 @@ func TestAuthUsecase_Login_AccountLocked_RejectsBeforePasswordCheck(t *testing.T
 }
 
 func TestAuthUsecase_Login_LockExpired_AllowsPasswordCheck(t *testing.T) {
-	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen := newAuthUsecase(t)
+	uc, users, userAccounts, refreshTokens, _, hasher, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	passwordHash := "scrypt-hash"
@@ -343,7 +350,7 @@ func TestAuthUsecase_Login_LockExpired_AllowsPasswordCheck(t *testing.T) {
 }
 
 func TestAuthUsecase_Login_NilPasswordHash_OAuthOnlyAccount(t *testing.T) {
-	uc, users, userAccounts, _, _, _, _, _ := newAuthUsecase(t)
+	uc, users, userAccounts, _, _, _, _, _, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	users.EXPECT().GetByEmail(mock.Anything, mock.Anything).Return(user, nil)
@@ -360,7 +367,7 @@ func TestAuthUsecase_Login_NilPasswordHash_OAuthOnlyAccount(t *testing.T) {
 // --- Refresh ---
 
 func TestAuthUsecase_Refresh_Success_RotatesToken(t *testing.T) {
-	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen := newAuthUsecase(t)
+	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	familyID := uuid.New()
@@ -405,7 +412,7 @@ func TestAuthUsecase_Refresh_Success_RotatesToken(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_TokenNotFound(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	refreshTokenGen.EXPECT().Hash("unknown-token").Return("unknown-hash")
 	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "unknown-hash").Return(nil, errs.ErrNotFound)
@@ -416,7 +423,7 @@ func TestAuthUsecase_Refresh_TokenNotFound(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_Expired(t *testing.T) {
-	uc, users, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+	uc, users, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	existing := &entity.RefreshToken{
 		ID:        uuid.New(),
@@ -436,7 +443,7 @@ func TestAuthUsecase_Refresh_Expired(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_ReuseDetected_RevokesEntireFamily(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	familyID := uuid.New()
 	revokedAt := time.Now().Add(-1 * time.Minute)
@@ -459,7 +466,7 @@ func TestAuthUsecase_Refresh_ReuseDetected_RevokesEntireFamily(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_UserNotFound(t *testing.T) {
-	uc, users, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+	uc, users, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	existing := &entity.RefreshToken{
 		ID: uuid.New(), UserID: uuid.New(), FamilyID: uuid.New(),
@@ -475,7 +482,7 @@ func TestAuthUsecase_Refresh_UserNotFound(t *testing.T) {
 }
 
 func TestAuthUsecase_Refresh_ConflictOnRotate_TreatedAsUnauthorized(t *testing.T) {
-	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen := newAuthUsecase(t)
+	uc, users, _, refreshTokens, uow, _, accessTokens, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	user := &entity.User{ID: uuid.New()}
 	existing := &entity.RefreshToken{
@@ -509,7 +516,7 @@ func TestAuthUsecase_Refresh_ConflictOnRotate_TreatedAsUnauthorized(t *testing.T
 // --- Logout ---
 
 func TestAuthUsecase_Logout_Success(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	row := &entity.RefreshToken{ID: uuid.New()}
 	refreshTokenGen.EXPECT().Hash("raw-token").Return("hashed-token")
@@ -522,7 +529,7 @@ func TestAuthUsecase_Logout_Success(t *testing.T) {
 }
 
 func TestAuthUsecase_Logout_TokenNotFound_IsIdempotent(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	refreshTokenGen.EXPECT().Hash("already-gone").Return("gone-hash")
 	refreshTokens.EXPECT().GetByTokenHash(mock.Anything, "gone-hash").Return(nil, errs.ErrNotFound)
@@ -535,7 +542,7 @@ func TestAuthUsecase_Logout_TokenNotFound_IsIdempotent(t *testing.T) {
 }
 
 func TestAuthUsecase_Logout_AlreadyRevoked_IsIdempotent(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	revokedAt := time.Now().Add(-time.Minute)
 	row := &entity.RefreshToken{ID: uuid.New(), RevokedAt: &revokedAt}
@@ -550,7 +557,7 @@ func TestAuthUsecase_Logout_AlreadyRevoked_IsIdempotent(t *testing.T) {
 }
 
 func TestAuthUsecase_Logout_RevokeError(t *testing.T) {
-	uc, _, _, refreshTokens, _, _, _, refreshTokenGen := newAuthUsecase(t)
+	uc, _, _, refreshTokens, _, _, _, refreshTokenGen, _, _ := newAuthUsecase(t)
 
 	row := &entity.RefreshToken{ID: uuid.New()}
 	wantErr := errors.New("db exploded")
@@ -561,4 +568,86 @@ func TestAuthUsecase_Logout_RevokeError(t *testing.T) {
 	err := uc.Logout(context.Background(), "raw-token")
 
 	assert.ErrorIs(t, err, wantErr)
+}
+
+// --- ForgotPassword ---
+
+func TestAuthUsecase_ForgotPassword_UnknownEmail_SilentSuccess(t *testing.T) {
+	uc, users, _, _, _, _, _, _, verifications, mailer := newAuthUsecase(t)
+
+	users.EXPECT().GetByEmail(mock.Anything, "ghost@example.com").Return(nil, errs.ErrNotFound)
+	// Nothing else must be reached — no expectations set on verifications
+	// or mailer at all, so mockery's t.Cleanup assertion fails the test
+	// if either is called, which is exactly the "never leak whether the
+	// email exists" property this is testing.
+
+	err := uc.ForgotPassword(context.Background(), "ghost@example.com")
+
+	assert.NoError(t, err)
+	verifications.AssertNotCalled(t, "Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	mailer.AssertNotCalled(t, "Send", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestAuthUsecase_ForgotPassword_KnownEmail_SendsResetLink(t *testing.T) {
+	uc, users, _, _, _, _, _, refreshTokenGen, verifications, mailer := newAuthUsecase(t)
+
+	user := &entity.User{ID: uuid.New(), Name: "Budi", Email: "budi@example.com"}
+	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").Return(user, nil)
+	verifications.EXPECT().DeleteByIdentifier(mock.Anything, "password_reset:budi@example.com").Return(nil)
+	refreshTokenGen.EXPECT().Generate().Return("raw-reset-token", nil)
+	refreshTokenGen.EXPECT().Hash("raw-reset-token").Return("hashed-reset-token")
+	verifications.EXPECT().
+		Create(mock.Anything, "password_reset:budi@example.com", "hashed-reset-token", mock.Anything).
+		Return(&entity.UserVerification{ID: uuid.New()}, nil)
+	mailer.EXPECT().
+		Send(mock.Anything, "budi@example.com", mock.Anything, mock.MatchedBy(func(body string) bool {
+			return strings.Contains(body, "raw-reset-token") && strings.Contains(body, testWebBaseURL)
+		})).
+		Return(nil)
+
+	err := uc.ForgotPassword(context.Background(), "budi@example.com")
+
+	assert.NoError(t, err)
+}
+
+// --- ResetPassword ---
+
+func TestAuthUsecase_ResetPassword_InvalidOrExpiredToken(t *testing.T) {
+	uc, _, _, _, _, _, _, refreshTokenGen, verifications, _ := newAuthUsecase(t)
+
+	refreshTokenGen.EXPECT().Hash("bad-token").Return("hashed-bad-token")
+	verifications.EXPECT().
+		GetValid(mock.Anything, "password_reset:budi@example.com", "hashed-bad-token").
+		Return(nil, errs.ErrNotFound)
+
+	err := uc.ResetPassword(context.Background(), usecase.ResetPasswordInput{
+		Email: "budi@example.com", Token: "bad-token", NewPassword: "a-new-password",
+	})
+
+	assert.ErrorIs(t, err, errs.ErrInvalidToken)
+}
+
+func TestAuthUsecase_ResetPassword_Success(t *testing.T) {
+	uc, users, userAccounts, refreshTokens, _, hasher, _, refreshTokenGen, verifications, _ := newAuthUsecase(t)
+
+	userID := uuid.New()
+	user := &entity.User{ID: userID, Email: "budi@example.com"}
+	verification := &entity.UserVerification{ID: uuid.New()}
+
+	refreshTokenGen.EXPECT().Hash("good-token").Return("hashed-good-token")
+	verifications.EXPECT().
+		GetValid(mock.Anything, "password_reset:budi@example.com", "hashed-good-token").
+		Return(verification, nil)
+	users.EXPECT().GetByEmail(mock.Anything, "budi@example.com").Return(user, nil)
+	hasher.EXPECT().Hash("a-new-password").Return("hashed-new-password", nil)
+	userAccounts.EXPECT().UpdatePasswordHash(mock.Anything, userID, "hashed-new-password").Return(nil)
+	verifications.EXPECT().Delete(mock.Anything, verification.ID).Return(nil)
+	userAccounts.EXPECT().ResetFailedLoginAttempts(mock.Anything, userID).Return(nil)
+	refreshTokens.EXPECT().RevokeAllByUserID(mock.Anything, userID).Return(nil)
+
+	err := uc.ResetPassword(context.Background(), usecase.ResetPasswordInput{
+		Email: "budi@example.com", Token: "good-token", NewPassword: "a-new-password",
+	})
+
+	assert.NoError(t, err)
 }

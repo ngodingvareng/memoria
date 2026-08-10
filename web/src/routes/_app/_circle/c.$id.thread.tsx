@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Empty, EmptyDescription, EmptyHeader } from '@/components/ui/empty';
 import { ItemGroup } from '@/components/ui/item';
-import { CircleThreadCard } from '@/features/circles';
+import { ThreadListItem } from '@/features/threads';
 import { useGetCirclesIdThreads } from '@/lib/api/generated/threads/threads';
 import { PlusSignIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -36,9 +36,9 @@ function RouteComponent() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <ItemGroup className="grid grid-cols-3 gap-4">
+        <ItemGroup className="grid grid-cols-1 gap-4">
           {threads.map((thread) => (
-            <CircleThreadCard key={thread.id} thread={thread} />
+            <ThreadListItem key={thread.id} thread={thread} />
           ))}
         </ItemGroup>
       )}

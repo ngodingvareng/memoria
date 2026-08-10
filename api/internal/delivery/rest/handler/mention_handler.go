@@ -211,6 +211,46 @@ func (h *MentionHandler) ListMentionedMoments(c fiber.Ctx) error {
 	})
 }
 
+// SearchMentionableUsers godoc
+// @Summary      Search users to mention
+// @Description  Typeahead search over discoverable usernames the caller is currently allowed to mention
+// @Tags         mentions
+// @Produce      json
+// @Param        q query string true "Username prefix"
+// @Success      200 {object} dto.WebResponse[dto.SearchMentionableUsersResponse]
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /mentions/users [get]
+func (h *MentionHandler) SearchMentionableUsers(c fiber.Ctx) error {
+	var query dto.SearchMentionableUsersQuery
+	if err := c.Bind().Query(&query); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(query); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	users, err := h.usecase.SearchMentionableUsers(c, userID, query.Query)
+	if err != nil {
+		return err
+	}
+
+	responses := make([]dto.PublicUserResponse, len(users))
+	for i, u := range users {
+		responses[i] = dto.NewPublicUserResponse(u)
+	}
+
+	return c.JSON(dto.WebResponse[dto.SearchMentionableUsersResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    dto.SearchMentionableUsersResponse{Users: responses},
+	})
+}
+
 // ShareToCircle godoc
 // @Summary      Share a moment to a circle
 // @Description  The mention flow's optional "Share to circle too?" step — never a standalone share action

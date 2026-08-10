@@ -13,14 +13,120 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoRegisterRequest,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
 } from '../models';
 
 import { apiMutator } from '../../mutator';
 
+export const getForgotPasswordUrl = () => {
+  return `/auth/forgot-password`;
+};
+
+/**
+ * Always responds the same way whether or not email belongs to an account, so this can never be used to check which emails are registered.
+ * @summary Request a password reset link
+ */
+export const forgotPassword = async (
+  githubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny>(
+    getForgotPasswordUrl(),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(
+        githubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest
+      ),
+    }
+  );
+};
+
+export const getForgotPasswordMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof forgotPassword>>,
+    TError,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest;
+    },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof forgotPassword>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest;
+  },
+  TContext
+> => {
+  const mutationKey = ['forgotPassword'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof forgotPassword>>,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest;
+    }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return forgotPassword(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ForgotPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof forgotPassword>>
+>;
+export type ForgotPasswordMutationBody =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest;
+export type ForgotPasswordMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Request a password reset link
+ */
+export const useForgotPassword = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof forgotPassword>>,
+      TError,
+      {
+        data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest;
+      },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof forgotPassword>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest;
+  },
+  TContext
+> => {
+  return useMutation(getForgotPasswordMutationOptions(options), queryClient);
+};
 export const getLoginUrl = () => {
   return `/auth/login`;
 };
@@ -386,4 +492,108 @@ export const useRegister = <
   TContext
 > => {
   return useMutation(getRegisterMutationOptions(options), queryClient);
+};
+export const getResetPasswordUrl = () => {
+  return `/auth/reset-password`;
+};
+
+/**
+ * Also revokes every existing session for the account, so a stolen session stops working the moment the password changes.
+ * @summary Reset a password using the emailed token
+ */
+export const resetPassword = async (
+  githubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny>(
+    getResetPasswordUrl(),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(
+        githubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest
+      ),
+    }
+  );
+};
+
+export const getResetPasswordMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resetPassword>>,
+    TError,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest;
+    },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resetPassword>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest;
+  },
+  TContext
+> => {
+  const mutationKey = ['resetPassword'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resetPassword>>,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest;
+    }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return resetPassword(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResetPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resetPassword>>
+>;
+export type ResetPasswordMutationBody =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest;
+export type ResetPasswordMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Reset a password using the emailed token
+ */
+export const useResetPassword = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof resetPassword>>,
+      TError,
+      {
+        data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest;
+      },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof resetPassword>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest;
+  },
+  TContext
+> => {
+  return useMutation(getResetPasswordMutationOptions(options), queryClient);
 };

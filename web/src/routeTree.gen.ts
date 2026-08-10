@@ -22,6 +22,8 @@ import { Route as AppCircleRouteImport } from './routes/_app/_circle'
 import { Route as AppMentionsRouteImport } from './routes/_app/mentions'
 import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
 import { Route as AppSearchRouteImport } from './routes/_app/search'
+import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
+import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as AuthSigninRouteImport } from './routes/_auth/signin'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthWelcomeRouteImport } from './routes/_auth/welcome'
@@ -109,6 +111,16 @@ const AppSearchRoute = AppSearchRouteImport.update({
   id: '/search',
   path: '/search',
   getParentRoute: () => AppRoute,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthSigninRoute = AuthSigninRouteImport.update({
   id: '/signin',
@@ -246,6 +258,8 @@ export interface FileRoutesByFullPath {
   '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
   '/search': typeof AppSearchRoute
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/reset-password': typeof AuthResetPasswordRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
   '/welcome': typeof AuthWelcomeRoute
@@ -282,6 +296,8 @@ export interface FileRoutesByTo {
   '/mentions': typeof AppMentionsRoute
   '/notifications': typeof AppNotificationsRoute
   '/search': typeof AppSearchRoute
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/reset-password': typeof AuthResetPasswordRoute
   '/signin': typeof AuthSigninRoute
   '/signup': typeof AuthSignupRoute
   '/welcome': typeof AuthWelcomeRoute
@@ -322,6 +338,8 @@ export interface FileRoutesById {
   '/_app/mentions': typeof AppMentionsRoute
   '/_app/notifications': typeof AppNotificationsRoute
   '/_app/search': typeof AppSearchRoute
+  '/_auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_auth/signin': typeof AuthSigninRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/_auth/welcome': typeof AuthWelcomeRoute
@@ -361,6 +379,8 @@ export interface FileRouteTypes {
     | '/mentions'
     | '/notifications'
     | '/search'
+    | '/forgot-password'
+    | '/reset-password'
     | '/signin'
     | '/signup'
     | '/welcome'
@@ -397,6 +417,8 @@ export interface FileRouteTypes {
     | '/mentions'
     | '/notifications'
     | '/search'
+    | '/forgot-password'
+    | '/reset-password'
     | '/signin'
     | '/signup'
     | '/welcome'
@@ -436,6 +458,8 @@ export interface FileRouteTypes {
     | '/_app/mentions'
     | '/_app/notifications'
     | '/_app/search'
+    | '/_auth/forgot-password'
+    | '/_auth/reset-password'
     | '/_auth/signin'
     | '/_auth/signup'
     | '/_auth/welcome'
@@ -566,6 +590,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/search'
       preLoaderRoute: typeof AppSearchRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_auth/forgot-password': {
+      id: '/_auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/reset-password': {
+      id: '/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_auth/signin': {
       id: '/_auth/signin'
@@ -810,12 +848,16 @@ const AppRouteChildren: AppRouteChildren = {
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface AuthRouteChildren {
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSigninRoute: typeof AuthSigninRoute
   AuthSignupRoute: typeof AuthSignupRoute
   AuthWelcomeRoute: typeof AuthWelcomeRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
   AuthWelcomeRoute: AuthWelcomeRoute,

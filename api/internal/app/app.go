@@ -14,6 +14,7 @@ import (
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/handler"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
 	"github.com/ngodingvareng/memoria/internal/errs"
+	"github.com/ngodingvareng/memoria/internal/mailer"
 	"github.com/ngodingvareng/memoria/internal/repository"
 	"github.com/ngodingvareng/memoria/internal/security"
 	"github.com/ngodingvareng/memoria/internal/storage"
@@ -47,6 +48,9 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		SecretKey:    cfg.StorageSecretKey,
 		Bucket:       cfg.StorageBucket,
 		UsePathStyle: cfg.StorageUsePathStyle,
+		// Profile photos (users, circles) — everything else (moment/
+		// thread images) stays private, fetched only via PresignGet.
+		PublicPrefixes: []string{"users/", "circles/"},
 	})
 	if err != nil {
 		return nil, err
@@ -60,13 +64,21 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	userRepo := repository.NewUserRepository(conn)
 	userAccountRepo := repository.NewUserAccountRepository(conn)
 	refreshTokenRepo := repository.NewRefreshTokenRepository(conn)
+	userVerificationRepo := repository.NewUserVerificationRepository(conn)
 	authUoW := repository.NewAuthUnitOfWork(conn)
 
 	accessTokenIssuer := security.NewJWTAccessTokenIssuer([]byte(cfg.JWTSecret), cfg.JWTAccessTokenTTL, cfg.JWTIssuer)
 	refreshTokenGenerator := security.NewRefreshTokenGenerator()
 	hasher := security.NewScryptHasher()
+	smtpMailer := mailer.NewSMTPMailer(mailer.SMTPConfig{
+		Host:     cfg.SMTPHost,
+		Port:     cfg.SMTPPort,
+		Username: cfg.SMTPUsername,
+		Password: cfg.SMTPPassword,
+		From:     cfg.SMTPFrom,
+	})
 
-	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, hasher, accessTokenIssuer, refreshTokenGenerator, cfg.JWTRefreshTokenTTL, cfg.LoginMaxFailedAttempts, cfg.LoginLockoutDuration)
+	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, userVerificationRepo, hasher, accessTokenIssuer, refreshTokenGenerator, smtpMailer, cfg.WebBaseURL, cfg.JWTRefreshTokenTTL, cfg.LoginMaxFailedAttempts, cfg.LoginLockoutDuration)
 	authHandler := handler.NewAuthHandler(authUsecase, cfg.SecureCookies)
 
 	// userPrivacyRepo is constructed here (ahead of 3d below) because
@@ -74,7 +86,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	// page's "I know this person" action.
 	userPrivacyRepo := repository.NewUserPrivacyRepository(conn)
 
-	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo)
+	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, objectStorage)
 	userHandler := handler.NewUserHandler(userUsecase)
 
 	// 3b. Threads. circleRepo is constructed here (ahead of the rest of
@@ -103,7 +115,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	// (constructed above) has no usecase of its own beyond UserUsecase's
 	// MarkKnown use — it's passed directly wherever a
 	// UserBlockChecker/UserKnownChecker/UserMuteChecker is needed.
-	circleUsecase := usecase.NewCircleUsecase(circleRepo)
+	circleUsecase := usecase.NewCircleUsecase(circleRepo, objectStorage)
 	circleHandler := handler.NewCircleHandler(circleUsecase)
 
 	circleInviteRepo := repository.NewCircleInviteRepository(conn)
@@ -115,7 +127,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	circleJoinRequestHandler := handler.NewCircleJoinRequestHandler(circleJoinRequestUsecase)
 
 	mentionRepo := repository.NewMentionRepository(conn)
-	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo)
+	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo, userRepo)
 	mentionHandler := handler.NewMentionHandler(mentionUsecase)
 
 	responseEventRepo := repository.NewResponseEventRepository(conn)

@@ -52,6 +52,23 @@ WHERE id = sqlc.arg(id)
     )
 RETURNING *;
 
+-- name: UpdateCircleImagePath :one
+-- Same admin-only gate as UpdateCircle, scoped to just the profile
+-- image so an upload doesn't require resending name/description/color.
+UPDATE circles
+SET image_path = sqlc.narg(image_path),
+    updated_at = NOW()
+WHERE id = sqlc.arg(id)
+    AND dissolved_at IS NULL
+    AND EXISTS (
+        SELECT 1 FROM circle_members
+        WHERE circle_id = circles.id
+            AND user_id = sqlc.arg(user_id)
+            AND left_at IS NULL
+            AND role = 'admin'
+    )
+RETURNING *;
+
 -- name: DissolveCircle :exec
 -- Admin-only (see UpdateCircle). :exec — a mismatched WHERE (wrong id,
 -- not an admin, already dissolved) is a silent no-op, not

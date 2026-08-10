@@ -177,7 +177,7 @@ export function SigninForm() {
 
         <Field>
           <FieldDescription>
-            <Link to="/signup"> Forgot password?</Link>
+            <Link to="/forgot-password">Forgot password?</Link>
           </FieldDescription>
           <FieldDescription>
             New to Memoria? <Link to="/signup">Sign up</Link>

@@ -464,14 +464,16 @@ func TestThreadUsecase_SearchThreads_PassesFiltersThrough(t *testing.T) {
 		Search(mock.Anything, mock.MatchedBy(func(p usecase.SearchThreadsParams) bool {
 			return p.UserID == userID &&
 				p.Name != nil && *p.Name == name &&
-				p.Archived != nil && *p.Archived == archived
+				p.Archived != nil && *p.Archived == archived &&
+				p.SortByRecency
 		})).
 		Return([]*entity.Thread{}, int64(0), nil)
 
 	_, err := uc.SearchThreads(context.Background(), usecase.SearchThreadsInput{
-		UserID:   userID,
-		Name:     &name,
-		Archived: &archived,
+		UserID:        userID,
+		Name:          &name,
+		Archived:      &archived,
+		SortByRecency: true,
 	})
 
 	assert.NoError(t, err)

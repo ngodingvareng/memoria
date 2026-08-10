@@ -59,6 +59,24 @@ func (r *circleRepository) Update(ctx context.Context, circle *entity.Circle, us
 	return toEntityCircle(row), nil
 }
 
+// UpdateImagePath implements [usecase.CircleRepository]. Same admin-only
+// gate as Update, enforced in the WHERE clause — a non-admin's attempt
+// and a wrong/foreign id are indistinguishable, both errs.ErrNotFound.
+func (r *circleRepository) UpdateImagePath(ctx context.Context, id, userID uuid.UUID, imagePath *string) (*entity.Circle, error) {
+	row, err := r.q.UpdateCircleImagePath(ctx, db.UpdateCircleImagePathParams{
+		ID:        id,
+		UserID:    userID,
+		ImagePath: ptrToPgText(imagePath),
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("update circle image path: %w", err)
+	}
+	return toEntityCircle(row), nil
+}
+
 // Dissolve implements [usecase.CircleRepository].
 func (r *circleRepository) Dissolve(ctx context.Context, id, userID uuid.UUID) error {
 	if err := r.q.DissolveCircle(ctx, db.DissolveCircleParams{ID: id, UserID: userID}); err != nil {

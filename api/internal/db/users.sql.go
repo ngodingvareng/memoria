@@ -220,6 +220,65 @@ func (q *Queries) RestoreUser(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const searchUsersByUsername = `-- name: SearchUsersByUsername :many
+SELECT id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
+FROM users
+WHERE discoverable_by_username = TRUE
+    AND deleted_at IS NULL
+    AND username IS NOT NULL
+    AND id != $1
+    AND username ILIKE $2 || '%'
+ORDER BY username ASC
+LIMIT $3
+`
+
+type SearchUsersByUsernameParams struct {
+	ExcludeUserID uuid.UUID
+	Query         pgtype.Text
+	PageLimit     int32
+}
+
+// Prefix search over discoverable usernames, backing the mention-search
+// typeahead (FEATURES.md, Mention). Same discoverable_by_username gate
+// as the Circle Invite path (see GetUserByUsername) — mention_policy
+// and blocking are filtered in the usecase, same as CreateMention. The
+// caller is responsible for escaping any %/_ in query before binding.
+func (q *Queries) SearchUsersByUsername(ctx context.Context, arg SearchUsersByUsernameParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, searchUsersByUsername, arg.ExcludeUserID, arg.Query, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []User{}
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Username,
+			&i.Email,
+			&i.EmailVerified,
+			&i.ImagePath,
+			&i.Bio,
+			&i.Timezone,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.MentionPolicy,
+			&i.CircleInvitePolicy,
+			&i.DiscoverableByUsername,
+			&i.StripPhotoMetadata,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setUserEmailVerified = `-- name: SetUserEmailVerified :exec
 UPDATE users
 SET email_verified = TRUE,
@@ -286,6 +345,46 @@ WHERE id = $1
 func (q *Queries) SoftDeleteUser(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, softDeleteUser, id)
 	return err
+}
+
+const updateUserImagePath = `-- name: UpdateUserImagePath :one
+UPDATE users
+SET image_path = $1,
+    updated_at = NOW()
+WHERE id = $2
+    AND deleted_at IS NULL
+RETURNING id, name, username, email, email_verified, image_path, bio, timezone, created_at, updated_at, mention_policy, circle_invite_policy, discoverable_by_username, strip_photo_metadata, deleted_at
+`
+
+type UpdateUserImagePathParams struct {
+	ImagePath pgtype.Text
+	ID        uuid.UUID
+}
+
+// Sets the profile photo (or clears it, if narg is NULL). Separate from
+// UpdateUserProfile so an upload doesn't require resending name/
+// username/timezone alongside it.
+func (q *Queries) UpdateUserImagePath(ctx context.Context, arg UpdateUserImagePathParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserImagePath, arg.ImagePath, arg.ID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Username,
+		&i.Email,
+		&i.EmailVerified,
+		&i.ImagePath,
+		&i.Bio,
+		&i.Timezone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.MentionPolicy,
+		&i.CircleInvitePolicy,
+		&i.DiscoverableByUsername,
+		&i.StripPhotoMetadata,
+		&i.DeletedAt,
+	)
+	return i, err
 }
 
 const updateUserPrivacySettings = `-- name: UpdateUserPrivacySettings :one

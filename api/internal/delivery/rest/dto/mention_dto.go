@@ -11,6 +11,17 @@ type CreateMentionRequest struct {
 	Username string `json:"username" validate:"required,min=3,max=30"`
 }
 
+type SearchMentionableUsersQuery struct {
+	Query string `query:"q" validate:"required,min=1,max=30"`
+}
+
+// SearchMentionableUsersResponse backs the mention-search typeahead —
+// reuses PublicUserResponse since a search result needs exactly the
+// same other-facing fields as a Circle member list.
+type SearchMentionableUsersResponse struct {
+	Users []PublicUserResponse `json:"users"`
+}
+
 type MentionResponse struct {
 	ID              string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	MomentID        string  `json:"moment_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`

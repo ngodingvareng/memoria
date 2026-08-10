@@ -1,4 +1,3 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,8 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -31,27 +30,47 @@ import {
   ItemHeader,
 } from '@/components/ui/item';
 import { Textarea } from '@/components/ui/textarea';
-import { renderTextWithMentions } from '@/features/mentions';
-import { ReactionPicker, ReactionSummary } from '@/features/threads';
+import {
+  AddMentionButton,
+  MentionAutocompletePopover,
+  renderTextWithMentions,
+  useInlineMentionAutocomplete,
+} from '@/features/mentions';
+import {
+  CommentAuthorsAvatarGroup,
+  ReactionPicker,
+  ReactionSummary,
+} from '@/features/threads';
+import {
+  getGetMentionsQueryKey,
+  useGetMomentsIdMentions,
+  usePostMomentsIdMentionsLeave,
+} from '@/lib/api/generated/mentions/mentions';
+import {
+  getGetMomentsQueryKey,
+  useGetMomentsIdImages,
+} from '@/lib/api/generated/moments/moments';
 import { hexToRgba } from '@/lib/colors';
+import { queryClient } from '@/lib/query-client';
 import { cn } from '@/lib/utils';
 import {
   ArrowRight01Icon,
   Comment02Icon,
   Delete02Icon,
   Edit04Icon,
-  Globe02Icon,
+  Logout01Icon,
   MoreVerticalIcon,
   PaintBoardIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 import React from 'react';
 import { ColorSwatchPicker } from './color-swatch-picker';
 import { MomentImagesDialog } from './moment-images-dialog';
+import { useMomentAudience } from '../lib/use-moment-audience';
 
-export interface MomentCardParam {
+interface MomentCardProps {
   id?: string;
   user: {
     name: string;
@@ -60,19 +79,18 @@ export interface MomentCardParam {
     imageAlt: string;
   };
   thread: {
+    id?: string;
     name: string;
   };
   colorHex?: string;
   content: string;
-  images?: string[];
   createdAt: Date;
   capturedAt: Date;
-  isPublished?: boolean;
   isOwnedByCurrentUser?: boolean;
-}
-
-interface MomentCardProps extends MomentCardParam {
-  isEditMode?: boolean;
+  // The creator/thread-name row — only shown on Home, a Circle
+  // overview, and a Circle-owned thread's own page (callers decide,
+  // per page context — this component doesn't infer it).
+  showHeader?: boolean;
   onEditNote?: (note: string) => void | Promise<void>;
   onEditColor?: (colorHex: string) => void | Promise<void>;
   onDelete?: () => void | Promise<void>;
@@ -84,25 +102,93 @@ export function MomentCard({
   thread,
   colorHex,
   content,
-  images = [],
   createdAt,
   capturedAt,
-  isPublished = false,
   isOwnedByCurrentUser = false,
-  isEditMode = false,
+  showHeader = false,
   onEditNote,
   onEditColor,
   onDelete,
 }: MomentCardProps) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const navigate = useNavigate();
   const [isImagesDialogOpen, setIsImagesDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isEditingNote, setIsEditingNote] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState(content);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isLeavingMention, setIsLeavingMention] = React.useState(false);
   const [actionError, setActionError] = React.useState<string | null>(null);
+  const noteTextareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const mentionAutocomplete = useInlineMentionAutocomplete({
+    onChange: setNoteDraft,
+    textareaRef: noteTextareaRef,
+  });
+  const imagesQuery = useGetMomentsIdImages(id ?? '', {
+    query: { enabled: !!id },
+  });
+  const images = (imagesQuery.data ?? [])
+    .map((image) => image.url)
+    .filter((url): url is string => !!url);
   const coverImage = images[images.length - 1];
+  // Fades the cover image in once it's actually decoded instead of
+  // popping in mid-layout — most noticeable scrolling fast through a
+  // freshly-loaded page of cards, where several images finish loading
+  // at once.
+  const [isCoverImageLoaded, setIsCoverImageLoaded] = React.useState(false);
+  React.useEffect(() => {
+    setIsCoverImageLoaded(false);
+  }, [coverImage]);
 
-  const canManage = isOwnedByCurrentUser && isEditMode;
+  const coverButtonRef = React.useRef<HTMLButtonElement>(null);
+  const coverLabelRef = React.useRef<HTMLDivElement>(null);
+  const [isCoverCompact, setIsCoverCompact] = React.useState(true);
+
+  React.useLayoutEffect(() => {
+    const button = coverButtonRef.current;
+    const label = coverLabelRef.current;
+    if (!button || !label) return;
+
+    const update = () => {
+      setIsCoverCompact(button.offsetHeight <= label.offsetHeight + 10);
+    };
+    update();
+
+    const observer = new ResizeObserver(update);
+    observer.observe(button);
+    observer.observe(label);
+    return () => observer.disconnect();
+  }, []);
+
+  // Comment/Reaction only make sense once this Moment actually has an
+  // audience: it lives in a Circle-owned thread, or it names a mention
+  // (FEATURES.md, Mention + Response Terms). /moments/{id}/audience's
+  // mention_allowed is true for the owner unconditionally (they may
+  // always act in their own mention context, even an empty one), so it
+  // can't be used as an existence check for the owner — the owner path
+  // checks the actual mention list instead. For a non-owner,
+  // mention_allowed already only turns true when they're genuinely
+  // mentioned, so it's used as-is.
+  const audience = useMomentAudience(id ?? '', { enabled: !!id });
+  const ownMentionsQuery = useGetMomentsIdMentions(id ?? '', {
+    query: { enabled: !!id && isOwnedByCurrentUser },
+  });
+  const hasCircleAudience = audience.contexts.some(
+    (context) => context.type === 'circle'
+  );
+  const hasMentionAudience = isOwnedByCurrentUser
+    ? (ownMentionsQuery.data?.mentions?.length ?? 0) > 0
+    : audience.contexts.some((context) => context.type === 'mention');
+  const hasAudience = hasCircleAudience || hasMentionAudience;
+  const canManage = isOwnedByCurrentUser;
+  const canLeaveMention =
+    !isOwnedByCurrentUser &&
+    audience.contexts.some((context) => context.type === 'mention');
+  const showMenu = canManage || canLeaveMention;
+
+  const leaveMention = usePostMomentsIdMentionsLeave();
 
   const startEditingNote = () => {
     setActionError(null);
@@ -145,12 +231,31 @@ export function MomentCard({
     }
   };
 
+  const handleLeaveMention = async () => {
+    if (!id) return;
+    setIsLeavingMention(true);
+    try {
+      await leaveMention.mutateAsync({ id });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: getGetMentionsQueryKey() }),
+        queryClient.invalidateQueries({ queryKey: getGetMomentsQueryKey() }),
+      ]);
+      // Leaving removes this viewer's access — if they were looking at
+      // its detail page, that page is no longer reachable for them.
+      if (pathname === `/moment/${id}`) {
+        navigate({ to: '/mentions' });
+      }
+    } finally {
+      setIsLeavingMention(false);
+    }
+  };
+
   return (
     <Item size="xs">
       <ItemContent className="flex flex-col gap-4">
         <div className="flex group relative select-text hover:cursor-default selection:bg-primary selection:text-primary-foreground gap-4">
-          {canManage && (
-            <div className="absolute -top-1 -right-6 z-20">
+          {showMenu && (
+            <div className="absolute top-0 -right-6 z-20">
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={<Button variant="ghost" size="icon" />}
@@ -159,52 +264,71 @@ export function MomentCard({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuGroup>
-                    <DropdownMenuItem onClick={startEditingNote}>
-                      <HugeiconsIcon strokeWidth={2} icon={Edit04Icon} />
-                      Edit content
-                    </DropdownMenuItem>
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <HugeiconsIcon strokeWidth={2} icon={PaintBoardIcon} />
-                        Set color
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                          <ColorSwatchPicker
-                            value={colorHex ?? ''}
-                            onChange={handleColorChange}
-                            className="p-2"
-                          />
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                    >
-                      <HugeiconsIcon strokeWidth={2} icon={Delete02Icon} />
-                      Delete
-                    </DropdownMenuItem>
+                    {canManage ? (
+                      <>
+                        <DropdownMenuItem onClick={startEditingNote}>
+                          <HugeiconsIcon strokeWidth={2} icon={Edit04Icon} />
+                          Edit content
+                        </DropdownMenuItem>
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <HugeiconsIcon
+                              strokeWidth={2}
+                              icon={PaintBoardIcon}
+                            />
+                            Set color
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                              <ColorSwatchPicker
+                                value={colorHex ?? ''}
+                                onChange={handleColorChange}
+                                className="p-2"
+                              />
+                            </DropdownMenuSubContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() => setIsDeleteDialogOpen(true)}
+                        >
+                          <HugeiconsIcon strokeWidth={2} icon={Delete02Icon} />
+                          Delete
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={handleLeaveMention}
+                        disabled={isLeavingMention}
+                      >
+                        <HugeiconsIcon strokeWidth={2} icon={Logout01Icon} />
+                        Leave mention
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           )}
           <button
+            ref={coverButtonRef}
             type="button"
             disabled={!coverImage}
             onClick={() => setIsImagesDialogOpen(true)}
             style={{
-              backgroundColor: colorHex ? hexToRgba(colorHex, 0.2) : undefined,
+              backgroundColor: colorHex ? hexToRgba(colorHex, 1) : undefined,
             }}
             className={cn(
               'max-w-2xs flex flex-none flex-col rounded-xl w-full overflow-hidden relative isolate text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
-              !colorHex && 'bg-muted',
+              !colorHex && 'bg-gray-500',
               coverImage && 'cursor-pointer'
             )}
           >
-            <div className="items-end text-right flex flex-col gap-1 grow relative z-10 px-4 py-3.5">
+            <div
+              ref={coverLabelRef}
+              className="items-end text-right text-white flex flex-col gap-1 flex-none relative z-10 px-4 py-3.5"
+            >
               <div className="flex flex-col">
                 <p className="font-bold text-lg">
                   {capturedAt.toLocaleDateString('id-ID', {
@@ -222,32 +346,55 @@ export function MomentCard({
               </div>
             </div>
             {coverImage && (
-              <div className="absolute inset-x-0 bottom-0 h-2/3 z-0">
+              <div
+                className={cn(
+                  'absolute inset-x-0 bottom-0 z-0',
+                  isCoverCompact ? 'top-0' : 'h-2/3'
+                )}
+              >
                 <div
-                  className="absolute inset-x-0 top-0 h-1/3 z-10"
-                  style={{
-                    backgroundImage: `linear-gradient(to bottom, ${colorHex ?? 'var(--muted)'}, transparent)`,
-                  }}
+                  className="absolute inset-0 z-10"
+                  style={
+                    isCoverCompact
+                      ? {
+                          backgroundColor: colorHex
+                            ? hexToRgba(colorHex, 0.8)
+                            : 'color-mix(in srgb, #6b7280 40%, transparent)',
+                        }
+                      : {
+                          backgroundImage: colorHex
+                            ? `linear-gradient(to bottom, ${hexToRgba(colorHex, 1)}, ${hexToRgba(colorHex, 0.4)})`
+                            : `linear-gradient(to bottom, #6b7280, color-mix(in srgb, #6b7280 40%, transparent))`,
+                        }
+                  }
                 />
                 <img
                   src={coverImage}
                   alt=""
-                  className="size-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={() => setIsCoverImageLoaded(true)}
+                  className={cn(
+                    'absolute inset-0 size-full object-cover transition-opacity duration-300',
+                    isCoverImageLoaded ? 'opacity-100' : 'opacity-0'
+                  )}
                 />
               </div>
             )}
           </button>
           <Item className="grow pt-1 pb-0">
-            {isPublished && (
-              <ItemHeader>
+            {showHeader && (
+              <ItemHeader className="-ml-1">
                 <Link
                   to="/@{$username}"
                   params={{ username: user.username }}
-                  className="flex gap-2 items-center"
+                  className="flex shrink-0 gap-2 items-center"
                 >
                   <Avatar>
                     <AvatarImage src={user.imageSrc} alt={user.imageAlt} />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>
+                      {user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="text-base">{user.username}</p>
@@ -255,47 +402,27 @@ export function MomentCard({
                 </Link>
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
-                  className="size-4 font-bold text-muted-foreground"
+                  className="size-4 shrink-0 font-bold text-muted-foreground"
                 />
-                <div className="font-medium">
-                  <p>{thread.name}</p>
+                <div className="min-w-0 flex-1 font-medium">
+                  {thread.id ? (
+                    <Link
+                      to="/thread/$id"
+                      params={{ id: thread.id }}
+                      className="block truncate hover:underline"
+                    >
+                      {thread.name}
+                    </Link>
+                  ) : (
+                    <p className="truncate">{thread.name}</p>
+                  )}
                 </div>
-                <div className="grow items-center flex gap-2 justify-end">
-                  <div>
-                    <Badge className="bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
-                      <HugeiconsIcon
-                        data-icon="inline-start"
-                        icon={Globe02Icon}
-                      />
-                      Public
-                    </Badge>
-                  </div>
-                  <div className="flex gap-1 items-center">
-                    <p className="font-medium text-muted-foreground">
-                      {formatDistanceToNow(createdAt, {
-                        addSuffix: true,
-                      })}
-                    </p>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <Button size="icon" variant="ghost" className="-mr-3">
-                          <HugeiconsIcon
-                            strokeWidth={2}
-                            icon={MoreVerticalIcon}
-                          />
-                        </Button>
-                      }
-                    />
-                    <DropdownMenuContent className="w-40" align="start">
-                      <DropdownMenuGroup>
-                        <DropdownMenuItem>Profile</DropdownMenuItem>
-                        <DropdownMenuItem>Billing</DropdownMenuItem>
-                        <DropdownMenuItem>Settings</DropdownMenuItem>
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <div className="shrink-0 flex gap-1 items-center">
+                  <p className="font-medium text-muted-foreground">
+                    {formatDistanceToNow(createdAt, {
+                      addSuffix: true,
+                    })}
+                  </p>
                 </div>
               </ItemHeader>
             )}
@@ -303,33 +430,53 @@ export function MomentCard({
               {isEditingNote ? (
                 <div className="flex flex-col gap-2">
                   <Textarea
+                    ref={noteTextareaRef}
                     value={noteDraft}
-                    onChange={(e) => setNoteDraft(e.target.value)}
+                    onChange={mentionAutocomplete.handleChange}
+                    onKeyDown={mentionAutocomplete.handleKeyDown}
+                    onClick={mentionAutocomplete.handleSelectionChange}
+                    onKeyUp={mentionAutocomplete.handleSelectionChange}
                     maxLength={10000}
                     autoFocus
                     className="text-base min-h-24"
                     disabled={isSaving}
                   />
-                  <div className="flex gap-2 justify-end">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={isSaving}
-                      onClick={() => setIsEditingNote(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={isSaving}
-                      onClick={handleSaveNote}
-                    >
-                      Save
-                    </Button>
+                  <MentionAutocompletePopover
+                    anchorRef={noteTextareaRef}
+                    open={mentionAutocomplete.isOpen}
+                    onOpenChange={(open) =>
+                      !open && mentionAutocomplete.closeSuggestions()
+                    }
+                    users={mentionAutocomplete.suggestions}
+                    activeIndex={mentionAutocomplete.activeIndex}
+                    isLoading={mentionAutocomplete.isLoading}
+                    onSelect={mentionAutocomplete.handleSelect}
+                  />
+                  <div className="flex gap-2 justify-between">
+                    <AddMentionButton
+                      onInsert={mentionAutocomplete.insertAtCursor}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={isSaving}
+                        onClick={() => setIsEditingNote(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        disabled={isSaving}
+                        onClick={handleSaveNote}
+                      >
+                        Save
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ) : (
-                <p className="whitespace-pre-wrap text-base">
+                <p className="whitespace-pre-wrap text-base/7">
                   {renderTextWithMentions(content)}
                 </p>
               )}
@@ -339,7 +486,7 @@ export function MomentCard({
                 </Alert>
               )}
             </ItemContent>
-            {isPublished && id && (
+            {id && hasAudience && (
               <ItemFooter className="flex gap-2 -ml-3 justify-start items-center">
                 <ReactionPicker momentId={id} />
                 <ReactionSummary momentId={id} />
@@ -351,6 +498,7 @@ export function MomentCard({
                 >
                   <HugeiconsIcon strokeWidth={2} icon={Comment02Icon} />
                 </Button>
+                <CommentAuthorsAvatarGroup momentId={id} />
               </ItemFooter>
             )}
           </Item>

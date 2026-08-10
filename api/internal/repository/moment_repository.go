@@ -106,6 +106,15 @@ func (r *momentRepository) ListByUserID(ctx context.Context, userID uuid.UUID, l
 	return toEntityMoments(rows), nil
 }
 
+// ListHomeFeed implements [usecase.MomentRepository].
+func (r *momentRepository) ListHomeFeed(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.Moment, error) {
+	rows, err := r.q.ListHomeFeedMoments(ctx, db.ListHomeFeedMomentsParams{UserID: userID, PageLimit: limit, PageOffset: offset})
+	if err != nil {
+		return nil, fmt.Errorf("list home feed moments: %w", err)
+	}
+	return toEntityMoments(rows), nil
+}
+
 // ListByThreadID implements [usecase.MomentRepository]. No user_id
 // filter at the query level — access to the Thread itself is checked
 // upstream by the usecase via ThreadAccessChecker.

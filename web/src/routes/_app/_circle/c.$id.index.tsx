@@ -49,12 +49,13 @@ function RouteComponent() {
           </Empty>
         )}
 
-      {moments.length > 0 && <MomentFeedList moments={moments} />}
+      {moments.length > 0 && <MomentFeedList moments={moments} showHeader />}
 
       <InfiniteScrollSentinel
         enabled={
           Boolean(momentsQuery.hasNextPage) && !momentsQuery.isFetchingNextPage
         }
+        isLoading={momentsQuery.isFetchingNextPage}
         onIntersect={() => momentsQuery.fetchNextPage()}
       />
     </div>

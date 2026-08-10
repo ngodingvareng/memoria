@@ -1,7 +1,7 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Wrapper from '@/components/wrapper';
+import { CircleProfileImage } from '@/features/circles';
 import { useGetCirclesId } from '@/lib/api/generated/circles/circles';
 import {
   createFileRoute,
@@ -36,7 +36,7 @@ function RouteComponent() {
     <Wrapper>
       <div className="flex flex-col gap-6">
         <div className="flex items-center">
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-3 items-center">
             {circleQuery.isPending ? (
               <>
                 <Skeleton className="size-12 rounded-xl" />
@@ -44,18 +44,9 @@ function RouteComponent() {
               </>
             ) : (
               <>
-                <Avatar size="xl" className="rounded-xl after:rounded-xl">
-                  <AvatarImage
-                    src={circle?.image_path ?? undefined}
-                    alt={circle?.name}
-                    className="rounded-xl"
-                  />
-                  <AvatarFallback>
-                    {circle?.name?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <CircleProfileImage circle={circle ?? {}} size="xl" />
                 <div>
-                  <p className="font-medium text-2xl/5">{circle?.name}</p>
+                  <p className="font-medium text-2xl">{circle?.name}</p>
                   {circle?.description && (
                     <p className="text-lg/5 text-muted-foreground">
                       {circle.description}

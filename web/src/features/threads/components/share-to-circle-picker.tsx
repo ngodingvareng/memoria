@@ -15,8 +15,9 @@ interface ShareToCirclePickerProps {
 // personal Moment is currently shared to, each with an unshare button.
 // There's no standalone "share" action here on purpose (FEATURES.md,
 // Mention: "Why there is no 'share to circle' button") — sharing only
-// ever starts as an offer right after mentioning someone
-// (AddMentionForm); this just manages what already exists.
+// ever starts as an offer right after mentioning someone in the note
+// text (see showMentionShareOffers); this just manages what already
+// exists.
 export function ShareToCirclePicker({ momentId }: ShareToCirclePickerProps) {
   const sharesQuery = useGetMomentsIdShares(momentId);
   const unshare = useDeleteMomentsIdShareCircleId();

@@ -60,6 +60,7 @@ function RouteComponent() {
             Boolean(momentsQuery.hasNextPage) &&
             !momentsQuery.isFetchingNextPage
           }
+          isLoading={momentsQuery.isFetchingNextPage}
           onIntersect={() => momentsQuery.fetchNextPage()}
         />
       </div>

@@ -100,11 +100,12 @@ func (r *threadRepository) GetByID(ctx context.Context, id, userID uuid.UUID) (*
 // Search implements [usecase.ThreadRepository].
 func (r *threadRepository) Search(ctx context.Context, params usecase.SearchThreadsParams) ([]*entity.Thread, int64, error) {
 	rows, err := r.q.SearchThreads(ctx, db.SearchThreadsParams{
-		UserID:     params.UserID,
-		Name:       ptrToPgText(params.Name),
-		Archived:   ptrToPgBool(params.Archived),
-		PageOffset: params.Offset,
-		PageLimit:  params.Limit,
+		UserID:        params.UserID,
+		Name:          ptrToPgText(params.Name),
+		Archived:      ptrToPgBool(params.Archived),
+		SortByRecency: params.SortByRecency,
+		PageOffset:    params.Offset,
+		PageLimit:     params.Limit,
 	})
 	if err != nil {
 		return nil, 0, fmt.Errorf("search threads: %w", err)

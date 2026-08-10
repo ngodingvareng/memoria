@@ -17,9 +17,17 @@ export interface MomentAudience {
 
 // useMomentAudience resolves which contexts the viewer may post a
 // comment/reaction in for a Moment — a viewer can have zero, one, or
-// several (e.g. a Circle member who is also mentioned).
-export function useMomentAudience(momentId: string): MomentAudience {
-  const query = useGetMomentsIdAudience(momentId);
+// several (e.g. a Circle member who is also mentioned). A non-empty
+// audience is also what gates whether Comment/Reaction show at all on
+// a Moment card. Pass enabled: false (or an empty momentId) to skip the
+// request, e.g. before a real id is known.
+export function useMomentAudience(
+  momentId: string,
+  options?: { enabled?: boolean }
+): MomentAudience {
+  const query = useGetMomentsIdAudience(momentId, {
+    query: { enabled: (options?.enabled ?? true) && !!momentId },
+  });
 
   const contexts: AudienceContext[] = [
     ...(query.data?.mention_allowed ? [{ type: 'mention' as const }] : []),

@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"io"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
@@ -21,6 +23,9 @@ type CircleRepository interface {
 	// a non-admin's attempt and a wrong/foreign id are indistinguishable
 	// from here, both surface as errs.ErrNotFound.
 	Update(ctx context.Context, circle *entity.Circle, userID uuid.UUID) (*entity.Circle, error)
+	// UpdateImagePath is the same admin-only gate as Update, scoped to
+	// just the profile image.
+	UpdateImagePath(ctx context.Context, id, userID uuid.UUID, imagePath *string) (*entity.Circle, error)
 	// Dissolve is a sqlc :exec query (no rows-affected count), so a
 	// WHERE clause matching zero rows is a silent no-op here.
 	Dissolve(ctx context.Context, id, userID uuid.UUID) error
@@ -108,14 +113,29 @@ type CircleUsecase interface {
 	RemoveMember(ctx context.Context, circleID, targetUserID, removedByUserID uuid.UUID) error
 	UpdateMemberRole(ctx context.Context, input UpdateCircleMemberRoleInput) (*entity.CircleMember, error)
 	UpdateMemberPermissions(ctx context.Context, input UpdateCircleMemberPermissionsInput) (*entity.CircleMember, error)
+
+	// UploadCircleImage replaces the Circle's profile photo, best-effort
+	// deleting whichever one it replaces. Admin-only, enforced the same
+	// way as UpdateCircle.
+	UploadCircleImage(ctx context.Context, input UploadCircleImageInput) (*entity.Circle, error)
+}
+
+type UploadCircleImageInput struct {
+	CircleID    uuid.UUID
+	UserID      uuid.UUID
+	FileName    string // client-supplied, used only for its extension
+	ContentType string
+	Size        int64
+	Body        io.Reader
 }
 
 type circleUsecase struct {
-	repo CircleRepository
+	repo    CircleRepository
+	storage ProfileImageStorage
 }
 
-func NewCircleUsecase(repo CircleRepository) CircleUsecase {
-	return &circleUsecase{repo: repo}
+func NewCircleUsecase(repo CircleRepository, storage ProfileImageStorage) CircleUsecase {
+	return &circleUsecase{repo: repo, storage: storage}
 }
 
 // CreateCircle implements [CircleUsecase]. Seats the creator as admin in
@@ -162,6 +182,38 @@ func (u *circleUsecase) UpdateCircle(ctx context.Context, input UpdateCircleInpu
 	if err != nil {
 		return nil, fmt.Errorf("updating circle: %w", err)
 	}
+	return updated, nil
+}
+
+// UploadCircleImage implements [CircleUsecase]. Admin-only, enforced by
+// CircleRepository.UpdateImagePath's own WHERE clause — a non-admin's
+// attempt surfaces as errs.ErrNotFound, same as UpdateCircle.
+func (u *circleUsecase) UploadCircleImage(ctx context.Context, input UploadCircleImageInput) (*entity.Circle, error) {
+	current, err := u.repo.GetByID(ctx, input.CircleID, input.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("getting current circle: %w", err)
+	}
+
+	key := buildPublicImageKey("circles", input.CircleID, input.FileName)
+	if err := u.storage.Put(ctx, key, input.Body, input.Size, input.ContentType); err != nil {
+		return nil, fmt.Errorf("uploading circle image %s: %w", key, err)
+	}
+
+	publicURL := u.storage.PublicURL(key)
+	updated, err := u.repo.UpdateImagePath(ctx, input.CircleID, input.UserID, &publicURL)
+	if err != nil {
+		if delErr := u.storage.Delete(context.WithoutCancel(ctx), key); delErr != nil {
+			return nil, fmt.Errorf("saving circle image: %w (cleanup also failed: %v)", err, delErr)
+		}
+		return nil, fmt.Errorf("saving circle image: %w", err)
+	}
+
+	if current.ImagePath != nil {
+		if oldKey, ok := strings.CutPrefix(*current.ImagePath, u.storage.PublicURL("")); ok {
+			_ = u.storage.Delete(context.WithoutCancel(ctx), oldKey)
+		}
+	}
+
 	return updated, nil
 }
 

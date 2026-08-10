@@ -33,6 +33,22 @@ type Config struct {
 	StorageBucket       string `mapstructure:"STORAGE_BUCKET"`
 	StorageUsePathStyle bool   `mapstructure:"STORAGE_USE_PATH_STYLE"`
 
+	// SMTP* configures outbound email (currently just the
+	// password-reset link) — any SMTP server works, not a specific
+	// vendor's API. SMTPUsername/SMTPPassword may be left empty for a
+	// local dev catch-all (e.g. Mailpit/MailHog) that accepts
+	// unauthenticated mail.
+	SMTPHost     string `mapstructure:"SMTP_HOST"`
+	SMTPPort     string `mapstructure:"SMTP_PORT"`
+	SMTPUsername string `mapstructure:"SMTP_USERNAME"`
+	SMTPPassword string `mapstructure:"SMTP_PASSWORD"`
+	SMTPFrom     string `mapstructure:"SMTP_FROM"`
+
+	// WebBaseURL is the frontend's own origin, used to build links that
+	// go into emails (e.g. the password-reset link) — the API has no
+	// other way to know where the web app is served from.
+	WebBaseURL string `mapstructure:"WEB_BASE_URL"`
+
 	// CORSAllowedOrigins is comma-separated in .env (e.g.
 	// "http://localhost:5173,https://app.example.com") — viper's default
 	// mapstructure decode hooks (the same ones that parse
@@ -71,6 +87,7 @@ func LoadConfig() (*Config, error) {
 	viper.SetDefault("LOGIN_RATE_LIMIT_WINDOW", time.Minute)
 	viper.SetDefault("LOGIN_MAX_FAILED_ATTEMPTS", 5)
 	viper.SetDefault("LOGIN_LOCKOUT_DURATION", 15*time.Minute)
+	viper.SetDefault("WEB_BASE_URL", "http://localhost:5173")
 
 	if err := viper.ReadInConfig(); err != nil {
 		// A missing .env is fine — env vars alone are a valid config

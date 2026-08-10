@@ -347,6 +347,13 @@ type Querier interface {
 	// Periodic cleanup job: exports whose download link has expired and
 	// whose stored file can now be removed from object storage.
 	ListExpiredReadyDataExports(ctx context.Context) ([]DataExport, error)
+	// The home feed: every Moment reachable by this user — their own,
+	// every Moment in a Circle they're an active member of (its
+	// collaborative Threads, plus personal Moments shared into it via the
+	// mention flow — mirrors ListCircleMoments' union, just across every
+	// Circle the user belongs to instead of one), and every Moment they're
+	// actively mentioned in. Newest occurrence first.
+	ListHomeFeedMoments(ctx context.Context, arg ListHomeFeedMomentsParams) ([]Moment, error)
 	// The "People I know" settings surface. There is no query for the
 	// reverse direction on purpose: who marked *me* is not information
 	// Memoria exposes, and adding it would turn this into the social graph
@@ -465,9 +472,20 @@ type Querier interface {
 	// "reachable"). All filters are optional (NULL = "don't filter on this"):
 	//   - name: case-insensitive partial match (ILIKE) against threads.name
 	//   - archived: exact match against (archived_at IS NOT NULL)
-	// Ordered by sort_order then newest-first; paginated via
-	// page_limit / page_offset.
+	// Ordered by sort_order then newest-first by default; passing
+	// sort_by_recency = true switches to updated_at DESC instead (backs the
+	// moment-creation Thread picker's "most recently updated" suggestions).
+	// The CASE evaluates to NULL for every row when false, so all rows tie
+	// on that key and the ordering falls through to sort_order/created_at
+	// unchanged — same query, same default behavior for every other caller.
+	// Paginated via page_limit / page_offset.
 	SearchThreads(ctx context.Context, arg SearchThreadsParams) ([]Thread, error)
+	// Prefix search over discoverable usernames, backing the mention-search
+	// typeahead (FEATURES.md, Mention). Same discoverable_by_username gate
+	// as the Circle Invite path (see GetUserByUsername) — mention_policy
+	// and blocking are filtered in the usecase, same as CreateMention. The
+	// caller is responsible for escaping any %/_ in query before binding.
+	SearchUsersByUsername(ctx context.Context, arg SearchUsersByUsernameParams) ([]User, error)
 	// Toggling the approval requirement on the live link, without rotating
 	// it. Requests already open stay open either way; turning approval off
 	// does not admit them retroactively.
@@ -503,6 +521,9 @@ type Querier interface {
 	// so a non-admin's attempt and a wrong/foreign id are indistinguishable
 	// from here — same "no row = 404" reasoning as ThreadRepository.Update.
 	UpdateCircle(ctx context.Context, arg UpdateCircleParams) (Circle, error)
+	// Same admin-only gate as UpdateCircle, scoped to just the profile
+	// image so an upload doesn't require resending name/description/color.
+	UpdateCircleImagePath(ctx context.Context, arg UpdateCircleImagePathParams) (Circle, error)
 	// Admin-only. Setting can_invite = FALSE on an active admin row would
 	// violate chk_circle_members_admin_can_invite and fails at the database
 	// level — callers should only offer this control for 'member' rows.
@@ -532,6 +553,10 @@ type Querier interface {
 	UpdateThreadSortOrder(ctx context.Context, arg UpdateThreadSortOrderParams) error
 	// Password change / reset flow.
 	UpdateUserAccountPasswordHash(ctx context.Context, arg UpdateUserAccountPasswordHashParams) error
+	// Sets the profile photo (or clears it, if narg is NULL). Separate from
+	// UpdateUserProfile so an upload doesn't require resending name/
+	// username/timezone alongside it.
+	UpdateUserImagePath(ctx context.Context, arg UpdateUserImagePathParams) (User, error)
 	// Social Interaction Controls + Data Controls (FEATURES.md, Privacy &
 	// Control) — the account-level privacy toggles, separate from profile
 	// content so a settings screen can save them independently.

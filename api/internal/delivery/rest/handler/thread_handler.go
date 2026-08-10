@@ -211,6 +211,7 @@ func (h *ThreadHandler) GetThread(c fiber.Ctx) error {
 // @Produce      json
 // @Param        name           query string false "Filter by name (partial, case-insensitive)"
 // @Param        archived       query bool   false "Filter by whether the thread is archived"
+// @Param        sort           query string false "Sort order; only 'updated_at' is supported (switches to most-recently-updated first)"
 // @Param        page           query int    false "Page number (default 1)"
 // @Param        page_size      query int    false "Threads per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.SearchThreadsResponse]
@@ -230,11 +231,12 @@ func (h *ThreadHandler) SearchThreads(c fiber.Ctx) error {
 	}
 
 	result, err := h.usecase.SearchThreads(c, usecase.SearchThreadsInput{
-		UserID:   userID,
-		Name:     query.Name,
-		Archived: query.Archived,
-		Page:     query.Page,
-		PageSize: query.PageSize,
+		UserID:        userID,
+		Name:          query.Name,
+		Archived:      query.Archived,
+		SortByRecency: query.Sort != nil && *query.Sort == "updated_at",
+		Page:          query.Page,
+		PageSize:      query.PageSize,
 	})
 	if err != nil {
 		return err

@@ -5,6 +5,7 @@ packages:
   "github.com/ngodingvareng/memoria/internal/usecase":
     interfaces:
       Storage:
+      ProfileImageStorage:
 
       PasswordHasher:
       AccessTokenIssuer:
@@ -17,6 +18,8 @@ packages:
       UserRepository:
       UserAccountRepository:
       RefreshTokenRepository:
+      UserVerificationRepository:
+      Mailer:
       MomentRepository:
       MomentImageRepository:
 
@@ -42,3 +45,4 @@ packages:
       UserKnownRepository:
       UserMuteChecker:
       UserPolicyReader:
+      UserSearcher:

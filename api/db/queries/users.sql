@@ -29,6 +29,33 @@ FROM users
 WHERE lower(username) = lower(sqlc.arg(username))
     AND deleted_at IS NULL;
 
+-- name: UpdateUserImagePath :one
+-- Sets the profile photo (or clears it, if narg is NULL). Separate from
+-- UpdateUserProfile so an upload doesn't require resending name/
+-- username/timezone alongside it.
+UPDATE users
+SET image_path = sqlc.narg(image_path),
+    updated_at = NOW()
+WHERE id = sqlc.arg(id)
+    AND deleted_at IS NULL
+RETURNING *;
+
+-- name: SearchUsersByUsername :many
+-- Prefix search over discoverable usernames, backing the mention-search
+-- typeahead (FEATURES.md, Mention). Same discoverable_by_username gate
+-- as the Circle Invite path (see GetUserByUsername) — mention_policy
+-- and blocking are filtered in the usecase, same as CreateMention. The
+-- caller is responsible for escaping any %/_ in query before binding.
+SELECT *
+FROM users
+WHERE discoverable_by_username = TRUE
+    AND deleted_at IS NULL
+    AND username IS NOT NULL
+    AND id != sqlc.arg(exclude_user_id)
+    AND username ILIKE sqlc.arg(query) || '%'
+ORDER BY username ASC
+LIMIT sqlc.arg(page_limit);
+
 -- name: UpdateUserProfile :one
 UPDATE users
 SET name = sqlc.arg(name),

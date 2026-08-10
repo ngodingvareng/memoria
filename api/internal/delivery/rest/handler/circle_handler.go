@@ -119,6 +119,72 @@ func (h *CircleHandler) UpdateCircle(c fiber.Ctx) error {
 	})
 }
 
+// UploadCircleImage godoc
+// @Summary      Upload a circle's profile photo
+// @Description  Replaces any existing photo; admin-only. Publicly readable by URL, no signing.
+// @Tags         circles
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        id    path     string true "Circle ID"
+// @Param        image formData file   true "Image file"
+// @Success      200 {object} dto.WebResponse[dto.CircleResponse]
+// @Failure      400 {object} dto.WebResponse[any]
+// @Failure      404 {object} dto.WebResponse[any]
+// @Router       /circles/{id}/image [post]
+func (h *CircleHandler) UploadCircleImage(c fiber.Ctx) error {
+	circleID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return errs.ErrInvalidInput
+	}
+
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	fileHeader, err := c.FormFile("image")
+	if err != nil {
+		return errs.New(fiber.StatusBadRequest, "image file is required")
+	}
+	if fileHeader.Size > maxImageUploadSize {
+		return errs.New(fiber.StatusBadRequest, "image exceeds the 10MB size limit")
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return errs.New(fiber.StatusBadRequest, "could not read uploaded file")
+	}
+	defer file.Close()
+
+	detectedType, body, err := detectImageContentType(file)
+	if err != nil {
+		return errs.New(fiber.StatusBadRequest, "could not read uploaded file")
+	}
+	if !allowedImageContentTypes[detectedType] {
+		return errs.New(fiber.StatusBadRequest, "uploaded file is not a supported image type")
+	}
+
+	circle, err := h.usecase.UploadCircleImage(c, usecase.UploadCircleImageInput{
+		CircleID:    circleID,
+		UserID:      userID,
+		FileName:    fileHeader.Filename,
+		ContentType: detectedType,
+		Size:        fileHeader.Size,
+		Body:        body,
+	})
+	if err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "circle image uploaded", "circle_id", circleID, "user_id", userID)
+
+	return c.JSON(dto.WebResponse[dto.CircleResponse]{
+		Code:    fiber.StatusOK,
+		Message: "circle image uploaded",
+		Data:    dto.NewCircleResponse(circle),
+	})
+}
+
 // DissolveCircle godoc
 // @Summary      Dissolve a circle
 // @Description  Soft-deletes a Circle; admin-only

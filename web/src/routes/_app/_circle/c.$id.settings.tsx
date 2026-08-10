@@ -1,6 +1,7 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  CircleImageUploader,
   DissolveCircleDialog,
   EditCircleDetailsForm,
   InviteLinkPanel,
@@ -53,6 +54,13 @@ function RouteComponent() {
     <div className="flex flex-col gap-12 max-w-xl">
       <div className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold">Details</h2>
+        {viewerIsAdmin && (
+          <CircleImageUploader
+            circleId={id}
+            imagePath={circleQuery.data.image_path}
+            name={circleQuery.data.name}
+          />
+        )}
         <EditCircleDetailsForm circleId={id} circle={circleQuery.data} />
       </div>
 

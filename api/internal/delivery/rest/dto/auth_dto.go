@@ -24,6 +24,18 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required" example:"correct horse battery staple"`
 }
 
+type ForgotPasswordRequest struct {
+	Email string `json:"email" validate:"required,email,max=255" example:"budi@example.com"`
+}
+
+type ResetPasswordRequest struct {
+	Email string `json:"email" validate:"required,email,max=255" example:"budi@example.com"`
+	// Token is the raw value from the emailed reset link, never the
+	// hash stored server-side.
+	Token       string `json:"token" validate:"required" example:"9f1c2e..."`
+	NewPassword string `json:"new_password" validate:"required,min=8,max=256" example:"a new correct horse battery staple"`
+}
+
 // LoginResponse is returned by /auth/login, /auth/refresh, and
 // /auth/register (registering starts a session immediately, exactly
 // like logging in right after) — the refresh token itself is never

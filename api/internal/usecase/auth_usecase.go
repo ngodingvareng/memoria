@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,6 +30,8 @@ type UserRepository interface {
 	// yet (the post-register onboarding step). Returns
 	// errs.ErrUsernameAlreadyExists on a uniqueness conflict.
 	SetUsername(ctx context.Context, id uuid.UUID, username string) (*entity.User, error)
+	// UpdateImagePath sets (or clears, with nil) the profile photo URL.
+	UpdateImagePath(ctx context.Context, id uuid.UUID, imagePath *string) (*entity.User, error)
 }
 
 type UserAccountRepository interface {
@@ -39,6 +44,36 @@ type UserAccountRepository interface {
 	IncrementFailedLoginAttempts(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error)
 	LockCredentialAccount(ctx context.Context, userID uuid.UUID, until time.Time) error
 	ResetFailedLoginAttempts(ctx context.Context, userID uuid.UUID) error
+	// UpdatePasswordHash overwrites the credential account's password —
+	// the write side of the reset-password flow.
+	UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error
+}
+
+// UserVerificationRepository backs single-use, expiring, identifier/
+// value tokens — currently just the password-reset link, though the
+// underlying user_verifications table is generic enough to also serve
+// email verification later without a schema change.
+type UserVerificationRepository interface {
+	Create(ctx context.Context, identifier, value string, expiresAt time.Time) (*entity.UserVerification, error)
+	// GetValid returns errs.ErrNotFound if no unexpired row matches —
+	// deliberately not distinguishing "wrong value" from "expired" to
+	// the caller, since ResetPassword folds both into the same generic
+	// "invalid or expired" response.
+	GetValid(ctx context.Context, identifier, value string) (*entity.UserVerification, error)
+	// Delete is how a verification is consumed — GetValidUserVerification's
+	// own doc comment: "the app should still delete it... to prevent
+	// reuse." There's no separate consumed_at flow.
+	Delete(ctx context.Context, id uuid.UUID) error
+	// DeleteByIdentifier invalidates any previously-issued pending
+	// tokens for the same identifier before issuing a new one.
+	DeleteByIdentifier(ctx context.Context, identifier string) error
+}
+
+// Mailer sends the password-reset link. Declared here (consumer-side)
+// per this codebase's interface convention — satisfied by
+// mailer.SMTPMailer.
+type Mailer interface {
+	Send(ctx context.Context, to, subject, body string) error
 }
 
 type RefreshTokenRepository interface {
@@ -117,6 +152,24 @@ type RefreshInput struct {
 	UserAgent    *string
 }
 
+type ResetPasswordInput struct {
+	Email       string
+	Token       string
+	NewPassword string
+}
+
+// passwordResetTokenTTL is how long a requested reset link stays valid.
+const passwordResetTokenTTL = 30 * time.Minute
+
+// passwordResetIdentifier namespaces user_verifications rows by purpose
+// (identifier alone isn't unique to password reset — the table is
+// shared with whatever else ends up using it, e.g. email verification
+// later) and by email rather than user id, since ForgotPassword only
+// has an email to go on before it knows whether an account exists.
+func passwordResetIdentifier(email string) string {
+	return "password_reset:" + strings.ToLower(email)
+}
+
 // AuthTokens is returned by Login & Refresh — both mint a new
 // access/refresh pair. RefreshToken here is the raw value — the only
 // place the raw value ever leaves; only its hash gets stored.
@@ -135,6 +188,13 @@ type AuthUsecase interface {
 	Login(ctx context.Context, input LoginInput) (*AuthTokens, error)
 	Refresh(ctx context.Context, input RefreshInput) (*AuthTokens, error)
 	Logout(ctx context.Context, refreshToken string) error
+	// ForgotPassword emails a reset link if email belongs to an account
+	// — always returns nil either way, silently, so the caller can never
+	// use this to probe which emails are registered.
+	ForgotPassword(ctx context.Context, email string) error
+	// ResetPassword returns errs.ErrInvalidToken for a wrong or expired
+	// token — deliberately not distinguishing the two.
+	ResetPassword(ctx context.Context, input ResetPasswordInput) error
 }
 
 type authUsecase struct {
@@ -142,9 +202,12 @@ type authUsecase struct {
 	users           UserRepository
 	userAccounts    UserAccountRepository
 	refreshTokens   RefreshTokenRepository
+	verifications   UserVerificationRepository
 	hasher          PasswordHasher
 	accessTokens    AccessTokenIssuer
 	refreshTokenGen RefreshTokenGenerator
+	mailer          Mailer
+	webBaseURL      string
 	refreshTokenTTL time.Duration
 	// maxFailedLoginAttempts/loginLockoutDuration implement per-account
 	// lockout (see Login below) — independent of any IP-based rate
@@ -158,16 +221,22 @@ func NewAuthUsecase(
 	users UserRepository,
 	userAccounts UserAccountRepository,
 	refreshTokens RefreshTokenRepository,
+	verifications UserVerificationRepository,
 	hasher PasswordHasher,
 	accessTokens AccessTokenIssuer,
 	refreshTokenGen RefreshTokenGenerator,
+	mailer Mailer,
+	webBaseURL string,
 	refreshTokenTTL time.Duration,
 	maxFailedLoginAttempts int,
 	loginLockoutDuration time.Duration,
 ) AuthUsecase {
 	return &authUsecase{
 		uow: uow, users: users, userAccounts: userAccounts, refreshTokens: refreshTokens,
-		hasher: hasher, accessTokens: accessTokens, refreshTokenGen: refreshTokenGen,
+		verifications: verifications,
+		hasher:        hasher, accessTokens: accessTokens, refreshTokenGen: refreshTokenGen,
+		mailer:                 mailer,
+		webBaseURL:             webBaseURL,
 		refreshTokenTTL:        refreshTokenTTL,
 		maxFailedLoginAttempts: maxFailedLoginAttempts,
 		loginLockoutDuration:   loginLockoutDuration,
@@ -395,5 +464,90 @@ func (u *authUsecase) Logout(ctx context.Context, refreshToken string) error {
 	if err := u.refreshTokens.Revoke(ctx, row.ID); err != nil {
 		return fmt.Errorf("revoking refresh token: %w", err)
 	}
+	return nil
+}
+
+// ForgotPassword implements [AuthUsecase]. Never reveals whether email
+// belongs to an account — the "user not found" path and the "sent"
+// path both return nil, on purpose.
+func (u *authUsecase) ForgotPassword(ctx context.Context, email string) error {
+	user, err := u.users.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return nil
+		}
+		return fmt.Errorf("resolving email: %w", err)
+	}
+
+	identifier := passwordResetIdentifier(email)
+	// Invalidate any earlier pending reset before issuing a new one —
+	// same "resend OTP" reasoning as DeleteUserVerificationsByIdentifier's
+	// own doc comment.
+	if err := u.verifications.DeleteByIdentifier(ctx, identifier); err != nil {
+		return fmt.Errorf("clearing previous reset tokens: %w", err)
+	}
+
+	rawToken, err := u.refreshTokenGen.Generate()
+	if err != nil {
+		return fmt.Errorf("generating reset token: %w", err)
+	}
+	if _, err := u.verifications.Create(ctx, identifier, u.refreshTokenGen.Hash(rawToken), time.Now().Add(passwordResetTokenTTL)); err != nil {
+		return fmt.Errorf("storing reset token: %w", err)
+	}
+
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s&email=%s",
+		strings.TrimSuffix(u.webBaseURL, "/"), url.QueryEscape(rawToken), url.QueryEscape(email))
+	body := fmt.Sprintf(
+		"Hi %s,\n\nSomeone requested a password reset for your Memoria account. If this was you, use the link below within 30 minutes to set a new password:\n\n%s\n\nIf you didn't request this, you can safely ignore this email.",
+		user.Name, resetLink,
+	)
+	if err := u.mailer.Send(ctx, email, "Reset your Memoria password", body); err != nil {
+		return fmt.Errorf("sending reset email: %w", err)
+	}
+	return nil
+}
+
+// ResetPassword implements [AuthUsecase].
+func (u *authUsecase) ResetPassword(ctx context.Context, input ResetPasswordInput) error {
+	identifier := passwordResetIdentifier(input.Email)
+	verification, err := u.verifications.GetValid(ctx, identifier, u.refreshTokenGen.Hash(input.Token))
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return errs.ErrInvalidToken
+		}
+		return fmt.Errorf("validating reset token: %w", err)
+	}
+
+	user, err := u.users.GetByEmail(ctx, input.Email)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return errs.ErrInvalidToken
+		}
+		return fmt.Errorf("resolving email: %w", err)
+	}
+
+	passwordHash, err := u.hasher.Hash(input.NewPassword)
+	if err != nil {
+		return fmt.Errorf("hashing new password: %w", err)
+	}
+	if err := u.userAccounts.UpdatePasswordHash(ctx, user.ID, passwordHash); err != nil {
+		return fmt.Errorf("updating password: %w", err)
+	}
+
+	// Best-effort from here: the password change already succeeded,
+	// none of this should turn a successful reset into an error
+	// response.
+	if err := u.verifications.Delete(context.WithoutCancel(ctx), verification.ID); err != nil {
+		slog.WarnContext(ctx, "failed to consume password reset token", "error", err)
+	}
+	if err := u.userAccounts.ResetFailedLoginAttempts(context.WithoutCancel(ctx), user.ID); err != nil {
+		slog.WarnContext(ctx, "failed to clear login lockout after password reset", "error", err)
+	}
+	// Force re-login everywhere — a password reset is exactly the
+	// moment a stolen session should stop working.
+	if err := u.refreshTokens.RevokeAllByUserID(context.WithoutCancel(ctx), user.ID); err != nil {
+		slog.WarnContext(ctx, "failed to revoke sessions after password reset", "error", err)
+	}
+
 	return nil
 }

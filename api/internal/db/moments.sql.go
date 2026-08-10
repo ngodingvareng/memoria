@@ -439,6 +439,100 @@ func (q *Queries) ListCircleMoments(ctx context.Context, arg ListCircleMomentsPa
 	return items, nil
 }
 
+const listHomeFeedMoments = `-- name: ListHomeFeedMoments :many
+WITH member_circle_ids AS (
+    SELECT cm.circle_id
+    FROM circle_members cm
+    WHERE cm.user_id = $3
+        AND cm.left_at IS NULL
+),
+home_feed_moment_ids AS (
+    SELECT m.id
+    FROM moments m
+    WHERE m.user_id = $3
+        AND m.deleted_at IS NULL
+    UNION
+    SELECT m.id
+    FROM moments m
+        JOIN threads t ON t.id = m.thread_id
+    WHERE t.circle_id IN (SELECT mci.circle_id FROM member_circle_ids mci)
+        AND m.deleted_at IS NULL
+    UNION
+    SELECT mc.moment_id AS id
+    FROM moment_circles mc
+        JOIN moments m ON m.id = mc.moment_id
+    WHERE mc.circle_id IN (SELECT mci.circle_id FROM member_circle_ids mci)
+        AND m.deleted_at IS NULL
+    UNION
+    SELECT mm.moment_id AS id
+    FROM moment_mentions mm
+        JOIN moments m ON m.id = mm.moment_id
+    WHERE mm.mentioned_user_id = $3
+        AND mm.removed_at IS NULL
+        AND m.deleted_at IS NULL
+)
+SELECT moments.id, moments.user_id, moments.thread_id, moments.origin, moments.occurred_at, moments.occurred_local, moments.occurred_utc_offset_minutes, moments.occurred_on, moments.recorded_at, moments.settling_time, moments.note, moments.color_hex, moments.place_name, moments.latitude, moments.longitude, moments.search_document, moments.client_id, moments.last_viewed_at, moments.created_at, moments.updated_at, moments.deleted_at
+FROM moments
+    JOIN home_feed_moment_ids hfmi ON hfmi.id = moments.id
+ORDER BY moments.occurred_at DESC
+LIMIT $2
+OFFSET $1
+`
+
+type ListHomeFeedMomentsParams struct {
+	PageOffset int32
+	PageLimit  int32
+	UserID     uuid.UUID
+}
+
+// The home feed: every Moment reachable by this user — their own,
+// every Moment in a Circle they're an active member of (its
+// collaborative Threads, plus personal Moments shared into it via the
+// mention flow — mirrors ListCircleMoments' union, just across every
+// Circle the user belongs to instead of one), and every Moment they're
+// actively mentioned in. Newest occurrence first.
+func (q *Queries) ListHomeFeedMoments(ctx context.Context, arg ListHomeFeedMomentsParams) ([]Moment, error) {
+	rows, err := q.db.Query(ctx, listHomeFeedMoments, arg.PageOffset, arg.PageLimit, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Moment{}
+	for rows.Next() {
+		var i Moment
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ThreadID,
+			&i.Origin,
+			&i.OccurredAt,
+			&i.OccurredLocal,
+			&i.OccurredUtcOffsetMinutes,
+			&i.OccurredOn,
+			&i.RecordedAt,
+			&i.SettlingTime,
+			&i.Note,
+			&i.ColorHex,
+			&i.PlaceName,
+			&i.Latitude,
+			&i.Longitude,
+			&i.SearchDocument,
+			&i.ClientID,
+			&i.LastViewedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMomentVisibleCircleIDs = `-- name: ListMomentVisibleCircleIDs :many
 WITH candidate_circles AS (
     SELECT t.circle_id AS circle_id
