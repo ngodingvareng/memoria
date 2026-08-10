@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { ApiError } from '@/lib/api-client';
+import { getApiErrorMessage } from '@/lib/api-client';
 import {
   getGetCirclesIdInviteLinkQueryKey,
   useGetCirclesIdInviteLink,
@@ -44,11 +44,7 @@ export function InviteLinkPanel({ circleId }: InviteLinkPanelProps) {
       setFreshToken(result.token ?? null);
       await invalidate();
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Failed to create the invite link.'
-      );
+      setError(getApiErrorMessage(err, 'Failed to create the invite link.'));
     }
   };
 
@@ -61,11 +57,7 @@ export function InviteLinkPanel({ circleId }: InviteLinkPanelProps) {
       });
       await invalidate();
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Failed to update the invite link.'
-      );
+      setError(getApiErrorMessage(err, 'Failed to update the invite link.'));
     }
   };
 

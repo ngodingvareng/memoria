@@ -21,7 +21,7 @@ import {
   useInlineMentionAutocomplete,
 } from '@/features/mentions';
 import { ThreadPickerField } from '@/features/threads';
-import { ApiError } from '@/lib/api-client';
+import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse } from '@/lib/api/generated/models';
 import {
   getGetMomentsQueryKey,
@@ -52,7 +52,7 @@ export function CreateMomentForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
   const noteChangeRef = useRef<(value: string) => void>(() => {});
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { error: submitError, guard } = useFormSubmitError();
   const [selectedThread, setSelectedThread] =
     useState<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse | null>(
       null
@@ -75,9 +75,8 @@ export function CreateMomentForm() {
     validators: {
       onSubmit: formSchema,
     },
-    onSubmit: async ({ value }) => {
-      setSubmitError(null);
-      try {
+    onSubmit: ({ value }) =>
+      guard(async () => {
         const { occurredAt, offsetMinutes } = toRFC3339WithOffset(
           value.occurredAt
         );
@@ -113,16 +112,7 @@ export function CreateMomentForm() {
           queryKey: getGetMomentsQueryKey(),
         });
         navigate({ to: '/' });
-      } catch (err) {
-        if (err instanceof ApiError) {
-          setSubmitError(
-            err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message
-          );
-        } else {
-          setSubmitError('Something went wrong. Please try again.');
-        }
-      }
-    },
+      }),
   });
 
   return (

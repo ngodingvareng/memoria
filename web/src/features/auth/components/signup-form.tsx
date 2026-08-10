@@ -10,7 +10,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
-import { ApiError } from '@/lib/api-client';
+import { ApiError, getApiErrorMessage } from '@/lib/api-client';
 import { setSession } from '@/lib/session';
 import { useForm } from '@tanstack/react-form';
 import { Link, useNavigate } from '@tanstack/react-router';
@@ -63,16 +63,11 @@ export function SignupForm() {
         setSession(toSession(data));
         navigate({ to: '/welcome' });
       } catch (err) {
-        if (err instanceof ApiError) {
-          setSubmitError(
-            err.status === 409
-              ? 'An account with this email already exists.'
-              : (err.fieldErrors?.map((e) => e.message).join(' ') ??
-                  err.message)
-          );
-        } else {
-          setSubmitError('Something went wrong. Please try again.');
-        }
+        setSubmitError(
+          err instanceof ApiError && err.status === 409
+            ? 'An account with this email already exists.'
+            : getApiErrorMessage(err, 'Something went wrong. Please try again.')
+        );
       }
     },
   });

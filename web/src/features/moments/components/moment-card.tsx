@@ -1,13 +1,4 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmDestructiveDialog } from '@/components/dialogs/confirm-destructive-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -29,13 +20,7 @@ import {
   ItemFooter,
   ItemHeader,
 } from '@/components/ui/item';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  AddMentionButton,
-  MentionAutocompletePopover,
-  renderTextWithMentions,
-  useInlineMentionAutocomplete,
-} from '@/features/mentions';
+import { renderTextWithMentions } from '@/features/mentions';
 import {
   CommentAuthorsAvatarGroup,
   ReactionPicker,
@@ -50,9 +35,7 @@ import {
   getGetMomentsQueryKey,
   useGetMomentsIdImages,
 } from '@/lib/api/generated/moments/moments';
-import { hexToRgba } from '@/lib/colors';
 import { queryClient } from '@/lib/query-client';
-import { cn } from '@/lib/utils';
 import {
   ArrowRight01Icon,
   Comment02Icon,
@@ -67,7 +50,9 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 import React from 'react';
 import { ColorSwatchPicker } from './color-swatch-picker';
+import { MomentCardCover } from './moment-card-cover';
 import { MomentImagesDialog } from './moment-images-dialog';
+import { MomentNoteEditor } from './moment-note-editor';
 import { useMomentAudience } from '../lib/use-moment-audience';
 
 interface MomentCardProps {
@@ -117,15 +102,10 @@ export function MomentCard({
   const [isImagesDialogOpen, setIsImagesDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isEditingNote, setIsEditingNote] = React.useState(false);
-  const [noteDraft, setNoteDraft] = React.useState(content);
-  const [isSaving, setIsSaving] = React.useState(false);
   const [isLeavingMention, setIsLeavingMention] = React.useState(false);
-  const [actionError, setActionError] = React.useState<string | null>(null);
-  const noteTextareaRef = React.useRef<HTMLTextAreaElement>(null);
-  const mentionAutocomplete = useInlineMentionAutocomplete({
-    onChange: setNoteDraft,
-    textareaRef: noteTextareaRef,
-  });
+  const [colorChangeError, setColorChangeError] = React.useState<string | null>(
+    null
+  );
   const imagesQuery = useGetMomentsIdImages(id ?? '', {
     query: { enabled: !!id },
   });
@@ -133,34 +113,6 @@ export function MomentCard({
     .map((image) => image.url)
     .filter((url): url is string => !!url);
   const coverImage = images[images.length - 1];
-  // Fades the cover image in once it's actually decoded instead of
-  // popping in mid-layout — most noticeable scrolling fast through a
-  // freshly-loaded page of cards, where several images finish loading
-  // at once.
-  const [isCoverImageLoaded, setIsCoverImageLoaded] = React.useState(false);
-  React.useEffect(() => {
-    setIsCoverImageLoaded(false);
-  }, [coverImage]);
-
-  const coverButtonRef = React.useRef<HTMLButtonElement>(null);
-  const coverLabelRef = React.useRef<HTMLDivElement>(null);
-  const [isCoverCompact, setIsCoverCompact] = React.useState(true);
-
-  React.useLayoutEffect(() => {
-    const button = coverButtonRef.current;
-    const label = coverLabelRef.current;
-    if (!button || !label) return;
-
-    const update = () => {
-      setIsCoverCompact(button.offsetHeight <= label.offsetHeight + 10);
-    };
-    update();
-
-    const observer = new ResizeObserver(update);
-    observer.observe(button);
-    observer.observe(label);
-    return () => observer.disconnect();
-  }, []);
 
   // Comment/Reaction only make sense once this Moment actually has an
   // audience: it lives in a Circle-owned thread, or it names a mention
@@ -190,44 +142,12 @@ export function MomentCard({
 
   const leaveMention = usePostMomentsIdMentionsLeave();
 
-  const startEditingNote = () => {
-    setActionError(null);
-    setNoteDraft(content);
-    setIsEditingNote(true);
-  };
-
-  const handleSaveNote = async () => {
-    setActionError(null);
-    setIsSaving(true);
-    try {
-      await onEditNote?.(noteDraft);
-      setIsEditingNote(false);
-    } catch {
-      setActionError('Failed to save. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const handleColorChange = async (hex: string) => {
-    setActionError(null);
+    setColorChangeError(null);
     try {
       await onEditColor?.(hex);
     } catch {
-      setActionError('Failed to update color. Please try again.');
-    }
-  };
-
-  const handleDelete = async () => {
-    setActionError(null);
-    setIsSaving(true);
-    try {
-      await onDelete?.();
-      setIsDeleteDialogOpen(false);
-    } catch {
-      setActionError('Failed to delete this moment. Please try again.');
-    } finally {
-      setIsSaving(false);
+      setColorChangeError('Failed to update color. Please try again.');
     }
   };
 
@@ -266,7 +186,9 @@ export function MomentCard({
                   <DropdownMenuGroup>
                     {canManage ? (
                       <>
-                        <DropdownMenuItem onClick={startEditingNote}>
+                        <DropdownMenuItem
+                          onClick={() => setIsEditingNote(true)}
+                        >
                           <HugeiconsIcon strokeWidth={2} icon={Edit04Icon} />
                           Edit content
                         </DropdownMenuItem>
@@ -311,77 +233,12 @@ export function MomentCard({
               </DropdownMenu>
             </div>
           )}
-          <button
-            ref={coverButtonRef}
-            type="button"
-            disabled={!coverImage}
-            onClick={() => setIsImagesDialogOpen(true)}
-            style={{
-              backgroundColor: colorHex ? hexToRgba(colorHex, 1) : undefined,
-            }}
-            className={cn(
-              'max-w-2xs flex flex-none flex-col rounded-xl w-full overflow-hidden relative isolate text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
-              !colorHex && 'bg-gray-500',
-              coverImage && 'cursor-pointer'
-            )}
-          >
-            <div
-              ref={coverLabelRef}
-              className="items-end text-right text-white flex flex-col gap-1 flex-none relative z-10 px-4 py-3.5"
-            >
-              <div className="flex flex-col">
-                <p className="font-bold text-lg">
-                  {capturedAt.toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </p>
-                <p className="font-medium text-xl/4">
-                  {capturedAt.toLocaleTimeString('id-ID', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
-              </div>
-            </div>
-            {coverImage && (
-              <div
-                className={cn(
-                  'absolute inset-x-0 bottom-0 z-0',
-                  isCoverCompact ? 'top-0' : 'h-2/3'
-                )}
-              >
-                <div
-                  className="absolute inset-0 z-10"
-                  style={
-                    isCoverCompact
-                      ? {
-                          backgroundColor: colorHex
-                            ? hexToRgba(colorHex, 0.8)
-                            : 'color-mix(in srgb, #6b7280 40%, transparent)',
-                        }
-                      : {
-                          backgroundImage: colorHex
-                            ? `linear-gradient(to bottom, ${hexToRgba(colorHex, 1)}, ${hexToRgba(colorHex, 0.4)})`
-                            : `linear-gradient(to bottom, #6b7280, color-mix(in srgb, #6b7280 40%, transparent))`,
-                        }
-                  }
-                />
-                <img
-                  src={coverImage}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  onLoad={() => setIsCoverImageLoaded(true)}
-                  className={cn(
-                    'absolute inset-0 size-full object-cover transition-opacity duration-300',
-                    isCoverImageLoaded ? 'opacity-100' : 'opacity-0'
-                  )}
-                />
-              </div>
-            )}
-          </button>
+          <MomentCardCover
+            colorHex={colorHex}
+            capturedAt={capturedAt}
+            coverImage={coverImage}
+            onOpen={() => setIsImagesDialogOpen(true)}
+          />
           <Item className="grow pt-1 pb-0">
             {showHeader && (
               <ItemHeader className="-ml-1">
@@ -428,61 +285,22 @@ export function MomentCard({
             )}
             <ItemContent className="max-w-none gap-2">
               {isEditingNote ? (
-                <div className="flex flex-col gap-2">
-                  <Textarea
-                    ref={noteTextareaRef}
-                    value={noteDraft}
-                    onChange={mentionAutocomplete.handleChange}
-                    onKeyDown={mentionAutocomplete.handleKeyDown}
-                    onClick={mentionAutocomplete.handleSelectionChange}
-                    onKeyUp={mentionAutocomplete.handleSelectionChange}
-                    maxLength={10000}
-                    autoFocus
-                    className="text-base min-h-24"
-                    disabled={isSaving}
-                  />
-                  <MentionAutocompletePopover
-                    anchorRef={noteTextareaRef}
-                    open={mentionAutocomplete.isOpen}
-                    onOpenChange={(open) =>
-                      !open && mentionAutocomplete.closeSuggestions()
-                    }
-                    users={mentionAutocomplete.suggestions}
-                    activeIndex={mentionAutocomplete.activeIndex}
-                    isLoading={mentionAutocomplete.isLoading}
-                    onSelect={mentionAutocomplete.handleSelect}
-                  />
-                  <div className="flex gap-2 justify-between">
-                    <AddMentionButton
-                      onInsert={mentionAutocomplete.insertAtCursor}
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled={isSaving}
-                        onClick={() => setIsEditingNote(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="sm"
-                        disabled={isSaving}
-                        onClick={handleSaveNote}
-                      >
-                        Save
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                <MomentNoteEditor
+                  content={content}
+                  onCancel={() => setIsEditingNote(false)}
+                  onSave={async (note) => {
+                    await onEditNote?.(note);
+                    setIsEditingNote(false);
+                  }}
+                />
               ) : (
                 <p className="whitespace-pre-wrap text-base/7">
                   {renderTextWithMentions(content)}
                 </p>
               )}
-              {actionError && (
+              {colorChangeError && (
                 <Alert variant="destructive">
-                  <AlertDescription>{actionError}</AlertDescription>
+                  <AlertDescription>{colorChangeError}</AlertDescription>
                 </Alert>
               )}
             </ItemContent>
@@ -511,34 +329,17 @@ export function MomentCard({
           images={images}
         />
       )}
-      <AlertDialog
+      <ConfirmDestructiveDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this moment?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This can&apos;t be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {actionError && (
-            <Alert variant="destructive">
-              <AlertDescription>{actionError}</AlertDescription>
-            </Alert>
-          )}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSaving}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isSaving}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        title="Delete this moment?"
+        description="This can't be undone."
+        confirmLabel="Delete"
+        errorFallback="Failed to delete this moment. Please try again."
+        onConfirm={async () => {
+          await onDelete?.();
+        }}
+      />
     </Item>
   );
 }

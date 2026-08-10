@@ -1,7 +1,7 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ThreadHero } from './thread-hero';
-import { ApiError } from '@/lib/api-client';
+import { getApiErrorMessage } from '@/lib/api-client';
 import {
   getGetThreadsIdImagesQueryKey,
   useDeleteThreadsIdImagesImageId,
@@ -48,9 +48,10 @@ export function EditThreadHero({
       });
     } catch (err) {
       setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Failed to update the cover image. Please try again.'
+        getApiErrorMessage(
+          err,
+          'Failed to update the cover image. Please try again.'
+        )
       );
     }
   };

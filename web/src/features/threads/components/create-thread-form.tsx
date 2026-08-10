@@ -17,11 +17,10 @@ import {
   InputGroupInput,
   InputGroupText,
 } from '@/components/ui/input-group';
-import { ApiError } from '@/lib/api-client';
+import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import { queryClient } from '@/lib/query-client';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
 import * as z from 'zod';
 
 const formSchema = z.object({
@@ -37,7 +36,7 @@ interface CreateThreadFormProps {
 
 export function CreateThreadForm({ circleId }: CreateThreadFormProps = {}) {
   const navigate = useNavigate();
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { error: submitError, guard } = useFormSubmitError();
   const createThreadMutation = usePostThreads();
 
   const form = useForm({
@@ -47,9 +46,8 @@ export function CreateThreadForm({ circleId }: CreateThreadFormProps = {}) {
     validators: {
       onSubmit: formSchema,
     },
-    onSubmit: async ({ value }) => {
-      setSubmitError(null);
-      try {
+    onSubmit: ({ value }) =>
+      guard(async () => {
         const thread = await createThreadMutation.mutateAsync({
           data: { name: value.name, circle_id: circleId },
         });
@@ -59,16 +57,7 @@ export function CreateThreadForm({ circleId }: CreateThreadFormProps = {}) {
             : getGetThreadsQueryKey(),
         });
         navigate({ to: '/thread/$id', params: { id: thread.id! } });
-      } catch (err) {
-        if (err instanceof ApiError) {
-          setSubmitError(
-            err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message
-          );
-        } else {
-          setSubmitError('Something went wrong. Please try again.');
-        }
-      }
-    },
+      }),
   });
   return (
     <>

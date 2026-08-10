@@ -1,7 +1,7 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ApiError } from '@/lib/api-client';
+import { getApiErrorMessage } from '@/lib/api-client';
 import {
   getGetUserByIDQueryKey,
   useUploadProfileImage,
@@ -45,9 +45,10 @@ export function ProfileImageUploader({
       }
     } catch (err) {
       setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Failed to update your photo. Please try again.'
+        getApiErrorMessage(
+          err,
+          'Failed to update your photo. Please try again.'
+        )
       );
     }
   };

@@ -7,7 +7,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { ApiError } from '@/lib/api-client';
+import { getApiErrorMessage } from '@/lib/api-client';
 import { getGetCirclesIdMembersQueryKey } from '@/lib/api/generated/circles/circles';
 import { usePostCirclesIdMembersDirect } from '@/lib/api/generated/circle-invites/circle-invites';
 import { queryClient } from '@/lib/query-client';
@@ -53,9 +53,7 @@ export function InviteDirectForm({ circleId }: InviteDirectFormProps) {
         queryKey: getGetCirclesIdMembersQueryKey(circleId),
       });
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : 'Failed to invite these users.'
-      );
+      setError(getApiErrorMessage(err, 'Failed to invite these users.'));
     }
   };
 

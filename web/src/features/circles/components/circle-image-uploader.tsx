@@ -1,7 +1,7 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { CircleProfileImage } from './circle-profile-image';
-import { ApiError } from '@/lib/api-client';
+import { getApiErrorMessage } from '@/lib/api-client';
 import {
   getGetCirclesIdQueryKey,
   usePostCirclesIdImage,
@@ -42,9 +42,10 @@ export function CircleImageUploader({
       });
     } catch (err) {
       setError(
-        err instanceof ApiError
-          ? err.message
-          : "Failed to update this circle's photo. Please try again."
+        getApiErrorMessage(
+          err,
+          "Failed to update this circle's photo. Please try again."
+        )
       );
     }
   };

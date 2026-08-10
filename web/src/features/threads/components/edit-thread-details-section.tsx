@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ApiError } from '@/lib/api-client';
+import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse } from '@/lib/api/generated/models';
 import {
   getGetThreadsIdQueryKey,
@@ -17,7 +17,6 @@ import {
 } from '@/lib/api/generated/threads/threads';
 import { queryClient } from '@/lib/query-client';
 import { useForm } from '@tanstack/react-form';
-import { useState } from 'react';
 import * as z from 'zod';
 
 interface EditThreadDetailsSectionProps {
@@ -43,7 +42,7 @@ export function EditThreadDetailsSection({
   threadId,
   thread,
 }: EditThreadDetailsSectionProps) {
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { error: submitError, guard } = useFormSubmitError();
   const updateThread = usePutThreadsId();
 
   const form = useForm({
@@ -52,9 +51,8 @@ export function EditThreadDetailsSection({
       color_hex: thread.color_hex ?? '',
     },
     validators: { onSubmit: formSchema },
-    onSubmit: async ({ value }) => {
-      setSubmitError(null);
-      try {
+    onSubmit: ({ value }) =>
+      guard(async () => {
         await updateThread.mutateAsync({
           id: threadId,
           data: {
@@ -71,14 +69,7 @@ export function EditThreadDetailsSection({
             queryKey: getGetThreadsQueryKey(),
           }),
         ]);
-      } catch (err) {
-        setSubmitError(
-          err instanceof ApiError
-            ? (err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message)
-            : 'Something went wrong. Please try again.'
-        );
-      }
-    },
+      }),
   });
 
   return (

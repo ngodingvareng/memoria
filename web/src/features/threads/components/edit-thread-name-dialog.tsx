@@ -16,7 +16,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { ApiError } from '@/lib/api-client';
+import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse } from '@/lib/api/generated/models';
 import {
   getGetThreadsIdQueryKey,
@@ -47,15 +47,18 @@ export function EditThreadNameDialog({
   thread,
 }: EditThreadNameDialogProps) {
   const [open, setOpen] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const {
+    error: submitError,
+    guard,
+    clear: clearSubmitError,
+  } = useFormSubmitError();
   const updateThread = usePutThreadsId();
 
   const form = useForm({
     defaultValues: { name: thread.name ?? '' },
     validators: { onSubmit: formSchema },
-    onSubmit: async ({ value }) => {
-      setSubmitError(null);
-      try {
+    onSubmit: ({ value }) =>
+      guard(async () => {
         await updateThread.mutateAsync({
           id: threadId,
           data: {
@@ -73,14 +76,7 @@ export function EditThreadNameDialog({
           }),
         ]);
         setOpen(false);
-      } catch (err) {
-        setSubmitError(
-          err instanceof ApiError
-            ? (err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message)
-            : 'Something went wrong. Please try again.'
-        );
-      }
-    },
+      }),
   });
 
   return (
@@ -90,7 +86,7 @@ export function EditThreadNameDialog({
         setOpen(next);
         if (next) {
           form.reset();
-          setSubmitError(null);
+          clearSubmitError();
         }
       }}
     >

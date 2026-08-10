@@ -17,7 +17,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from '@/components/ui/input-group';
-import { ApiError } from '@/lib/api-client';
+import { ApiError, getApiErrorMessage } from '@/lib/api-client';
 import { getSession, setSession } from '@/lib/session';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
@@ -62,16 +62,11 @@ export function WelcomeForm() {
         setSession({ ...session, user: toSessionUser(user) });
         navigate({ to: '/' });
       } catch (err) {
-        if (err instanceof ApiError) {
-          setSubmitError(
-            err.status === 409
-              ? 'That username was just taken — try another.'
-              : (err.fieldErrors?.map((e) => e.message).join(' ') ??
-                  err.message)
-          );
-        } else {
-          setSubmitError('Something went wrong. Please try again.');
-        }
+        setSubmitError(
+          err instanceof ApiError && err.status === 409
+            ? 'That username was just taken — try another.'
+            : getApiErrorMessage(err, 'Something went wrong. Please try again.')
+        );
       }
     },
   });

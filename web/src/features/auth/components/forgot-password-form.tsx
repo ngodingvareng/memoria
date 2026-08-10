@@ -8,7 +8,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
-import { ApiError } from '@/lib/api-client';
+import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import { useForgotPassword } from '@/lib/api/generated/auth/auth';
 import { useForm } from '@tanstack/react-form';
 import { Link } from '@tanstack/react-router';
@@ -23,29 +23,21 @@ const formSchema = z.object({
 });
 
 export function ForgotPasswordForm() {
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { error: submitError, guard } = useFormSubmitError();
   const [sent, setSent] = useState(false);
   const forgotPassword = useForgotPassword();
 
   const form = useForm({
     defaultValues: { email: '' },
     validators: { onSubmit: formSchema },
-    onSubmit: async ({ value }) => {
-      setSubmitError(null);
-      try {
+    onSubmit: ({ value }) =>
+      guard(async () => {
         await forgotPassword.mutateAsync({ data: { email: value.email } });
         // The backend responds identically whether or not the email is
         // registered — this screen must too, or it becomes an oracle
         // for probing which emails have accounts.
         setSent(true);
-      } catch (err) {
-        setSubmitError(
-          err instanceof ApiError
-            ? (err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message)
-            : 'Something went wrong. Please try again.'
-        );
-      }
-    },
+      }),
   });
 
   if (sent) {

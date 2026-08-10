@@ -1,14 +1,5 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmDestructiveDialog } from '@/components/dialogs/confirm-destructive-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
 import { CircleNameLabel } from '@/features/circles';
-import { ApiError } from '@/lib/api-client';
+import { getApiErrorMessage } from '@/lib/api-client';
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCommentResponse } from '@/lib/api/generated/models';
 import {
   getGetMomentsIdCommentsQueryKey,
@@ -87,26 +78,7 @@ export function CommentRow({
       setIsEditing(false);
       await invalidate();
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Failed to save. Please try again.'
-      );
-    }
-  };
-
-  const handleDelete = async () => {
-    setError(null);
-    try {
-      await deleteComment.mutateAsync({ id: momentId, commentId: comment.id! });
-      setIsDeleteOpen(false);
-      await invalidate();
-    } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Failed to delete. Please try again.'
-      );
+      setError(getApiErrorMessage(err, 'Failed to save. Please try again.'));
     }
   };
 
@@ -198,26 +170,21 @@ export function CommentRow({
           </Alert>
         )}
       </div>
-      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this comment?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This can&apos;t be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteComment.isPending}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDestructiveDialog
+        open={isDeleteOpen}
+        onOpenChange={setIsDeleteOpen}
+        title="Delete this comment?"
+        description="This can't be undone."
+        confirmLabel="Delete"
+        errorFallback="Failed to delete. Please try again."
+        onConfirm={async () => {
+          await deleteComment.mutateAsync({
+            id: momentId,
+            commentId: comment.id!,
+          });
+          await invalidate();
+        }}
+      />
     </div>
   );
 }
