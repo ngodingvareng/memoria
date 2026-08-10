@@ -7,7 +7,7 @@ import {
   useMomentAudience,
   type AudienceContext,
 } from '@/features/moments/lib/use-moment-audience';
-import { ApiError } from '@/lib/api-client';
+import { getApiErrorMessage } from '@/lib/api-client';
 import {
   getGetMomentsIdCommentsQueryKey,
   usePostMomentsIdComments,
@@ -50,9 +50,7 @@ export function CommentInput({ momentId }: CommentInputProps) {
       });
     } catch (err) {
       setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Failed to post comment. Please try again.'
+        getApiErrorMessage(err, 'Failed to post comment. Please try again.')
       );
     }
   };

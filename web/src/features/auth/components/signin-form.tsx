@@ -16,7 +16,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group';
-import { ApiError } from '@/lib/api-client';
+import { ApiError, getApiErrorMessage } from '@/lib/api-client';
 import { setSession } from '@/lib/session';
 import { ViewIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -52,16 +52,11 @@ export function SigninForm() {
         setSession(toSession(data));
         navigate({ to: '/' });
       } catch (err) {
-        if (err instanceof ApiError) {
-          setSubmitError(
-            err.status === 401
-              ? 'Incorrect email or password.'
-              : (err.fieldErrors?.map((e) => e.message).join(' ') ??
-                  err.message)
-          );
-        } else {
-          setSubmitError('Something went wrong. Please try again.');
-        }
+        setSubmitError(
+          err instanceof ApiError && err.status === 401
+            ? 'Incorrect email or password.'
+            : getApiErrorMessage(err, 'Something went wrong. Please try again.')
+        );
       }
     },
   });

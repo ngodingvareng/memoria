@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ApiError } from '@/lib/api-client';
+import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCircleResponse } from '@/lib/api/generated/models';
 import {
   getGetCirclesIdQueryKey,
@@ -17,7 +17,6 @@ import {
 } from '@/lib/api/generated/circles/circles';
 import { queryClient } from '@/lib/query-client';
 import { useForm } from '@tanstack/react-form';
-import { useState } from 'react';
 import * as z from 'zod';
 
 interface EditCircleDetailsFormProps {
@@ -47,7 +46,7 @@ export function EditCircleDetailsForm({
   circleId,
   circle,
 }: EditCircleDetailsFormProps) {
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { error: submitError, guard } = useFormSubmitError();
   const updateCircle = usePutCirclesId();
 
   const form = useForm({
@@ -57,9 +56,8 @@ export function EditCircleDetailsForm({
       color_hex: circle.color_hex ?? '',
     },
     validators: { onSubmit: formSchema },
-    onSubmit: async ({ value }) => {
-      setSubmitError(null);
-      try {
+    onSubmit: ({ value }) =>
+      guard(async () => {
         await updateCircle.mutateAsync({
           id: circleId,
           data: {
@@ -76,14 +74,7 @@ export function EditCircleDetailsForm({
             queryKey: getGetCirclesQueryKey(),
           }),
         ]);
-      } catch (err) {
-        setSubmitError(
-          err instanceof ApiError
-            ? (err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message)
-            : 'Something went wrong. Please try again.'
-        );
-      }
-    },
+      }),
   });
 
   return (

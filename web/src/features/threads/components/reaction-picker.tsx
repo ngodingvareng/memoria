@@ -16,7 +16,7 @@ import {
   useMomentAudience,
   type AudienceContext,
 } from '@/features/moments/lib/use-moment-audience';
-import { ApiError } from '@/lib/api-client';
+import { getApiErrorMessage } from '@/lib/api-client';
 import {
   getGetMomentsIdReactionsQueryKey,
   useDeleteMomentsIdReactions,
@@ -70,11 +70,7 @@ export function ReactionPicker({ momentId }: ReactionPickerProps) {
         queryKey: getGetMomentsIdReactionsQueryKey(momentId),
       });
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Failed to react. Please try again.'
-      );
+      setError(getApiErrorMessage(err, 'Failed to react. Please try again.'));
     }
   };
 

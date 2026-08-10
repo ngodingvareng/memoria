@@ -7,7 +7,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { InputGroup, InputGroupInput } from '@/components/ui/input-group';
-import { ApiError } from '@/lib/api-client';
+import { ApiError, getApiErrorMessage } from '@/lib/api-client';
 import { useResetPassword } from '@/lib/api/generated/auth/auth';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
@@ -40,12 +40,9 @@ export function ResetPasswordForm({ email, token }: ResetPasswordFormProps) {
         navigate({ to: '/signin' });
       } catch (err) {
         setSubmitError(
-          err instanceof ApiError
-            ? err.status === 401
-              ? 'This reset link is invalid or has expired. Request a new one.'
-              : (err.fieldErrors?.map((e) => e.message).join(' ') ??
-                err.message)
-            : 'Something went wrong. Please try again.'
+          err instanceof ApiError && err.status === 401
+            ? 'This reset link is invalid or has expired. Request a new one.'
+            : getApiErrorMessage(err, 'Something went wrong. Please try again.')
         );
       }
     },

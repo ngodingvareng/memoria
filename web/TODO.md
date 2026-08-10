@@ -8,14 +8,13 @@ Remaining work, ordered by priority (build-breaking first, core product features
 
 ## Tier 2 — Core product wired to real API
 
-`web/` now has the pattern for this (Orval-generated types/hooks + TanStack Query, see the auth flow: `src/lib/api/generated/auth`, `src/lib/api/mutator.ts`) — every other domain is still rendering `src/lib/dummies.tsx` or inline mock data (`dummyThreadStories` in `$username.tsx`, the hardcoded "336k threads", "Confirmations 19", "Moment Today" cards on the home route, etc.). The corresponding `api/` endpoints exist for Thread/Moment CRUD per `api/TODO.md`; Circles and the rest need checking against `api/TODO.md` per-endpoint before wiring.
+`web/` now has the pattern for this (Orval-generated types/hooks + TanStack Query, see the auth flow: `src/lib/api/generated/auth`, `src/lib/api/mutator.ts`) — `src/lib/dummies.tsx` is gone, but several surfaces still render inline mock data (`dummyThreadStories` in `$username.tsx`, the hardcoded "336k threads", "Confirmations 19", "Moment Today" cards on the home route, etc.). The corresponding `api/` endpoints exist for Thread/Moment CRUD per `api/TODO.md`; Circles and the rest need checking against `api/TODO.md` per-endpoint before wiring.
 
 - [ ] **Threads** — `thread.index.tsx`, `thread.new.tsx`, `thread.$id.index.tsx`, `thread.$id.info.tsx`.
 - [ ] **Moments** — `moment.new.tsx`, `thread.$id.moments.$momentId.tsx`.
 - [ ] **Circles** — `circle.index.tsx`, `circle.new.tsx`, `_circle/c.$id.*.tsx` (index, thread, member, settings, invite, join).
 - [ ] **Home / profile** — `_app/index.tsx` and `_app/$username.tsx`: heatmap, Confirmations, Threads, Moment Today, Last Moments — all hardcoded right now.
-- [ ] **Mentions, Notifications, Album, Search, Recap, Rhythms (stats)** — still scaffolding/dummy per their route files; check `api/TODO.md` first since the statistics endpoints (heatmap/Time to Tell) aren't implemented backend-side yet either.
-- [ ] Delete `src/lib/dummies.tsx` once nothing imports from it.
+- [ ] **Mentions, Notifications, Album, Search, Recap, Rhythms (stats)** — still scaffolding/dummy per their route files; check `api/TODO.md` first since the statistics endpoints (heatmap/Time to Tell) aren't implemented backend-side yet either. `moment-heatmap.tsx` in particular is ~1800 lines of hand-written fake calendar data for `react-activity-calendar` — replace with real data once the heatmap endpoint exists, don't just trim it.
 
 ## Tier 3 — Auth/session completeness
 
@@ -28,7 +27,7 @@ Remaining work, ordered by priority (build-breaking first, core product features
 
 - [ ] No test runner configured at all (per root `CLAUDE.md`) — `web/` has zero automated tests. `web-test.yaml` only does a generated-API-client drift check + build; nothing exercises actual app behavior.
 - [ ] No lint/format CI check — `bun run lint` (oxlint) and `bun run format:check` (prettier) exist as scripts but aren't wired into any workflow yet.
-- [ ] No centralized error/toast strategy — every form repeats the same `ApiError` → message mapping in its own `submitError` state (`signin-form.tsx`, `signup-form.tsx`, `welcome-form.tsx`). Fine at three forms; worth a shared helper once Tier 2 adds more mutations.
+- [x] ~~No centralized error/toast strategy — every form repeats the same `ApiError` → message mapping in its own `submitError` state~~ — done: `getApiErrorMessage(err, fallback)` in `src/lib/api-client.ts` centralizes the message mapping, and `useFormSubmitError` in `src/hooks/use-form-submit-error.ts` wraps the `submitError` state + try/catch boilerplate itself for create/edit forms (`create-thread-form.tsx`, `create-circle-form.tsx`, `edit-circle-details-form.tsx`, `edit-thread-details-section.tsx`, `edit-thread-name-dialog.tsx`, `create-moment-form.tsx`, `forgot-password-form.tsx`). The three auth forms with status-code-specific branches (`signin-form.tsx`, `signup-form.tsx`, `welcome-form.tsx`) still special-case a status before falling back to `getApiErrorMessage`. There's also a shared `ConfirmDestructiveDialog` (`src/components/dialogs/confirm-destructive-dialog.tsx`) for the delete/dissolve confirmation pattern, used by `delete-thread-dialog.tsx`, `dissolve-circle-dialog.tsx`, `comment-row.tsx`, and `moment-card.tsx`.
 - [ ] `api/`'s `swagger.json` freshness isn't checked anywhere — nothing catches a Go handler's swag annotations drifting from the committed `docs/swagger.json` (a `check-swagger` job mirroring `check-mocks`, on the `api/` side, regenerating via `swag init` and diffing `docs/`). `web-test.yaml`'s drift check only verifies generated TS is in sync with whatever `swagger.json` currently says, not that `swagger.json` itself is accurate.
 
 ## Tier 5 — Open UX/design decisions

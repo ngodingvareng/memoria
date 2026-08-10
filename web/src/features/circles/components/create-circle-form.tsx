@@ -18,11 +18,10 @@ import {
 } from '@/components/ui/input-group';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ApiError } from '@/lib/api-client';
+import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import { queryClient } from '@/lib/query-client';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
 import * as z from 'zod';
 
 const hexColorPattern = /^#[0-9a-fA-F]{6}$/;
@@ -45,7 +44,7 @@ const formSchema = z.object({
 
 export function CreateCircleForm() {
   const navigate = useNavigate();
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { error: submitError, guard } = useFormSubmitError();
   const createCircleMutation = usePostCircles();
 
   const form = useForm({
@@ -57,9 +56,8 @@ export function CreateCircleForm() {
     validators: {
       onSubmit: formSchema,
     },
-    onSubmit: async ({ value }) => {
-      setSubmitError(null);
-      try {
+    onSubmit: ({ value }) =>
+      guard(async () => {
         const circle = await createCircleMutation.mutateAsync({
           data: {
             name: value.name,
@@ -71,16 +69,7 @@ export function CreateCircleForm() {
           queryKey: getGetCirclesQueryKey(),
         });
         navigate({ to: '/c/$id', params: { id: circle.id! } });
-      } catch (err) {
-        if (err instanceof ApiError) {
-          setSubmitError(
-            err.fieldErrors?.map((e) => e.message).join(' ') ?? err.message
-          );
-        } else {
-          setSubmitError('Something went wrong. Please try again.');
-        }
-      }
-    },
+      }),
   });
   return (
     <>
