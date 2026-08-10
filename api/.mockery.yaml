@@ -41,8 +41,15 @@ packages:
       ReactionRepository:
 
       UserBlockChecker:
+      UserBlockRepository:
       UserKnownChecker:
       UserKnownRepository:
       UserMuteChecker:
+      UserMuteRepository:
       UserPolicyReader:
       UserSearcher:
+
+      NotificationRepository:
+      NotificationPreferenceRepository:
+      NotificationCreator:
+      CircleMemberLister:

@@ -86,7 +86,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	// page's "I know this person" action.
 	userPrivacyRepo := repository.NewUserPrivacyRepository(conn)
 
-	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, objectStorage)
+	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, userPrivacyRepo, userPrivacyRepo, objectStorage)
 	userHandler := handler.NewUserHandler(userUsecase)
 
 	// 3b. Threads. circleRepo is constructed here (ahead of the rest of
@@ -111,23 +111,31 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	momentImageUsecase := usecase.NewMomentImageUsecase(momentImageRepo, objectStorage, momentRepo)
 	momentImageHandler := handler.NewMomentImageHandler(momentImageUsecase)
 
-	// 3d. Circle, Mention, Response (Comment/Reaction). userPrivacyRepo
+	// 3d-notifications. NotificationCreator is needed by CircleInvite,
+	// CircleJoinRequest, and Mention below for their real-time triggers
+	// (FEATURES.md, Notification) — built here, just ahead of them.
+	notificationRepo := repository.NewNotificationRepository(conn)
+	notificationPreferenceRepo := repository.NewNotificationPreferenceRepository(conn)
+	notificationUsecase := usecase.NewNotificationUsecase(notificationRepo, notificationPreferenceRepo, userRepo)
+	notificationHandler := handler.NewNotificationHandler(notificationUsecase)
+
+	// 3e. Circle, Mention, Response (Comment/Reaction). userPrivacyRepo
 	// (constructed above) has no usecase of its own beyond UserUsecase's
-	// MarkKnown use — it's passed directly wherever a
+	// MarkKnown/Block/Mute use — it's passed directly wherever a
 	// UserBlockChecker/UserKnownChecker/UserMuteChecker is needed.
 	circleUsecase := usecase.NewCircleUsecase(circleRepo, objectStorage)
 	circleHandler := handler.NewCircleHandler(circleUsecase)
 
 	circleInviteRepo := repository.NewCircleInviteRepository(conn)
-	circleInviteUsecase := usecase.NewCircleInviteUsecase(circleInviteRepo, circleRepo, userRepo, userPrivacyRepo, refreshTokenGenerator)
+	circleInviteUsecase := usecase.NewCircleInviteUsecase(circleInviteRepo, circleRepo, userRepo, userPrivacyRepo, refreshTokenGenerator, notificationUsecase)
 	circleInviteHandler := handler.NewCircleInviteHandler(circleInviteUsecase)
 
 	circleJoinRequestRepo := repository.NewCircleJoinRequestRepository(conn)
-	circleJoinRequestUsecase := usecase.NewCircleJoinRequestUsecase(circleJoinRequestRepo, circleRepo, circleInviteRepo, refreshTokenGenerator)
+	circleJoinRequestUsecase := usecase.NewCircleJoinRequestUsecase(circleJoinRequestRepo, circleRepo, circleRepo, circleInviteRepo, refreshTokenGenerator, notificationUsecase)
 	circleJoinRequestHandler := handler.NewCircleJoinRequestHandler(circleJoinRequestUsecase)
 
 	mentionRepo := repository.NewMentionRepository(conn)
-	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo, userRepo)
+	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo, userRepo, notificationUsecase)
 	mentionHandler := handler.NewMentionHandler(mentionUsecase)
 
 	responseEventRepo := repository.NewResponseEventRepository(conn)
@@ -199,6 +207,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		Mention:           mentionHandler,
 		Comment:           commentHandler,
 		Reaction:          reactionHandler,
+		Notification:      notificationHandler,
 	})
 
 	return &Container{

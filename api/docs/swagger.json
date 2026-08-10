@@ -2261,6 +2261,144 @@
                 }
             }
         },
+        "/notifications": {
+            "get": {
+                "description": "The in-app feed, newest first, plus the header badge's unread count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "List the caller's notifications",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListNotificationsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/preferences": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Get the caller's notification preferences",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_NotificationPreferencesResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Every type is togglable independently, plus quiet hours (FEATURES.md, Notification Preferences)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Update the caller's notification preferences",
+                "parameters": [
+                    {
+                        "description": "New preferences",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateNotificationPreferencesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_NotificationPreferencesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/read-all": {
+            "post": {
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Mark every visible notification read",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/notifications/{id}/read": {
+            "patch": {
+                "tags": [
+                    "notifications"
+                ],
+                "summary": "Mark one notification read",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Notification ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/threads": {
             "get": {
                 "description": "Search and filter the authenticated user's threads, with pagination",
@@ -2628,6 +2766,104 @@
                 }
             }
         },
+        "/users/me": {
+            "get": {
+                "description": "Includes the privacy fields GetUserByID/GetUserByUsername deliberately omit",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get the caller's own full profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PrivateUserResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/blocks": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "List users the caller has blocked",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListBlockedUsersResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Block a user by username",
+                "parameters": [
+                    {
+                        "description": "Username to block",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.BlockUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/blocks/{username}": {
+            "delete": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Unblock a user by username",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username to unblock",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/users/me/image": {
             "post": {
                 "description": "Replaces any existing photo. Publicly readable by URL, no signing.",
@@ -2656,6 +2892,124 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PublicUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/mutes": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "List users the caller has muted",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMutedUsersResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Mute a user by username",
+                "parameters": [
+                    {
+                        "description": "Username to mute",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MuteUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/mutes/{username}": {
+            "delete": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Unmute a user by username",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username to unmute",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/privacy": {
+            "put": {
+                "description": "Social Interaction + Data Controls toggles (FEATURES.md, Privacy \u0026 Control)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update the caller's privacy settings",
+                "parameters": [
+                    {
+                        "description": "New privacy settings",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdatePrivacySettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PrivateUserResponse"
                         }
                     },
                     "400": {
@@ -2871,6 +3225,18 @@
         }
     },
     "definitions": {
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.BlockUserRequest": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "example": "budisantoso"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CheckUsernameAvailabilityResponse": {
             "type": "object",
             "properties": {
@@ -3284,6 +3650,17 @@
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListBlockedUsersResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PublicUserResponse"
+                    }
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCircleInvitesResponse": {
             "type": "object",
             "properties": {
@@ -3372,6 +3749,35 @@
                 },
                 "pagination": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMutedUsersResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PublicUserResponse"
+                    }
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListNotificationsResponse": {
+            "type": "object",
+            "properties": {
+                "notifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.NotificationResponse"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse"
+                },
+                "unread_count": {
+                    "type": "integer",
+                    "example": 3
                 }
             }
         },
@@ -3574,6 +3980,123 @@
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MuteUserRequest": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "example": "budisantoso"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.NotificationPreferencesResponse": {
+            "type": "object",
+            "properties": {
+                "added_to_circle_enabled": {
+                    "type": "boolean"
+                },
+                "circle_invite_received_enabled": {
+                    "type": "boolean"
+                },
+                "circle_join_request_approved_enabled": {
+                    "type": "boolean"
+                },
+                "circle_join_request_received_enabled": {
+                    "type": "boolean"
+                },
+                "commitment_upcoming_enabled": {
+                    "type": "boolean"
+                },
+                "echo_ready_enabled": {
+                    "type": "boolean"
+                },
+                "mentioned_in_moment_enabled": {
+                    "type": "boolean"
+                },
+                "moment_due_enabled": {
+                    "type": "boolean"
+                },
+                "moment_missed_enabled": {
+                    "type": "boolean"
+                },
+                "quiet_hours_end": {
+                    "type": "string",
+                    "example": "07:00:00"
+                },
+                "quiet_hours_start": {
+                    "description": "QuietHoursStart/End are \"HH:MM:SS\" wall-clock strings, both set or\nboth nil — may wrap past midnight (e.g. 22:00:00 -\u003e 07:00:00).",
+                    "type": "string",
+                    "example": "22:00:00"
+                },
+                "recap_generated_enabled": {
+                    "type": "boolean"
+                },
+                "response_digest_enabled": {
+                    "type": "boolean"
+                },
+                "response_digest_hour": {
+                    "type": "integer",
+                    "example": 20
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.NotificationResponse": {
+            "type": "object",
+            "properties": {
+                "actor_user_id": {
+                    "type": "string"
+                },
+                "circle_id": {
+                    "type": "string"
+                },
+                "circle_invite_id": {
+                    "type": "string"
+                },
+                "circle_join_request_id": {
+                    "type": "string"
+                },
+                "commitment_id": {
+                    "type": "string"
+                },
+                "commitment_occurrence_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-08-04T14:35:00Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "kind": {
+                    "type": "string",
+                    "example": "mentioned_in_moment"
+                },
+                "moment_id": {
+                    "type": "string"
+                },
+                "payload": {
+                    "type": "string",
+                    "example": "{}"
+                },
+                "read_at": {
+                    "type": "string"
+                },
+                "recap_id": {
+                    "type": "string"
+                },
+                "resurfacing_id": {
+                    "type": "string"
+                },
+                "thread_id": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse": {
             "type": "object",
             "properties": {
@@ -3588,6 +4111,53 @@
                 "total": {
                     "type": "integer",
                     "example": 42
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PrivateUserResponse": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "circle_invite_policy": {
+                    "type": "string",
+                    "example": "known"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-07-20T10:00:00Z"
+                },
+                "discoverable_by_username": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "email": {
+                    "type": "string",
+                    "example": "budi@example.com"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                },
+                "image_path": {
+                    "type": "string"
+                },
+                "mention_policy": {
+                    "type": "string",
+                    "example": "anyone"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Budi Santoso"
+                },
+                "strip_photo_metadata": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "username": {
+                    "type": "string",
+                    "example": "budisantoso"
                 }
             }
         },
@@ -3938,6 +4508,93 @@
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateNotificationPreferencesRequest": {
+            "type": "object",
+            "properties": {
+                "added_to_circle_enabled": {
+                    "type": "boolean"
+                },
+                "circle_invite_received_enabled": {
+                    "type": "boolean"
+                },
+                "circle_join_request_approved_enabled": {
+                    "type": "boolean"
+                },
+                "circle_join_request_received_enabled": {
+                    "type": "boolean"
+                },
+                "commitment_upcoming_enabled": {
+                    "type": "boolean"
+                },
+                "echo_ready_enabled": {
+                    "type": "boolean"
+                },
+                "mentioned_in_moment_enabled": {
+                    "type": "boolean"
+                },
+                "moment_due_enabled": {
+                    "type": "boolean"
+                },
+                "moment_missed_enabled": {
+                    "type": "boolean"
+                },
+                "quiet_hours_end": {
+                    "type": "string",
+                    "example": "07:00:00"
+                },
+                "quiet_hours_start": {
+                    "type": "string",
+                    "example": "22:00:00"
+                },
+                "recap_generated_enabled": {
+                    "type": "boolean"
+                },
+                "response_digest_enabled": {
+                    "type": "boolean"
+                },
+                "response_digest_hour": {
+                    "type": "integer",
+                    "maximum": 23,
+                    "minimum": 0,
+                    "example": 20
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdatePrivacySettingsRequest": {
+            "type": "object",
+            "required": [
+                "circle_invite_policy",
+                "mention_policy"
+            ],
+            "properties": {
+                "circle_invite_policy": {
+                    "type": "string",
+                    "enum": [
+                        "anyone",
+                        "known",
+                        "nobody"
+                    ],
+                    "example": "known"
+                },
+                "discoverable_by_username": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "mention_policy": {
+                    "type": "string",
+                    "enum": [
+                        "anyone",
+                        "known",
+                        "nobody"
+                    ],
+                    "example": "known"
+                },
+                "strip_photo_metadata": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateThreadRequest": {
             "type": "object",
             "required": [
@@ -4199,6 +4856,23 @@
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListBlockedUsersResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListBlockedUsersResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCircleInvitesResponse": {
             "type": "object",
             "properties": {
@@ -4335,6 +5009,40 @@
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMutedUsersResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMutedUsersResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListNotificationsResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListNotificationsResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListReactionsResponse": {
             "type": "object",
             "properties": {
@@ -4463,6 +5171,40 @@
                 },
                 "data": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_NotificationPreferencesResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.NotificationPreferencesResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PrivateUserResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PrivateUserResponse"
                 },
                 "errors": {},
                 "message": {

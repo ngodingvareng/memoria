@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/enum"
 	"github.com/ngodingvareng/memoria/internal/errs"
 )
 
@@ -29,6 +30,15 @@ type CircleJoinRequestRepository interface {
 	AddMembers(ctx context.Context, circleID uuid.UUID, userIDs []uuid.UUID) ([]*entity.CircleMember, error)
 
 	WithTransaction(ctx context.Context, fn func(CircleJoinRequestRepository) error) error
+}
+
+// CircleMemberLister is the minimal capability this usecase needs to
+// find who to notify of a new join request: every active member,
+// filtered down to the invite-privileged ones (mirrors ListPending's own
+// CanInvite gate). Satisfied structurally by the existing
+// CircleRepository (CODING_STANDARDS.md §5) — no new repository needed.
+type CircleMemberLister interface {
+	ListMembers(ctx context.Context, circleID uuid.UUID) ([]*entity.CircleMember, error)
 }
 
 // --- Inputs / outputs ---
@@ -55,14 +65,16 @@ type CircleJoinRequestUsecase interface {
 }
 
 type circleJoinRequestUsecase struct {
-	repo    CircleJoinRequestRepository
-	circles CircleAccessChecker
-	links   CircleInviteLinkResolver
-	tokens  RefreshTokenGenerator
+	repo          CircleJoinRequestRepository
+	circles       CircleAccessChecker
+	members       CircleMemberLister
+	links         CircleInviteLinkResolver
+	tokens        RefreshTokenGenerator
+	notifications NotificationCreator
 }
 
-func NewCircleJoinRequestUsecase(repo CircleJoinRequestRepository, circles CircleAccessChecker, links CircleInviteLinkResolver, tokens RefreshTokenGenerator) CircleJoinRequestUsecase {
-	return &circleJoinRequestUsecase{repo: repo, circles: circles, links: links, tokens: tokens}
+func NewCircleJoinRequestUsecase(repo CircleJoinRequestRepository, circles CircleAccessChecker, members CircleMemberLister, links CircleInviteLinkResolver, tokens RefreshTokenGenerator, notifications NotificationCreator) CircleJoinRequestUsecase {
+	return &circleJoinRequestUsecase{repo: repo, circles: circles, members: members, links: links, tokens: tokens, notifications: notifications}
 }
 
 // FollowInviteLink implements [CircleJoinRequestUsecase].
@@ -107,6 +119,26 @@ func (u *circleJoinRequestUsecase) FollowInviteLink(ctx context.Context, rawToke
 	if err != nil {
 		return nil, fmt.Errorf("creating circle join request: %w", err)
 	}
+
+	members, err := u.members.ListMembers(ctx, invite.CircleID)
+	if err != nil {
+		return nil, fmt.Errorf("listing circle members to notify: %w", err)
+	}
+	for _, member := range members {
+		if !member.CanInvite {
+			continue
+		}
+		if _, err := u.notifications.CreateNotification(ctx, CreateNotificationInput{
+			UserID:              member.UserID,
+			Kind:                enum.NotificationKindCircleJoinRequestReceived,
+			ActorUserID:         &userID,
+			CircleID:            &invite.CircleID,
+			CircleJoinRequestID: &joinRequest.ID,
+		}); err != nil {
+			return nil, fmt.Errorf("notifying invite-privileged member: %w", err)
+		}
+	}
+
 	return &FollowInviteLinkResult{JoinRequest: joinRequest}, nil
 }
 
@@ -142,11 +174,13 @@ func (u *circleJoinRequestUsecase) Approve(ctx context.Context, id, circleID, de
 	}
 
 	var seated *entity.CircleMember
+	var approvedRequest *entity.CircleJoinRequest
 	err = u.repo.WithTransaction(ctx, func(tx CircleJoinRequestRepository) error {
 		request, err := tx.Approve(ctx, id, circleID, decidedByUserID)
 		if err != nil {
 			return err
 		}
+		approvedRequest = request
 		members, err := tx.AddMembers(ctx, circleID, []uuid.UUID{request.UserID})
 		if err != nil {
 			return err
@@ -159,6 +193,20 @@ func (u *circleJoinRequestUsecase) Approve(ctx context.Context, id, circleID, de
 	if err != nil {
 		return nil, fmt.Errorf("approving circle join request: %w", err)
 	}
+
+	// Tells the requester both the decision and the resulting membership
+	// in one notification — no separate added_to_circle (FEATURES.md
+	// never manufactures a second alert for the same outcome).
+	if _, err := u.notifications.CreateNotification(ctx, CreateNotificationInput{
+		UserID:              approvedRequest.UserID,
+		Kind:                enum.NotificationKindCircleJoinRequestApproved,
+		ActorUserID:         &decidedByUserID,
+		CircleID:            &circleID,
+		CircleJoinRequestID: &approvedRequest.ID,
+	}); err != nil {
+		return nil, fmt.Errorf("notifying approved requester: %w", err)
+	}
+
 	return seated, nil
 }
 

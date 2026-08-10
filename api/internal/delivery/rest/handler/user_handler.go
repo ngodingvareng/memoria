@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/dto"
 	"github.com/ngodingvareng/memoria/internal/delivery/rest/middleware"
+	"github.com/ngodingvareng/memoria/internal/enum"
 	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	"github.com/ngodingvareng/memoria/internal/validate"
@@ -174,6 +175,239 @@ func (h *UserHandler) MarkUserKnown(c fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// GetMe godoc
+// @Summary      Get the caller's own full profile
+// @Description  Includes the privacy fields GetUserByID/GetUserByUsername deliberately omit
+// @Tags         users
+// @Produce      json
+// @Success      200 {object} dto.WebResponse[dto.PrivateUserResponse]
+// @Router       /users/me [get]
+func (h *UserHandler) GetMe(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	user, err := h.usecase.GetOwnProfile(c, userID)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[dto.PrivateUserResponse]{
+		Code:    fiber.StatusOK,
+		Message: "found",
+		Data:    dto.NewPrivateUserResponse(user),
+	})
+}
+
+// UpdatePrivacySettings godoc
+// @Summary      Update the caller's privacy settings
+// @Description  Social Interaction + Data Controls toggles (FEATURES.md, Privacy & Control)
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.UpdatePrivacySettingsRequest true "New privacy settings"
+// @Success      200 {object} dto.WebResponse[dto.PrivateUserResponse]
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /users/me/privacy [put]
+func (h *UserHandler) UpdatePrivacySettings(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	var req dto.UpdatePrivacySettingsRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(req); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	updated, err := h.usecase.UpdatePrivacySettings(c, usecase.UpdatePrivacySettingsInput{
+		UserID:                 userID,
+		MentionPolicy:          enum.AudiencePolicy(req.MentionPolicy),
+		CircleInvitePolicy:     enum.AudiencePolicy(req.CircleInvitePolicy),
+		DiscoverableByUsername: req.DiscoverableByUsername,
+		StripPhotoMetadata:     req.StripPhotoMetadata,
+	})
+	if err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "privacy settings updated", "user_id", userID)
+
+	return c.JSON(dto.WebResponse[dto.PrivateUserResponse]{
+		Code:    fiber.StatusOK,
+		Message: "privacy settings updated",
+		Data:    dto.NewPrivateUserResponse(updated),
+	})
+}
+
+// BlockUser godoc
+// @Summary      Block a user by username
+// @Tags         users
+// @Accept       json
+// @Param        request body dto.BlockUserRequest true "Username to block"
+// @Success      204
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /users/me/blocks [post]
+func (h *UserHandler) BlockUser(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	var req dto.BlockUserRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(req); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	if err := h.usecase.BlockUser(c, userID, req.Username); err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "user blocked", "user_id", userID)
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// UnblockUser godoc
+// @Summary      Unblock a user by username
+// @Tags         users
+// @Param        username path string true "Username to unblock"
+// @Success      204
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /users/me/blocks/{username} [delete]
+func (h *UserHandler) UnblockUser(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	username := c.Params("username")
+	if !validate.UsernameFormat.MatchString(username) {
+		return errs.ErrInvalidInput
+	}
+
+	if err := h.usecase.UnblockUser(c, userID, username); err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "user unblocked", "user_id", userID)
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// ListBlockedUsers godoc
+// @Summary      List users the caller has blocked
+// @Tags         users
+// @Produce      json
+// @Success      200 {object} dto.WebResponse[dto.ListBlockedUsersResponse]
+// @Router       /users/me/blocks [get]
+func (h *UserHandler) ListBlockedUsers(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	users, err := h.usecase.ListBlockedUsers(c, userID)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[dto.ListBlockedUsersResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    dto.NewListBlockedUsersResponse(users),
+	})
+}
+
+// MuteUser godoc
+// @Summary      Mute a user by username
+// @Tags         users
+// @Accept       json
+// @Param        request body dto.MuteUserRequest true "Username to mute"
+// @Success      204
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /users/me/mutes [post]
+func (h *UserHandler) MuteUser(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	var req dto.MuteUserRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(req); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	if err := h.usecase.MuteUser(c, userID, req.Username); err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "user muted", "user_id", userID)
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// UnmuteUser godoc
+// @Summary      Unmute a user by username
+// @Tags         users
+// @Param        username path string true "Username to unmute"
+// @Success      204
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /users/me/mutes/{username} [delete]
+func (h *UserHandler) UnmuteUser(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	username := c.Params("username")
+	if !validate.UsernameFormat.MatchString(username) {
+		return errs.ErrInvalidInput
+	}
+
+	if err := h.usecase.UnmuteUser(c, userID, username); err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "user unmuted", "user_id", userID)
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// ListMutedUsers godoc
+// @Summary      List users the caller has muted
+// @Tags         users
+// @Produce      json
+// @Success      200 {object} dto.WebResponse[dto.ListMutedUsersResponse]
+// @Router       /users/me/mutes [get]
+func (h *UserHandler) ListMutedUsers(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	users, err := h.usecase.ListMutedUsers(c, userID)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[dto.ListMutedUsersResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    dto.NewListMutedUsersResponse(users),
+	})
 }
 
 // UploadProfileImage godoc

@@ -14,16 +14,24 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/enum"
 	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	"github.com/ngodingvareng/memoria/internal/usecase/mocks"
 )
 
 func newUserUsecase(t *testing.T) (usecase.UserUsecase, *mocks.MockUserRepository, *mocks.MockUserKnownRepository, *mocks.MockProfileImageStorage) {
+	uc, users, knowns, _, _, storage := newUserUsecaseWithPrivacy(t)
+	return uc, users, knowns, storage
+}
+
+func newUserUsecaseWithPrivacy(t *testing.T) (usecase.UserUsecase, *mocks.MockUserRepository, *mocks.MockUserKnownRepository, *mocks.MockUserBlockRepository, *mocks.MockUserMuteRepository, *mocks.MockProfileImageStorage) {
 	users := mocks.NewMockUserRepository(t)
 	knowns := mocks.NewMockUserKnownRepository(t)
+	blocks := mocks.NewMockUserBlockRepository(t)
+	mutes := mocks.NewMockUserMuteRepository(t)
 	storage := mocks.NewMockProfileImageStorage(t)
-	return usecase.NewUserUsecase(users, knowns, storage), users, knowns, storage
+	return usecase.NewUserUsecase(users, knowns, blocks, mutes, storage), users, knowns, blocks, mutes, storage
 }
 
 func TestUserUsecase_CheckUsernameAvailability_Available(t *testing.T) {
@@ -216,4 +224,110 @@ func TestUserUsecase_UploadProfileImage_DBSaveFails_CleansUpUpload(t *testing.T)
 	})
 
 	assert.ErrorIs(t, err, dbErr)
+}
+
+func TestUserUsecase_GetOwnProfile_Success(t *testing.T) {
+	uc, users, _, _ := newUserUsecase(t)
+
+	userID := uuid.New()
+	found := &entity.User{ID: userID, Name: "Gede"}
+	users.EXPECT().GetByID(mock.Anything, userID).Return(found, nil)
+
+	result, err := uc.GetOwnProfile(context.Background(), userID)
+
+	require.NoError(t, err)
+	assert.Equal(t, found, result)
+}
+
+func TestUserUsecase_UpdatePrivacySettings_Success(t *testing.T) {
+	uc, users, _, _, _, _ := newUserUsecaseWithPrivacy(t)
+
+	userID := uuid.New()
+	updated := &entity.User{ID: userID, MentionPolicy: enum.AudiencePolicyKnown}
+	users.EXPECT().
+		UpdatePrivacySettings(mock.Anything, mock.MatchedBy(func(u *entity.User) bool {
+			return u.ID == userID && u.MentionPolicy == enum.AudiencePolicyKnown
+		})).
+		Return(updated, nil)
+
+	result, err := uc.UpdatePrivacySettings(context.Background(), usecase.UpdatePrivacySettingsInput{
+		UserID:                 userID,
+		MentionPolicy:          enum.AudiencePolicyKnown,
+		CircleInvitePolicy:     enum.AudiencePolicyAnyone,
+		DiscoverableByUsername: true,
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, updated, result)
+}
+
+func TestUserUsecase_BlockUser_ResolvesUsernameThenBlocks(t *testing.T) {
+	uc, users, _, blocks, _, _ := newUserUsecaseWithPrivacy(t)
+
+	blockerID := uuid.New()
+	target := &entity.User{ID: uuid.New(), Username: strPtr("gede")}
+	users.EXPECT().GetByUsername(mock.Anything, "gede").Return(target, nil)
+	blocks.EXPECT().Block(mock.Anything, blockerID, target.ID).Return(nil)
+
+	err := uc.BlockUser(context.Background(), blockerID, "gede")
+
+	assert.NoError(t, err)
+}
+
+func TestUserUsecase_BlockUser_UsernameNotFound(t *testing.T) {
+	uc, users, _, _, _, _ := newUserUsecaseWithPrivacy(t)
+
+	users.EXPECT().GetByUsername(mock.Anything, "ghost").Return(nil, errs.ErrNotFound)
+
+	// blocks.Block must never be reached — no expectation set on it at
+	// all, so mockery's t.Cleanup assertion fails the test if it is.
+	err := uc.BlockUser(context.Background(), uuid.New(), "ghost")
+
+	assert.ErrorIs(t, err, errs.ErrNotFound)
+}
+
+func TestUserUsecase_ListBlockedUsers_SkipsUnresolvableIDs(t *testing.T) {
+	uc, users, _, blocks, _, _ := newUserUsecaseWithPrivacy(t)
+
+	blockerID := uuid.New()
+	staleID, activeID := uuid.New(), uuid.New()
+	active := &entity.User{ID: activeID, Name: "Gede"}
+
+	blocks.EXPECT().ListBlockedUserIDs(mock.Anything, blockerID).Return([]uuid.UUID{staleID, activeID}, nil)
+	users.EXPECT().GetByID(mock.Anything, staleID).Return(nil, errs.ErrNotFound)
+	users.EXPECT().GetByID(mock.Anything, activeID).Return(active, nil)
+
+	result, err := uc.ListBlockedUsers(context.Background(), blockerID)
+
+	require.NoError(t, err)
+	assert.Equal(t, []*entity.User{active}, result)
+}
+
+func TestUserUsecase_MuteUser_ResolvesUsernameThenMutes(t *testing.T) {
+	uc, users, _, _, mutes, _ := newUserUsecaseWithPrivacy(t)
+
+	muterID := uuid.New()
+	target := &entity.User{ID: uuid.New(), Username: strPtr("gede")}
+	users.EXPECT().GetByUsername(mock.Anything, "gede").Return(target, nil)
+	mutes.EXPECT().Mute(mock.Anything, muterID, target.ID).Return(nil)
+
+	err := uc.MuteUser(context.Background(), muterID, "gede")
+
+	assert.NoError(t, err)
+}
+
+func TestUserUsecase_ListMutedUsers_Success(t *testing.T) {
+	uc, users, _, _, mutes, _ := newUserUsecaseWithPrivacy(t)
+
+	muterID := uuid.New()
+	mutedID := uuid.New()
+	muted := &entity.User{ID: mutedID, Name: "Gede"}
+
+	mutes.EXPECT().ListMutedUserIDs(mock.Anything, muterID).Return([]uuid.UUID{mutedID}, nil)
+	users.EXPECT().GetByID(mock.Anything, mutedID).Return(muted, nil)
+
+	result, err := uc.ListMutedUsers(context.Background(), muterID)
+
+	require.NoError(t, err)
+	assert.Equal(t, []*entity.User{muted}, result)
 }

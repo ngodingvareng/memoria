@@ -24,18 +24,19 @@ func expectPassthroughCircleInviteTransaction(repo *mocks.MockCircleInviteReposi
 		})
 }
 
-func newCircleInviteUsecaseDeps(t *testing.T) (*mocks.MockCircleInviteRepository, *mocks.MockCircleAccessChecker, *mocks.MockUserPolicyReader, *mocks.MockUserBlockChecker, *mocks.MockRefreshTokenGenerator) {
+func newCircleInviteUsecaseDeps(t *testing.T) (*mocks.MockCircleInviteRepository, *mocks.MockCircleAccessChecker, *mocks.MockUserPolicyReader, *mocks.MockUserBlockChecker, *mocks.MockRefreshTokenGenerator, *mocks.MockNotificationCreator) {
 	t.Helper()
 	return mocks.NewMockCircleInviteRepository(t),
 		mocks.NewMockCircleAccessChecker(t),
 		mocks.NewMockUserPolicyReader(t),
 		mocks.NewMockUserBlockChecker(t),
-		mocks.NewMockRefreshTokenGenerator(t)
+		mocks.NewMockRefreshTokenGenerator(t),
+		mocks.NewMockNotificationCreator(t)
 }
 
 func TestCircleInviteUsecase_InviteDirect_NotAllowedToInvite(t *testing.T) {
-	repo, circles, users, blocks, tokens := newCircleInviteUsecaseDeps(t)
-	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens)
+	repo, circles, users, blocks, tokens, notifications := newCircleInviteUsecaseDeps(t)
+	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens, notifications)
 
 	circleID, userID := uuid.New(), uuid.New()
 	circles.EXPECT().GetActiveMember(mock.Anything, circleID, userID).
@@ -50,8 +51,8 @@ func TestCircleInviteUsecase_InviteDirect_NotAllowedToInvite(t *testing.T) {
 }
 
 func TestCircleInviteUsecase_InviteDirect_SplitsByPolicy(t *testing.T) {
-	repo, circles, users, blocks, tokens := newCircleInviteUsecaseDeps(t)
-	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens)
+	repo, circles, users, blocks, tokens, notifications := newCircleInviteUsecaseDeps(t)
+	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens, notifications)
 
 	circleID, userID := uuid.New(), uuid.New()
 	openUser := &entity.User{ID: uuid.New(), Username: strPtr("open"), DiscoverableByUsername: true, CircleInvitePolicy: enum.AudiencePolicyAnyone}
@@ -71,6 +72,16 @@ func TestCircleInviteUsecase_InviteDirect_SplitsByPolicy(t *testing.T) {
 	repo.EXPECT().
 		CreateUsernameInvite(mock.Anything, circleID, userID, restrictedUser.ID, mock.Anything).
 		Return(&entity.CircleInvite{CircleID: circleID, InviteeUserID: &restrictedUser.ID}, nil)
+	notifications.EXPECT().
+		CreateNotification(mock.Anything, mock.MatchedBy(func(input usecase.CreateNotificationInput) bool {
+			return input.UserID == openUser.ID && input.Kind == enum.NotificationKindAddedToCircle
+		})).
+		Return(nil, nil)
+	notifications.EXPECT().
+		CreateNotification(mock.Anything, mock.MatchedBy(func(input usecase.CreateNotificationInput) bool {
+			return input.UserID == restrictedUser.ID && input.Kind == enum.NotificationKindCircleInviteReceived
+		})).
+		Return(nil, nil)
 
 	result, err := uc.InviteDirect(context.Background(), usecase.InviteDirectInput{
 		CircleID: circleID, InvitedByUserID: userID, Usernames: []string{"open", "restricted"},
@@ -83,8 +94,8 @@ func TestCircleInviteUsecase_InviteDirect_SplitsByPolicy(t *testing.T) {
 }
 
 func TestCircleInviteUsecase_InviteDirect_SkipsBlockedAndUnknownUsernames(t *testing.T) {
-	repo, circles, users, blocks, tokens := newCircleInviteUsecaseDeps(t)
-	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens)
+	repo, circles, users, blocks, tokens, notifications := newCircleInviteUsecaseDeps(t)
+	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens, notifications)
 
 	circleID, userID := uuid.New(), uuid.New()
 	blockedUser := &entity.User{ID: uuid.New(), Username: strPtr("blocked"), DiscoverableByUsername: true, CircleInvitePolicy: enum.AudiencePolicyAnyone}
@@ -108,8 +119,8 @@ func TestCircleInviteUsecase_InviteDirect_SkipsBlockedAndUnknownUsernames(t *tes
 }
 
 func TestCircleInviteUsecase_AcceptInvite_Success(t *testing.T) {
-	repo, circles, users, blocks, tokens := newCircleInviteUsecaseDeps(t)
-	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens)
+	repo, circles, users, blocks, tokens, notifications := newCircleInviteUsecaseDeps(t)
+	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens, notifications)
 
 	inviteID, userID, circleID := uuid.New(), uuid.New(), uuid.New()
 	expectPassthroughCircleInviteTransaction(repo)
@@ -125,8 +136,8 @@ func TestCircleInviteUsecase_AcceptInvite_Success(t *testing.T) {
 }
 
 func TestCircleInviteUsecase_AcceptInvite_AlreadyAnswered_NotFound(t *testing.T) {
-	repo, circles, users, blocks, tokens := newCircleInviteUsecaseDeps(t)
-	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens)
+	repo, circles, users, blocks, tokens, notifications := newCircleInviteUsecaseDeps(t)
+	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens, notifications)
 
 	expectPassthroughCircleInviteTransaction(repo)
 	repo.EXPECT().AcceptUsernameInvite(mock.Anything, mock.Anything, mock.Anything).Return(nil, errs.ErrNotFound)
@@ -138,8 +149,8 @@ func TestCircleInviteUsecase_AcceptInvite_AlreadyAnswered_NotFound(t *testing.T)
 }
 
 func TestCircleInviteUsecase_RevokeInvite_RequiresCanInvite(t *testing.T) {
-	repo, circles, users, blocks, tokens := newCircleInviteUsecaseDeps(t)
-	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens)
+	repo, circles, users, blocks, tokens, notifications := newCircleInviteUsecaseDeps(t)
+	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens, notifications)
 
 	circleID, userID := uuid.New(), uuid.New()
 	circles.EXPECT().GetActiveMember(mock.Anything, circleID, userID).
@@ -152,8 +163,8 @@ func TestCircleInviteUsecase_RevokeInvite_RequiresCanInvite(t *testing.T) {
 }
 
 func TestCircleInviteUsecase_CreateOrRotateInviteLink_Success(t *testing.T) {
-	repo, circles, users, blocks, tokens := newCircleInviteUsecaseDeps(t)
-	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens)
+	repo, circles, users, blocks, tokens, notifications := newCircleInviteUsecaseDeps(t)
+	uc := usecase.NewCircleInviteUsecase(repo, circles, users, blocks, tokens, notifications)
 
 	circleID, userID := uuid.New(), uuid.New()
 	circles.EXPECT().GetActiveMember(mock.Anything, circleID, userID).

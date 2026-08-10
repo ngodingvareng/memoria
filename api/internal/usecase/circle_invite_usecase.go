@@ -104,15 +104,16 @@ type CircleInviteUsecase interface {
 }
 
 type circleInviteUsecase struct {
-	repo    CircleInviteRepository
-	circles CircleAccessChecker
-	users   UserPolicyReader
-	blocks  UserBlockChecker
-	tokens  RefreshTokenGenerator
+	repo          CircleInviteRepository
+	circles       CircleAccessChecker
+	users         UserPolicyReader
+	blocks        UserBlockChecker
+	tokens        RefreshTokenGenerator
+	notifications NotificationCreator
 }
 
-func NewCircleInviteUsecase(repo CircleInviteRepository, circles CircleAccessChecker, users UserPolicyReader, blocks UserBlockChecker, tokens RefreshTokenGenerator) CircleInviteUsecase {
-	return &circleInviteUsecase{repo: repo, circles: circles, users: users, blocks: blocks, tokens: tokens}
+func NewCircleInviteUsecase(repo CircleInviteRepository, circles CircleAccessChecker, users UserPolicyReader, blocks UserBlockChecker, tokens RefreshTokenGenerator, notifications NotificationCreator) CircleInviteUsecase {
+	return &circleInviteUsecase{repo: repo, circles: circles, users: users, blocks: blocks, tokens: tokens, notifications: notifications}
 }
 
 // requireCanInvite gates every entry point in the Circle Invite flow
@@ -193,6 +194,34 @@ func (u *circleInviteUsecase) InviteDirect(ctx context.Context, input InviteDire
 	if err != nil {
 		return nil, fmt.Errorf("inviting members: %w", err)
 	}
+
+	// Direct adds had no decision point of their own — too consequential
+	// to leave unsaid even though nothing was asked (FEATURES.md, Circle
+	// Invite). Pending invites are the "someone needs you" case.
+	// Accepting/declining an invite the recipient already saw doesn't
+	// get a further notification — they already know.
+	for _, member := range result.AddedMembers {
+		if _, err := u.notifications.CreateNotification(ctx, CreateNotificationInput{
+			UserID:      member.UserID,
+			Kind:        enum.NotificationKindAddedToCircle,
+			ActorUserID: &input.InvitedByUserID,
+			CircleID:    &input.CircleID,
+		}); err != nil {
+			return nil, fmt.Errorf("notifying added circle member: %w", err)
+		}
+	}
+	for _, invite := range result.PendingInvites {
+		if _, err := u.notifications.CreateNotification(ctx, CreateNotificationInput{
+			UserID:         *invite.InviteeUserID,
+			Kind:           enum.NotificationKindCircleInviteReceived,
+			ActorUserID:    &input.InvitedByUserID,
+			CircleID:       &input.CircleID,
+			CircleInviteID: &invite.ID,
+		}); err != nil {
+			return nil, fmt.Errorf("notifying invited user: %w", err)
+		}
+	}
+
 	return result, nil
 }
 

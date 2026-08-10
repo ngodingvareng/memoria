@@ -106,6 +106,24 @@ func (r *userRepository) UpdateImagePath(ctx context.Context, id uuid.UUID, imag
 	return toEntityUser(row), nil
 }
 
+// UpdatePrivacySettings implements [usecase.UserRepository].
+func (r *userRepository) UpdatePrivacySettings(ctx context.Context, user *entity.User) (*entity.User, error) {
+	row, err := r.q.UpdateUserPrivacySettings(ctx, db.UpdateUserPrivacySettingsParams{
+		ID:                     user.ID,
+		MentionPolicy:          db.AudiencePolicy(user.MentionPolicy),
+		CircleInvitePolicy:     db.AudiencePolicy(user.CircleInvitePolicy),
+		DiscoverableByUsername: user.DiscoverableByUsername,
+		StripPhotoMetadata:     user.StripPhotoMetadata,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
+		return nil, fmt.Errorf("update user privacy settings: %w", err)
+	}
+	return toEntityUser(row), nil
+}
+
 // SearchByUsernamePrefix implements [usecase.UserSearcher].
 func (r *userRepository) SearchByUsernamePrefix(ctx context.Context, excludeUserID uuid.UUID, query string, limit int32) ([]*entity.User, error) {
 	rows, err := r.q.SearchUsersByUsername(ctx, db.SearchUsersByUsernameParams{

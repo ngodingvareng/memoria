@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
+	"github.com/ngodingvareng/memoria/internal/enum"
 	"github.com/ngodingvareng/memoria/internal/errs"
 	"github.com/ngodingvareng/memoria/internal/usecase"
 	"github.com/ngodingvareng/memoria/internal/usecase/mocks"
@@ -26,9 +27,11 @@ func expectPassthroughCircleJoinRequestTransaction(repo *mocks.MockCircleJoinReq
 func TestCircleJoinRequestUsecase_FollowInviteLink_NoApprovalRequired_JoinsImmediately(t *testing.T) {
 	repo := mocks.NewMockCircleJoinRequestRepository(t)
 	circles := mocks.NewMockCircleAccessChecker(t)
+	members := mocks.NewMockCircleMemberLister(t)
 	links := mocks.NewMockCircleInviteLinkResolver(t)
 	tokens := mocks.NewMockRefreshTokenGenerator(t)
-	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, links, tokens)
+	notifications := mocks.NewMockNotificationCreator(t)
+	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, members, links, tokens, notifications)
 
 	circleID, userID := uuid.New(), uuid.New()
 	requiresApproval := false
@@ -48,9 +51,11 @@ func TestCircleJoinRequestUsecase_FollowInviteLink_NoApprovalRequired_JoinsImmed
 func TestCircleJoinRequestUsecase_FollowInviteLink_ApprovalRequired_CreatesRequest(t *testing.T) {
 	repo := mocks.NewMockCircleJoinRequestRepository(t)
 	circles := mocks.NewMockCircleAccessChecker(t)
+	members := mocks.NewMockCircleMemberLister(t)
 	links := mocks.NewMockCircleInviteLinkResolver(t)
 	tokens := mocks.NewMockRefreshTokenGenerator(t)
-	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, links, tokens)
+	notifications := mocks.NewMockNotificationCreator(t)
+	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, members, links, tokens, notifications)
 
 	circleID, userID, inviteID := uuid.New(), uuid.New(), uuid.New()
 	requiresApproval := true
@@ -60,6 +65,17 @@ func TestCircleJoinRequestUsecase_FollowInviteLink_ApprovalRequired_CreatesReque
 	repo.EXPECT().GetPendingByUser(mock.Anything, circleID, userID).Return(nil, errs.ErrNotFound)
 	repo.EXPECT().Create(mock.Anything, circleID, userID, &inviteID).
 		Return(&entity.CircleJoinRequest{CircleID: circleID, UserID: userID, InviteID: &inviteID}, nil)
+	adminID := uuid.New()
+	members.EXPECT().ListMembers(mock.Anything, circleID).
+		Return([]*entity.CircleMember{
+			{CircleID: circleID, UserID: adminID, CanInvite: true},
+			{CircleID: circleID, UserID: uuid.New(), CanInvite: false},
+		}, nil)
+	notifications.EXPECT().
+		CreateNotification(mock.Anything, mock.MatchedBy(func(input usecase.CreateNotificationInput) bool {
+			return input.UserID == adminID && input.Kind == enum.NotificationKindCircleJoinRequestReceived
+		})).
+		Return(nil, nil)
 
 	result, err := uc.FollowInviteLink(context.Background(), "raw-token", userID)
 
@@ -71,9 +87,11 @@ func TestCircleJoinRequestUsecase_FollowInviteLink_ApprovalRequired_CreatesReque
 func TestCircleJoinRequestUsecase_FollowInviteLink_ApprovalRequired_AlreadyPending_Idempotent(t *testing.T) {
 	repo := mocks.NewMockCircleJoinRequestRepository(t)
 	circles := mocks.NewMockCircleAccessChecker(t)
+	members := mocks.NewMockCircleMemberLister(t)
 	links := mocks.NewMockCircleInviteLinkResolver(t)
 	tokens := mocks.NewMockRefreshTokenGenerator(t)
-	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, links, tokens)
+	notifications := mocks.NewMockNotificationCreator(t)
+	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, members, links, tokens, notifications)
 
 	circleID, userID := uuid.New(), uuid.New()
 	requiresApproval := true
@@ -93,9 +111,11 @@ func TestCircleJoinRequestUsecase_FollowInviteLink_ApprovalRequired_AlreadyPendi
 func TestCircleJoinRequestUsecase_ListPending_RequiresCanInvite(t *testing.T) {
 	repo := mocks.NewMockCircleJoinRequestRepository(t)
 	circles := mocks.NewMockCircleAccessChecker(t)
+	members := mocks.NewMockCircleMemberLister(t)
 	links := mocks.NewMockCircleInviteLinkResolver(t)
 	tokens := mocks.NewMockRefreshTokenGenerator(t)
-	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, links, tokens)
+	notifications := mocks.NewMockNotificationCreator(t)
+	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, members, links, tokens, notifications)
 
 	circleID, userID := uuid.New(), uuid.New()
 	circles.EXPECT().GetActiveMember(mock.Anything, circleID, userID).Return(&entity.CircleMember{CanInvite: false}, nil)
@@ -109,9 +129,11 @@ func TestCircleJoinRequestUsecase_ListPending_RequiresCanInvite(t *testing.T) {
 func TestCircleJoinRequestUsecase_Approve_SeatsMemberInSameTransaction(t *testing.T) {
 	repo := mocks.NewMockCircleJoinRequestRepository(t)
 	circles := mocks.NewMockCircleAccessChecker(t)
+	members := mocks.NewMockCircleMemberLister(t)
 	links := mocks.NewMockCircleInviteLinkResolver(t)
 	tokens := mocks.NewMockRefreshTokenGenerator(t)
-	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, links, tokens)
+	notifications := mocks.NewMockNotificationCreator(t)
+	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, members, links, tokens, notifications)
 
 	circleID, decidedBy, requestID, requesterID := uuid.New(), uuid.New(), uuid.New(), uuid.New()
 	circles.EXPECT().GetActiveMember(mock.Anything, circleID, decidedBy).Return(&entity.CircleMember{CanInvite: true}, nil)
@@ -120,6 +142,11 @@ func TestCircleJoinRequestUsecase_Approve_SeatsMemberInSameTransaction(t *testin
 		Return(&entity.CircleJoinRequest{ID: requestID, CircleID: circleID, UserID: requesterID}, nil)
 	repo.EXPECT().AddMembers(mock.Anything, circleID, []uuid.UUID{requesterID}).
 		Return([]*entity.CircleMember{{CircleID: circleID, UserID: requesterID}}, nil)
+	notifications.EXPECT().
+		CreateNotification(mock.Anything, mock.MatchedBy(func(input usecase.CreateNotificationInput) bool {
+			return input.UserID == requesterID && input.Kind == enum.NotificationKindCircleJoinRequestApproved
+		})).
+		Return(nil, nil)
 
 	member, err := uc.Approve(context.Background(), requestID, circleID, decidedBy)
 
@@ -130,9 +157,11 @@ func TestCircleJoinRequestUsecase_Approve_SeatsMemberInSameTransaction(t *testin
 func TestCircleJoinRequestUsecase_Cancel_Success(t *testing.T) {
 	repo := mocks.NewMockCircleJoinRequestRepository(t)
 	circles := mocks.NewMockCircleAccessChecker(t)
+	members := mocks.NewMockCircleMemberLister(t)
 	links := mocks.NewMockCircleInviteLinkResolver(t)
 	tokens := mocks.NewMockRefreshTokenGenerator(t)
-	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, links, tokens)
+	notifications := mocks.NewMockNotificationCreator(t)
+	uc := usecase.NewCircleJoinRequestUsecase(repo, circles, members, links, tokens, notifications)
 
 	requestID, userID := uuid.New(), uuid.New()
 	repo.EXPECT().Cancel(mock.Anything, requestID, userID).

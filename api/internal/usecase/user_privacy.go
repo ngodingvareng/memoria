@@ -14,14 +14,11 @@ import (
 // because all three need the exact identical signature (CODING_STANDARDS.md
 // §5) — see user_privacy_repository.go for the single implementation.
 //
-// Block/Mute still have no CRUD usecase of their own: only the
-// read-only checks below are wired in, enough to make
-// mention_policy/circle_invite_policy and the blocking gate work.
-// Letting a user manage their own Block/Mute lists is a separate,
-// not-yet-built "Privacy & Control" feature. Known gained one write
-// path — UserKnownRepository.MarkKnown, backing the profile page's
-// "I know this person" action — without building the rest (no
-// unmark, no "People I know" list yet).
+// UserBlockRepository/UserMuteRepository below are the write/list
+// counterparts to UserBlockChecker/UserMuteChecker — a user managing
+// their own Block/Mute list (user_usecase.go's BlockUser/UnblockUser/
+// MuteUser/UnmuteUser). Known still only has MarkKnown (no unmark, no
+// "People I know" list yet) — that remains out of scope.
 
 // UserBlockChecker gates every view/mention/comment/reaction access
 // check (FEATURES.md, Privacy & Control): blocking is symmetric in
@@ -50,6 +47,24 @@ type UserKnownRepository interface {
 // all... Muting just hides their activity from the muter's own view").
 type UserMuteChecker interface {
 	IsMuted(ctx context.Context, muterUserID, mutedUserID uuid.UUID) (bool, error)
+}
+
+// UserBlockRepository is the write/list counterpart to UserBlockChecker
+// — backs the "Blocked users" settings surface (FEATURES.md, Privacy &
+// Control). Block/Unblock are idempotent (see user_blocks.sql).
+type UserBlockRepository interface {
+	Block(ctx context.Context, blockerUserID, blockedUserID uuid.UUID) error
+	Unblock(ctx context.Context, blockerUserID, blockedUserID uuid.UUID) error
+	ListBlockedUserIDs(ctx context.Context, blockerUserID uuid.UUID) ([]uuid.UUID, error)
+}
+
+// UserMuteRepository is the write/list counterpart to UserMuteChecker —
+// backs the "Muted users" settings surface. Mute/Unmute are idempotent
+// (see user_mutes.sql).
+type UserMuteRepository interface {
+	Mute(ctx context.Context, muterUserID, mutedUserID uuid.UUID) error
+	Unmute(ctx context.Context, muterUserID, mutedUserID uuid.UUID) error
+	ListMutedUserIDs(ctx context.Context, muterUserID uuid.UUID) ([]uuid.UUID, error)
 }
 
 // UserPolicyReader is the minimal capability circle_invite_usecase.go

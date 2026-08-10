@@ -25,6 +25,7 @@ type Handlers struct {
 	Mention           *handler.MentionHandler
 	Comment           *handler.CommentHandler
 	Reaction          *handler.ReactionHandler
+	Notification      *handler.NotificationHandler
 }
 
 // SetupRoutes wires every route. authRateLimiter is built in app.go
@@ -58,6 +59,14 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	users := app.Group("/users", middleware.RequireAuth(issuer))
 	users.Get("/username-availability", h.User.CheckUsernameAvailability)
 	users.Patch("/me/username", h.User.SetUsername)
+	users.Get("/me", h.User.GetMe)
+	users.Put("/me/privacy", h.User.UpdatePrivacySettings)
+	users.Get("/me/blocks", h.User.ListBlockedUsers)
+	users.Post("/me/blocks", h.User.BlockUser)
+	users.Delete("/me/blocks/:username", h.User.UnblockUser)
+	users.Get("/me/mutes", h.User.ListMutedUsers)
+	users.Post("/me/mutes", h.User.MuteUser)
+	users.Delete("/me/mutes/:username", h.User.UnmuteUser)
 	users.Get("/:id", h.User.GetUserByID)
 	users.Get("/username/:username", h.User.GetUserByUsername)
 	users.Post("/username/:username/known", h.User.MarkUserKnown)
@@ -143,4 +152,11 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	circleJoinRequests := app.Group("/circle-join-requests", middleware.RequireAuth(issuer))
 	circleJoinRequests.Post("/", h.CircleJoinRequest.FollowInviteLink)
 	circleJoinRequests.Post("/:id/cancel", h.CircleJoinRequest.Cancel)
+
+	notifications := app.Group("/notifications", middleware.RequireAuth(issuer))
+	notifications.Get("/", h.Notification.ListNotifications)
+	notifications.Get("/preferences", h.Notification.GetNotificationPreferences)
+	notifications.Put("/preferences", h.Notification.UpdateNotificationPreferences)
+	notifications.Post("/read-all", h.Notification.MarkAllNotificationsRead)
+	notifications.Patch("/:id/read", h.Notification.MarkNotificationRead)
 }

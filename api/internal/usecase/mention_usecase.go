@@ -107,18 +107,19 @@ type MentionUsecase interface {
 }
 
 type mentionUsecase struct {
-	repo         MentionRepository
-	moments      MomentAccessChecker
-	circles      CircleAccessChecker
-	circleShares CircleShareChecker
-	users        UserPolicyReader
-	knowns       UserKnownChecker
-	blocks       UserBlockChecker
-	searcher     UserSearcher
+	repo          MentionRepository
+	moments       MomentAccessChecker
+	circles       CircleAccessChecker
+	circleShares  CircleShareChecker
+	users         UserPolicyReader
+	knowns        UserKnownChecker
+	blocks        UserBlockChecker
+	searcher      UserSearcher
+	notifications NotificationCreator
 }
 
-func NewMentionUsecase(repo MentionRepository, moments MomentAccessChecker, circles CircleAccessChecker, circleShares CircleShareChecker, users UserPolicyReader, knowns UserKnownChecker, blocks UserBlockChecker, searcher UserSearcher) MentionUsecase {
-	return &mentionUsecase{repo: repo, moments: moments, circles: circles, circleShares: circleShares, users: users, knowns: knowns, blocks: blocks, searcher: searcher}
+func NewMentionUsecase(repo MentionRepository, moments MomentAccessChecker, circles CircleAccessChecker, circleShares CircleShareChecker, users UserPolicyReader, knowns UserKnownChecker, blocks UserBlockChecker, searcher UserSearcher, notifications NotificationCreator) MentionUsecase {
+	return &mentionUsecase{repo: repo, moments: moments, circles: circles, circleShares: circleShares, users: users, knowns: knowns, blocks: blocks, searcher: searcher, notifications: notifications}
 }
 
 // CreateMention implements [MentionUsecase]. Enforces
@@ -161,6 +162,15 @@ func (u *mentionUsecase) CreateMention(ctx context.Context, input CreateMentionI
 	mention, err := u.repo.Create(ctx, input.MomentID, target.ID, target.Name)
 	if err != nil {
 		return nil, fmt.Errorf("creating mention: %w", err)
+	}
+
+	if _, err := u.notifications.CreateNotification(ctx, CreateNotificationInput{
+		UserID:      target.ID,
+		Kind:        enum.NotificationKindMentionedInMoment,
+		ActorUserID: &input.OwnerUserID,
+		MomentID:    &input.MomentID,
+	}); err != nil {
+		return nil, fmt.Errorf("notifying mentioned user: %w", err)
 	}
 
 	sharedCircleIDs, err := u.circleShares.ListSharedCircleIDs(ctx, input.OwnerUserID, target.ID)

@@ -22,9 +22,15 @@ import type {
 
 import type {
   CheckUsernameAvailabilityParams,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCheckUsernameAvailabilityResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListBlockedUsersResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMutedUsersResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPrivateUserResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPublicUserResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoSetUsernameRequest,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUserResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
   UploadProfileImageBody,
@@ -50,6 +56,477 @@ const withQueryKey = <T extends object, K>(
   return result;
 };
 
+export const getGetUsersMeUrl = () => {
+  return `/users/me`;
+};
+
+/**
+ * Includes the privacy fields GetUserByID/GetUserByUsername deliberately omit
+ * @summary Get the caller's own full profile
+ */
+export const getUsersMe = async (
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPrivateUserResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPrivateUserResponse>(
+    getGetUsersMeUrl(),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetUsersMeQueryKey = () => {
+  return [`/users/me`] as const;
+};
+
+export const getGetUsersMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUsersMe>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getUsersMe>>, TError, TData>
+  >;
+}) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetUsersMeQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsersMe>>> = ({
+    signal,
+  }) => getUsersMe({ signal });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getUsersMe>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetUsersMeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUsersMe>>
+>;
+export type GetUsersMeQueryError = unknown;
+
+export function useGetUsersMe<
+  TData = Awaited<ReturnType<typeof getUsersMe>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUsersMe>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersMe>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersMe>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUsersMe<
+  TData = Awaited<ReturnType<typeof getUsersMe>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUsersMe>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersMe>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersMe>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUsersMe<
+  TData = Awaited<ReturnType<typeof getUsersMe>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUsersMe>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get the caller's own full profile
+ */
+
+export function useGetUsersMe<
+  TData = Awaited<ReturnType<typeof getUsersMe>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUsersMe>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetUsersMeQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getGetUsersMeBlocksUrl = () => {
+  return `/users/me/blocks`;
+};
+
+/**
+ * @summary List users the caller has blocked
+ */
+export const getUsersMeBlocks = async (
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListBlockedUsersResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListBlockedUsersResponse>(
+    getGetUsersMeBlocksUrl(),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetUsersMeBlocksQueryKey = () => {
+  return [`/users/me/blocks`] as const;
+};
+
+export const getGetUsersMeBlocksQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUsersMeBlocks>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getUsersMeBlocks>>, TError, TData>
+  >;
+}) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetUsersMeBlocksQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getUsersMeBlocks>>
+  > = ({ signal }) => getUsersMeBlocks({ signal });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getUsersMeBlocks>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetUsersMeBlocksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUsersMeBlocks>>
+>;
+export type GetUsersMeBlocksQueryError = unknown;
+
+export function useGetUsersMeBlocks<
+  TData = Awaited<ReturnType<typeof getUsersMeBlocks>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeBlocks>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersMeBlocks>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersMeBlocks>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUsersMeBlocks<
+  TData = Awaited<ReturnType<typeof getUsersMeBlocks>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeBlocks>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersMeBlocks>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersMeBlocks>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUsersMeBlocks<
+  TData = Awaited<ReturnType<typeof getUsersMeBlocks>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeBlocks>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List users the caller has blocked
+ */
+
+export function useGetUsersMeBlocks<
+  TData = Awaited<ReturnType<typeof getUsersMeBlocks>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeBlocks>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetUsersMeBlocksQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getPostUsersMeBlocksUrl = () => {
+  return `/users/me/blocks`;
+};
+
+/**
+ * @summary Block a user by username
+ */
+export const postUsersMeBlocks = async (
+  githubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest,
+  options?: RequestInit
+): Promise<void> => {
+  return apiMutator<void>(getPostUsersMeBlocksUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      githubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest
+    ),
+  });
+};
+
+export const getPostUsersMeBlocksMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postUsersMeBlocks>>,
+    TError,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest;
+    },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postUsersMeBlocks>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest;
+  },
+  TContext
+> => {
+  const mutationKey = ['postUsersMeBlocks'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postUsersMeBlocks>>,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest;
+    }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postUsersMeBlocks(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostUsersMeBlocksMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postUsersMeBlocks>>
+>;
+export type PostUsersMeBlocksMutationBody =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest;
+export type PostUsersMeBlocksMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Block a user by username
+ */
+export const usePostUsersMeBlocks = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postUsersMeBlocks>>,
+      TError,
+      {
+        data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest;
+      },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof postUsersMeBlocks>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest;
+  },
+  TContext
+> => {
+  return useMutation(getPostUsersMeBlocksMutationOptions(options), queryClient);
+};
+export const getDeleteUsersMeBlocksUsernameUrl = (username: string) => {
+  return `/users/me/blocks/${username}`;
+};
+
+/**
+ * @summary Unblock a user by username
+ */
+export const deleteUsersMeBlocksUsername = async (
+  username: string,
+  options?: RequestInit
+): Promise<void> => {
+  return apiMutator<void>(getDeleteUsersMeBlocksUsernameUrl(username), {
+    ...options,
+    method: 'DELETE',
+  });
+};
+
+export const getDeleteUsersMeBlocksUsernameMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteUsersMeBlocksUsername>>,
+    TError,
+    { username: string },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteUsersMeBlocksUsername>>,
+  TError,
+  { username: string },
+  TContext
+> => {
+  const mutationKey = ['deleteUsersMeBlocksUsername'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteUsersMeBlocksUsername>>,
+    { username: string }
+  > = (props) => {
+    const { username } = props ?? {};
+
+    return deleteUsersMeBlocksUsername(username);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteUsersMeBlocksUsernameMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteUsersMeBlocksUsername>>
+>;
+
+export type DeleteUsersMeBlocksUsernameMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Unblock a user by username
+ */
+export const useDeleteUsersMeBlocksUsername = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteUsersMeBlocksUsername>>,
+      TError,
+      { username: string },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteUsersMeBlocksUsername>>,
+  TError,
+  { username: string },
+  TContext
+> => {
+  return useMutation(
+    getDeleteUsersMeBlocksUsernameMutationOptions(options),
+    queryClient
+  );
+};
 export const getUploadProfileImageUrl = () => {
   return `/users/me/image`;
 };
@@ -147,6 +624,443 @@ export const useUploadProfileImage = <
     getUploadProfileImageMutationOptions(options),
     queryClient
   );
+};
+export const getGetUsersMeMutesUrl = () => {
+  return `/users/me/mutes`;
+};
+
+/**
+ * @summary List users the caller has muted
+ */
+export const getUsersMeMutes = async (
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMutedUsersResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMutedUsersResponse>(
+    getGetUsersMeMutesUrl(),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetUsersMeMutesQueryKey = () => {
+  return [`/users/me/mutes`] as const;
+};
+
+export const getGetUsersMeMutesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUsersMeMutes>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getUsersMeMutes>>, TError, TData>
+  >;
+}) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetUsersMeMutesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsersMeMutes>>> = ({
+    signal,
+  }) => getUsersMeMutes({ signal });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getUsersMeMutes>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetUsersMeMutesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUsersMeMutes>>
+>;
+export type GetUsersMeMutesQueryError = unknown;
+
+export function useGetUsersMeMutes<
+  TData = Awaited<ReturnType<typeof getUsersMeMutes>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeMutes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersMeMutes>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersMeMutes>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUsersMeMutes<
+  TData = Awaited<ReturnType<typeof getUsersMeMutes>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeMutes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersMeMutes>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersMeMutes>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUsersMeMutes<
+  TData = Awaited<ReturnType<typeof getUsersMeMutes>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeMutes>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List users the caller has muted
+ */
+
+export function useGetUsersMeMutes<
+  TData = Awaited<ReturnType<typeof getUsersMeMutes>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeMutes>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetUsersMeMutesQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getPostUsersMeMutesUrl = () => {
+  return `/users/me/mutes`;
+};
+
+/**
+ * @summary Mute a user by username
+ */
+export const postUsersMeMutes = async (
+  githubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest,
+  options?: RequestInit
+): Promise<void> => {
+  return apiMutator<void>(getPostUsersMeMutesUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      githubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest
+    ),
+  });
+};
+
+export const getPostUsersMeMutesMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postUsersMeMutes>>,
+    TError,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest;
+    },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postUsersMeMutes>>,
+  TError,
+  { data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest },
+  TContext
+> => {
+  const mutationKey = ['postUsersMeMutes'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postUsersMeMutes>>,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest;
+    }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postUsersMeMutes(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostUsersMeMutesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postUsersMeMutes>>
+>;
+export type PostUsersMeMutesMutationBody =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest;
+export type PostUsersMeMutesMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Mute a user by username
+ */
+export const usePostUsersMeMutes = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postUsersMeMutes>>,
+      TError,
+      {
+        data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest;
+      },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof postUsersMeMutes>>,
+  TError,
+  { data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest },
+  TContext
+> => {
+  return useMutation(getPostUsersMeMutesMutationOptions(options), queryClient);
+};
+export const getDeleteUsersMeMutesUsernameUrl = (username: string) => {
+  return `/users/me/mutes/${username}`;
+};
+
+/**
+ * @summary Unmute a user by username
+ */
+export const deleteUsersMeMutesUsername = async (
+  username: string,
+  options?: RequestInit
+): Promise<void> => {
+  return apiMutator<void>(getDeleteUsersMeMutesUsernameUrl(username), {
+    ...options,
+    method: 'DELETE',
+  });
+};
+
+export const getDeleteUsersMeMutesUsernameMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteUsersMeMutesUsername>>,
+    TError,
+    { username: string },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteUsersMeMutesUsername>>,
+  TError,
+  { username: string },
+  TContext
+> => {
+  const mutationKey = ['deleteUsersMeMutesUsername'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteUsersMeMutesUsername>>,
+    { username: string }
+  > = (props) => {
+    const { username } = props ?? {};
+
+    return deleteUsersMeMutesUsername(username);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteUsersMeMutesUsernameMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteUsersMeMutesUsername>>
+>;
+
+export type DeleteUsersMeMutesUsernameMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Unmute a user by username
+ */
+export const useDeleteUsersMeMutesUsername = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteUsersMeMutesUsername>>,
+      TError,
+      { username: string },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteUsersMeMutesUsername>>,
+  TError,
+  { username: string },
+  TContext
+> => {
+  return useMutation(
+    getDeleteUsersMeMutesUsernameMutationOptions(options),
+    queryClient
+  );
+};
+export const getPutUsersMePrivacyUrl = () => {
+  return `/users/me/privacy`;
+};
+
+/**
+ * Social Interaction + Data Controls toggles (FEATURES.md, Privacy & Control)
+ * @summary Update the caller's privacy settings
+ */
+export const putUsersMePrivacy = async (
+  githubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest,
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPrivateUserResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPrivateUserResponse>(
+    getPutUsersMePrivacyUrl(),
+    {
+      ...options,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(
+        githubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest
+      ),
+    }
+  );
+};
+
+export const getPutUsersMePrivacyMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof putUsersMePrivacy>>,
+    TError,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest;
+    },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof putUsersMePrivacy>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest;
+  },
+  TContext
+> => {
+  const mutationKey = ['putUsersMePrivacy'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof putUsersMePrivacy>>,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest;
+    }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return putUsersMePrivacy(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PutUsersMePrivacyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putUsersMePrivacy>>
+>;
+export type PutUsersMePrivacyMutationBody =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest;
+export type PutUsersMePrivacyMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Update the caller's privacy settings
+ */
+export const usePutUsersMePrivacy = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof putUsersMePrivacy>>,
+      TError,
+      {
+        data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest;
+      },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof putUsersMePrivacy>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest;
+  },
+  TContext
+> => {
+  return useMutation(getPutUsersMePrivacyMutationOptions(options), queryClient);
 };
 export const getSetUsernameUrl = () => {
   return `/users/me/username`;

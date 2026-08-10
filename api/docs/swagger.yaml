@@ -1,5 +1,13 @@
 basePath: /api/v1
 definitions:
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.BlockUserRequest:
+    properties:
+      username:
+        example: budisantoso
+        type: string
+    required:
+    - username
+    type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CheckUsernameAvailabilityResponse:
     properties:
       available:
@@ -305,6 +313,13 @@ definitions:
           type: string
         type: array
     type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListBlockedUsersResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PublicUserResponse'
+        type: array
+    type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCircleInvitesResponse:
     properties:
       invites:
@@ -362,6 +377,25 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse'
+    type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMutedUsersResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PublicUserResponse'
+        type: array
+    type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListNotificationsResponse:
+    properties:
+      notifications:
+        items:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.NotificationResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse'
+      unread_count:
+        example: 3
+        type: integer
     type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListReactionsResponse:
     properties:
@@ -513,6 +547,88 @@ definitions:
         example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
         type: string
     type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MuteUserRequest:
+    properties:
+      username:
+        example: budisantoso
+        type: string
+    required:
+    - username
+    type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.NotificationPreferencesResponse:
+    properties:
+      added_to_circle_enabled:
+        type: boolean
+      circle_invite_received_enabled:
+        type: boolean
+      circle_join_request_approved_enabled:
+        type: boolean
+      circle_join_request_received_enabled:
+        type: boolean
+      commitment_upcoming_enabled:
+        type: boolean
+      echo_ready_enabled:
+        type: boolean
+      mentioned_in_moment_enabled:
+        type: boolean
+      moment_due_enabled:
+        type: boolean
+      moment_missed_enabled:
+        type: boolean
+      quiet_hours_end:
+        example: "07:00:00"
+        type: string
+      quiet_hours_start:
+        description: |-
+          QuietHoursStart/End are "HH:MM:SS" wall-clock strings, both set or
+          both nil — may wrap past midnight (e.g. 22:00:00 -> 07:00:00).
+        example: "22:00:00"
+        type: string
+      recap_generated_enabled:
+        type: boolean
+      response_digest_enabled:
+        type: boolean
+      response_digest_hour:
+        example: 20
+        type: integer
+    type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.NotificationResponse:
+    properties:
+      actor_user_id:
+        type: string
+      circle_id:
+        type: string
+      circle_invite_id:
+        type: string
+      circle_join_request_id:
+        type: string
+      commitment_id:
+        type: string
+      commitment_occurrence_id:
+        type: string
+      created_at:
+        example: "2026-08-04T14:35:00Z"
+        type: string
+      id:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      kind:
+        example: mentioned_in_moment
+        type: string
+      moment_id:
+        type: string
+      payload:
+        example: '{}'
+        type: string
+      read_at:
+        type: string
+      recap_id:
+        type: string
+      resurfacing_id:
+        type: string
+      thread_id:
+        type: string
+    type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PaginationResponse:
     properties:
       page:
@@ -524,6 +640,40 @@ definitions:
       total:
         example: 42
         type: integer
+    type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PrivateUserResponse:
+    properties:
+      bio:
+        type: string
+      circle_invite_policy:
+        example: known
+        type: string
+      created_at:
+        example: "2026-07-20T10:00:00Z"
+        type: string
+      discoverable_by_username:
+        example: true
+        type: boolean
+      email:
+        example: budi@example.com
+        type: string
+      id:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      image_path:
+        type: string
+      mention_policy:
+        example: anyone
+        type: string
+      name:
+        example: Budi Santoso
+        type: string
+      strip_photo_metadata:
+        example: false
+        type: boolean
+      username:
+        example: budisantoso
+        type: string
     type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PublicUserResponse:
     properties:
@@ -784,6 +934,68 @@ definitions:
     required:
     - occurred_at
     type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateNotificationPreferencesRequest:
+    properties:
+      added_to_circle_enabled:
+        type: boolean
+      circle_invite_received_enabled:
+        type: boolean
+      circle_join_request_approved_enabled:
+        type: boolean
+      circle_join_request_received_enabled:
+        type: boolean
+      commitment_upcoming_enabled:
+        type: boolean
+      echo_ready_enabled:
+        type: boolean
+      mentioned_in_moment_enabled:
+        type: boolean
+      moment_due_enabled:
+        type: boolean
+      moment_missed_enabled:
+        type: boolean
+      quiet_hours_end:
+        example: "07:00:00"
+        type: string
+      quiet_hours_start:
+        example: "22:00:00"
+        type: string
+      recap_generated_enabled:
+        type: boolean
+      response_digest_enabled:
+        type: boolean
+      response_digest_hour:
+        example: 20
+        maximum: 23
+        minimum: 0
+        type: integer
+    type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdatePrivacySettingsRequest:
+    properties:
+      circle_invite_policy:
+        enum:
+        - anyone
+        - known
+        - nobody
+        example: known
+        type: string
+      discoverable_by_username:
+        example: true
+        type: boolean
+      mention_policy:
+        enum:
+        - anyone
+        - known
+        - nobody
+        example: known
+        type: string
+      strip_photo_metadata:
+        example: false
+        type: boolean
+    required:
+    - circle_invite_policy
+    - mention_policy
+    type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateThreadRequest:
     properties:
       color_hex:
@@ -970,6 +1182,18 @@ definitions:
         example: Success
         type: string
     type: object
+  ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListBlockedUsersResponse
+  : properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListBlockedUsersResponse'
+      errors: {}
+      message:
+        example: Success
+        type: string
+    type: object
   ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListCircleInvitesResponse
   : properties:
       code:
@@ -1066,6 +1290,30 @@ definitions:
         example: Success
         type: string
     type: object
+  ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMutedUsersResponse
+  : properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMutedUsersResponse'
+      errors: {}
+      message:
+        example: Success
+        type: string
+    type: object
+  ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListNotificationsResponse
+  : properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListNotificationsResponse'
+      errors: {}
+      message:
+        example: Success
+        type: string
+    type: object
   ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListReactionsResponse
   : properties:
       code:
@@ -1157,6 +1405,30 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MomentResponse'
+      errors: {}
+      message:
+        example: Success
+        type: string
+    type: object
+  ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_NotificationPreferencesResponse
+  : properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.NotificationPreferencesResponse'
+      errors: {}
+      message:
+        example: Success
+        type: string
+    type: object
+  ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PrivateUserResponse
+  : properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PrivateUserResponse'
       errors: {}
       message:
         example: Success
@@ -2771,6 +3043,96 @@ paths:
       summary: Search moments
       tags:
       - moments
+  /notifications:
+    get:
+      description: The in-app feed, newest first, plus the header badge's unread count
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListNotificationsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: List the caller's notifications
+      tags:
+      - notifications
+  /notifications/{id}/read:
+    patch:
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Mark one notification read
+      tags:
+      - notifications
+  /notifications/preferences:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_NotificationPreferencesResponse'
+      summary: Get the caller's notification preferences
+      tags:
+      - notifications
+    put:
+      consumes:
+      - application/json
+      description: Every type is togglable independently, plus quiet hours (FEATURES.md,
+        Notification Preferences)
+      parameters:
+      - description: New preferences
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdateNotificationPreferencesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_NotificationPreferencesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Update the caller's notification preferences
+      tags:
+      - notifications
+  /notifications/read-all:
+    post:
+      responses:
+        "204":
+          description: No Content
+      summary: Mark every visible notification read
+      tags:
+      - notifications
   /threads:
     get:
       description: Search and filter the authenticated user's threads, with pagination
@@ -3044,6 +3406,70 @@ paths:
       summary: Get a user's public profile
       tags:
       - users
+  /users/me:
+    get:
+      description: Includes the privacy fields GetUserByID/GetUserByUsername deliberately
+        omit
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PrivateUserResponse'
+      summary: Get the caller's own full profile
+      tags:
+      - users
+  /users/me/blocks:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListBlockedUsersResponse'
+      summary: List users the caller has blocked
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Username to block
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.BlockUserRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Block a user by username
+      tags:
+      - users
+  /users/me/blocks/{username}:
+    delete:
+      parameters:
+      - description: Username to unblock
+        in: path
+        name: username
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Unblock a user by username
+      tags:
+      - users
   /users/me/image:
     post:
       consumes:
@@ -3068,6 +3494,83 @@ paths:
           schema:
             $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
       summary: Upload the current user's profile photo
+      tags:
+      - users
+  /users/me/mutes:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListMutedUsersResponse'
+      summary: List users the caller has muted
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Username to mute
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MuteUserRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Mute a user by username
+      tags:
+      - users
+  /users/me/mutes/{username}:
+    delete:
+      parameters:
+      - description: Username to unmute
+        in: path
+        name: username
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Unmute a user by username
+      tags:
+      - users
+  /users/me/privacy:
+    put:
+      consumes:
+      - application/json
+      description: Social Interaction + Data Controls toggles (FEATURES.md, Privacy
+        & Control)
+      parameters:
+      - description: New privacy settings
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UpdatePrivacySettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PrivateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Update the caller's privacy settings
       tags:
       - users
   /users/me/username:

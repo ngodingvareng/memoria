@@ -117,6 +117,32 @@ func ptrToPgNumeric(f *float64) pgtype.Numeric {
 	return n
 }
 
+// pgTimeToPtr converts a TIME column (notification_preferences.quiet_hours_*)
+// into a *time.Time anchored to the zero date — only the wall-clock
+// component (via pgtype.Time's microseconds-since-midnight) is meaningful,
+// the date is never read by callers.
+func pgTimeToPtr(t pgtype.Time) *time.Time {
+	if !t.Valid {
+		return nil
+	}
+	wallClock := time.Date(1, 1, 1, 0, 0, 0, 0, time.UTC).
+		Add(time.Duration(t.Microseconds) * time.Microsecond)
+	return &wallClock
+}
+
+// ptrToPgTime is the inverse of pgTimeToPtr: only the hour/minute/second/
+// nanosecond components of t are read.
+func ptrToPgTime(t *time.Time) pgtype.Time {
+	if t == nil {
+		return pgtype.Time{}
+	}
+	microseconds := int64(t.Hour())*3600e6 +
+		int64(t.Minute())*60e6 +
+		int64(t.Second())*1e6 +
+		int64(t.Nanosecond())/1000
+	return pgtype.Time{Microseconds: microseconds, Valid: true}
+}
+
 // pgIntervalToDuration converts moments.settling_time. That column is
 // GENERATED ALWAYS AS (recorded_at - occurred_at) — a subtraction of two
 // timestamptz values — so Postgres never populates the Months component

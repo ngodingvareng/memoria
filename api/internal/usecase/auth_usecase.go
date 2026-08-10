@@ -32,6 +32,12 @@ type UserRepository interface {
 	SetUsername(ctx context.Context, id uuid.UUID, username string) (*entity.User, error)
 	// UpdateImagePath sets (or clears, with nil) the profile photo URL.
 	UpdateImagePath(ctx context.Context, id uuid.UUID, imagePath *string) (*entity.User, error)
+	// UpdatePrivacySettings overwrites MentionPolicy/CircleInvitePolicy/
+	// DiscoverableByUsername/StripPhotoMetadata for user.ID — the
+	// Social Interaction + Data Controls toggles (FEATURES.md, Privacy &
+	// Control), separate from profile content so a settings screen can
+	// save them independently. Other fields on user are ignored.
+	UpdatePrivacySettings(ctx context.Context, user *entity.User) (*entity.User, error)
 }
 
 type UserAccountRepository interface {

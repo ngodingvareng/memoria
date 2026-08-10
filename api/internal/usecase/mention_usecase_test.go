@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func newMentionUsecaseDeps(t *testing.T) (*mocks.MockMentionRepository, *mocks.MockMomentAccessChecker, *mocks.MockCircleAccessChecker, *mocks.MockCircleShareChecker, *mocks.MockUserPolicyReader, *mocks.MockUserKnownChecker, *mocks.MockUserBlockChecker, *mocks.MockUserSearcher) {
+func newMentionUsecaseDeps(t *testing.T) (*mocks.MockMentionRepository, *mocks.MockMomentAccessChecker, *mocks.MockCircleAccessChecker, *mocks.MockCircleShareChecker, *mocks.MockUserPolicyReader, *mocks.MockUserKnownChecker, *mocks.MockUserBlockChecker, *mocks.MockUserSearcher, *mocks.MockNotificationCreator) {
 	t.Helper()
 	return mocks.NewMockMentionRepository(t),
 		mocks.NewMockMomentAccessChecker(t),
@@ -25,12 +25,13 @@ func newMentionUsecaseDeps(t *testing.T) (*mocks.MockMentionRepository, *mocks.M
 		mocks.NewMockUserPolicyReader(t),
 		mocks.NewMockUserKnownChecker(t),
 		mocks.NewMockUserBlockChecker(t),
-		mocks.NewMockUserSearcher(t)
+		mocks.NewMockUserSearcher(t),
+		mocks.NewMockNotificationCreator(t)
 }
 
 func TestMentionUsecase_CreateMention_AnyonePolicy_Success(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	momentID, ownerID, targetID := uuid.New(), uuid.New(), uuid.New()
 	target := &entity.User{ID: targetID, Name: "Gede", Username: strPtr("gede"), MentionPolicy: enum.AudiencePolicyAnyone}
@@ -40,6 +41,11 @@ func TestMentionUsecase_CreateMention_AnyonePolicy_Success(t *testing.T) {
 	blocks.EXPECT().IsBlockedEitherDirection(mock.Anything, ownerID, targetID).Return(false, nil)
 	repo.EXPECT().Create(mock.Anything, momentID, targetID, "Gede").
 		Return(&entity.MomentMention{MomentID: momentID, MentionedUserID: &targetID, DisplayName: "Gede"}, nil)
+	notifications.EXPECT().
+		CreateNotification(mock.Anything, mock.MatchedBy(func(input usecase.CreateNotificationInput) bool {
+			return input.UserID == targetID && input.Kind == enum.NotificationKindMentionedInMoment
+		})).
+		Return(nil, nil)
 	sharedCircleID := uuid.New()
 	circleShares.EXPECT().ListSharedCircleIDs(mock.Anything, ownerID, targetID).
 		Return([]uuid.UUID{sharedCircleID}, nil)
@@ -54,8 +60,8 @@ func TestMentionUsecase_CreateMention_AnyonePolicy_Success(t *testing.T) {
 }
 
 func TestMentionUsecase_CreateMention_Blocked_Denied(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	momentID, ownerID, targetID := uuid.New(), uuid.New(), uuid.New()
 	target := &entity.User{ID: targetID, MentionPolicy: enum.AudiencePolicyAnyone}
@@ -74,8 +80,8 @@ func TestMentionUsecase_CreateMention_Blocked_Denied(t *testing.T) {
 }
 
 func TestMentionUsecase_CreateMention_NobodyPolicy_Denied(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	momentID, ownerID, targetID := uuid.New(), uuid.New(), uuid.New()
 	target := &entity.User{ID: targetID, MentionPolicy: enum.AudiencePolicyNobody}
@@ -93,8 +99,8 @@ func TestMentionUsecase_CreateMention_NobodyPolicy_Denied(t *testing.T) {
 }
 
 func TestMentionUsecase_CreateMention_KnownPolicy_RequiresKnown(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	momentID, ownerID, targetID := uuid.New(), uuid.New(), uuid.New()
 	target := &entity.User{ID: targetID, MentionPolicy: enum.AudiencePolicyKnown}
@@ -113,8 +119,8 @@ func TestMentionUsecase_CreateMention_KnownPolicy_RequiresKnown(t *testing.T) {
 }
 
 func TestMentionUsecase_LeaveMention_Success(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	momentID, userID := uuid.New(), uuid.New()
 	repo.EXPECT().Remove(mock.Anything, momentID, userID).Return(nil)
@@ -125,8 +131,8 @@ func TestMentionUsecase_LeaveMention_Success(t *testing.T) {
 }
 
 func TestMentionUsecase_ShareToCircle_RequiresOwnershipAndMembership(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	momentID, circleID, userID := uuid.New(), uuid.New(), uuid.New()
 	moments.EXPECT().GetByID(mock.Anything, momentID, userID).Return(&entity.Moment{ID: momentID, UserID: userID}, nil)
@@ -141,8 +147,8 @@ func TestMentionUsecase_ShareToCircle_RequiresOwnershipAndMembership(t *testing.
 }
 
 func TestMentionUsecase_ShareToCircle_Idempotent(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	momentID, circleID, userID := uuid.New(), uuid.New(), uuid.New()
 	moments.EXPECT().GetByID(mock.Anything, momentID, userID).Return(&entity.Moment{ID: momentID, UserID: userID}, nil)
@@ -158,8 +164,8 @@ func TestMentionUsecase_ShareToCircle_Idempotent(t *testing.T) {
 }
 
 func TestMentionUsecase_ListSharedCircles_Success(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	momentID, ownerID, circleID := uuid.New(), uuid.New(), uuid.New()
 	moments.EXPECT().GetByID(mock.Anything, momentID, ownerID).Return(&entity.Moment{ID: momentID, UserID: ownerID}, nil)
@@ -172,8 +178,8 @@ func TestMentionUsecase_ListSharedCircles_Success(t *testing.T) {
 }
 
 func TestMentionUsecase_ListSharedCircles_NotOwner_NotFound(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	momentID, userID := uuid.New(), uuid.New()
 	moments.EXPECT().GetByID(mock.Anything, momentID, userID).Return(nil, errs.ErrNotFound)
@@ -186,8 +192,8 @@ func TestMentionUsecase_ListSharedCircles_NotOwner_NotFound(t *testing.T) {
 }
 
 func TestMentionUsecase_ListMentionedMoments_DefaultsPagination(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	userID := uuid.New()
 	repo.EXPECT().ListMentionedMoments(mock.Anything, userID, int32(20), int32(0)).
@@ -201,8 +207,8 @@ func TestMentionUsecase_ListMentionedMoments_DefaultsPagination(t *testing.T) {
 }
 
 func TestMentionUsecase_SearchMentionableUsers_EmptyQuery_SkipsSearch(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	results, err := uc.SearchMentionableUsers(context.Background(), uuid.New(), "  ")
 
@@ -212,8 +218,8 @@ func TestMentionUsecase_SearchMentionableUsers_EmptyQuery_SkipsSearch(t *testing
 }
 
 func TestMentionUsecase_SearchMentionableUsers_FiltersByPolicyAndBlocking(t *testing.T) {
-	repo, moments, circles, circleShares, users, knowns, blocks, searcher := newMentionUsecaseDeps(t)
-	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher)
+	repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications := newMentionUsecaseDeps(t)
+	uc := usecase.NewMentionUsecase(repo, moments, circles, circleShares, users, knowns, blocks, searcher, notifications)
 
 	requesterID := uuid.New()
 	anyoneUser := &entity.User{ID: uuid.New(), Username: strPtr("gede"), MentionPolicy: enum.AudiencePolicyAnyone}

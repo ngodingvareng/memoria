@@ -11,15 +11,16 @@ import (
 )
 
 var _ usecase.UserBlockChecker = (*userPrivacyRepository)(nil)
+var _ usecase.UserBlockRepository = (*userPrivacyRepository)(nil)
 var _ usecase.UserKnownChecker = (*userPrivacyRepository)(nil)
 var _ usecase.UserKnownRepository = (*userPrivacyRepository)(nil)
 var _ usecase.UserMuteChecker = (*userPrivacyRepository)(nil)
+var _ usecase.UserMuteRepository = (*userPrivacyRepository)(nil)
 
-// userPrivacyRepository wraps the read-only Is* checks from
-// user_blocks.sql/user_knows.sql/user_mutes.sql, plus the one write
-// path built so far — MarkKnown. It still doesn't expose Delete/List
-// for any of the three tables — the rest of Known/Block/Mute management
-// is a separate, not-yet-built feature (see user_privacy.go).
+// userPrivacyRepository wraps user_blocks.sql/user_knows.sql/
+// user_mutes.sql: the read-only Is*/gating checks, Block/Mute CRUD +
+// List, and Known's one write path (MarkKnown). Known still has no
+// unmark/list — that remains out of scope (see user_privacy.go).
 type userPrivacyRepository struct {
 	q *db.Queries
 }
@@ -64,4 +65,68 @@ func (r *userPrivacyRepository) IsMuted(ctx context.Context, muterUserID, mutedU
 		return false, fmt.Errorf("checking mute status: %w", err)
 	}
 	return muted, nil
+}
+
+// Block implements [usecase.UserBlockRepository]. Idempotent (see
+// user_blocks.sql's CreateUserBlock) — blocking someone already blocked
+// is a no-op, not an error.
+func (r *userPrivacyRepository) Block(ctx context.Context, blockerUserID, blockedUserID uuid.UUID) error {
+	if err := r.q.CreateUserBlock(ctx, db.CreateUserBlockParams{BlockerUserID: blockerUserID, BlockedUserID: blockedUserID}); err != nil {
+		return fmt.Errorf("blocking user: %w", err)
+	}
+	return nil
+}
+
+// Unblock implements [usecase.UserBlockRepository]. Silent no-op if the
+// pair isn't currently blocked.
+func (r *userPrivacyRepository) Unblock(ctx context.Context, blockerUserID, blockedUserID uuid.UUID) error {
+	if err := r.q.DeleteUserBlock(ctx, db.DeleteUserBlockParams{BlockerUserID: blockerUserID, BlockedUserID: blockedUserID}); err != nil {
+		return fmt.Errorf("unblocking user: %w", err)
+	}
+	return nil
+}
+
+// ListBlockedUserIDs implements [usecase.UserBlockRepository].
+func (r *userPrivacyRepository) ListBlockedUserIDs(ctx context.Context, blockerUserID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := r.q.ListBlockedUsersByBlockerID(ctx, blockerUserID)
+	if err != nil {
+		return nil, fmt.Errorf("listing blocked users: %w", err)
+	}
+	ids := make([]uuid.UUID, len(rows))
+	for i, row := range rows {
+		ids[i] = row.BlockedUserID
+	}
+	return ids, nil
+}
+
+// Mute implements [usecase.UserMuteRepository]. Idempotent (see
+// user_mutes.sql's CreateUserMute) — muting someone already muted is a
+// no-op, not an error.
+func (r *userPrivacyRepository) Mute(ctx context.Context, muterUserID, mutedUserID uuid.UUID) error {
+	if err := r.q.CreateUserMute(ctx, db.CreateUserMuteParams{MuterUserID: muterUserID, MutedUserID: mutedUserID}); err != nil {
+		return fmt.Errorf("muting user: %w", err)
+	}
+	return nil
+}
+
+// Unmute implements [usecase.UserMuteRepository]. Silent no-op if the
+// pair isn't currently muted.
+func (r *userPrivacyRepository) Unmute(ctx context.Context, muterUserID, mutedUserID uuid.UUID) error {
+	if err := r.q.DeleteUserMute(ctx, db.DeleteUserMuteParams{MuterUserID: muterUserID, MutedUserID: mutedUserID}); err != nil {
+		return fmt.Errorf("unmuting user: %w", err)
+	}
+	return nil
+}
+
+// ListMutedUserIDs implements [usecase.UserMuteRepository].
+func (r *userPrivacyRepository) ListMutedUserIDs(ctx context.Context, muterUserID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := r.q.ListMutedUsersByMuterID(ctx, muterUserID)
+	if err != nil {
+		return nil, fmt.Errorf("listing muted users: %w", err)
+	}
+	ids := make([]uuid.UUID, len(rows))
+	for i, row := range rows {
+		ids[i] = row.MutedUserID
+	}
+	return ids, nil
 }
