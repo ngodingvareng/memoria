@@ -210,13 +210,13 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		},
 	})
 
-	// requireUsername gates every "activity" route behind having claimed
-	// a username — see middleware.RequireUsername's doc comment for why
+	// requireOnboarded gates every "activity" route behind having claimed
+	// a username — see middleware.RequireOnboarded's doc comment for why
 	// it needs a DB hit unlike RequireAuth.
-	requireUsername := middleware.RequireUsername(userRepo)
+	requireOnboarded := middleware.RequireOnboarded(userRepo)
 
 	// 5. Router
-	rest.SetupRoutes(fiberApp, accessTokenIssuer, authRateLimiter, requireUsername, rest.Handlers{
+	rest.SetupRoutes(fiberApp, accessTokenIssuer, authRateLimiter, requireOnboarded, rest.Handlers{
 		Health:            healthHandler,
 		Auth:              authHandler,
 		User:              userHandler,

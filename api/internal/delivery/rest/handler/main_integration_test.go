@@ -283,9 +283,9 @@ func setupTestApp(t *testing.T) *testApp {
 	// transport-level concerns wired in internal/app.NewContainer, not
 	// route-level behavior SetupRoutes itself is responsible for.
 	noOpRateLimiter := func(c fiber.Ctx) error { return c.Next() }
-	requireUsername := middleware.RequireUsername(userRepo)
+	requireOnboarded := middleware.RequireOnboarded(userRepo)
 
-	rest.SetupRoutes(fiberApp, accessTokenIssuer, noOpRateLimiter, requireUsername, rest.Handlers{
+	rest.SetupRoutes(fiberApp, accessTokenIssuer, noOpRateLimiter, requireOnboarded, rest.Handlers{
 		Auth:              authHandler,
 		User:              userHandler,
 		Thread:            threadHandler,

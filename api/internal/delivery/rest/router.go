@@ -35,7 +35,7 @@ type Handlers struct {
 // unauthenticated auth endpoints that are actually brute-forceable —
 // /refresh and /logout require a valid cookie/session already, so they
 // aren't password-guessing targets the way /login and /register are.
-func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimiter fiber.Handler, requireUsername fiber.Handler, h Handlers) {
+func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimiter fiber.Handler, requireOnboarded fiber.Handler, h Handlers) {
 	app.Get("/healthz", h.Health.Health)
 
 	app.Get("/docs/*", swaggo.New(swaggo.Config{Title: "Book API"}))
@@ -60,25 +60,25 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	auth.Post("/reset-password", authRateLimiter, h.Auth.ResetPassword)
 
 	users := app.Group("/users", middleware.RequireAuth(issuer))
-	// These two are exempt from requireUsername on purpose — they're the
+	// These two are exempt from requireOnboarded on purpose — they're the
 	// only endpoints a not-yet-onboarded account is allowed to call, since
 	// they're how it finishes onboarding in the first place.
 	users.Get("/username-availability", h.User.CheckUsernameAvailability)
 	users.Patch("/me/username", h.User.SetUsername)
-	users.Get("/me", requireUsername, h.User.GetMe)
-	users.Put("/me/privacy", requireUsername, h.User.UpdatePrivacySettings)
-	users.Get("/me/blocks", requireUsername, h.User.ListBlockedUsers)
-	users.Post("/me/blocks", requireUsername, h.User.BlockUser)
-	users.Delete("/me/blocks/:username", requireUsername, h.User.UnblockUser)
-	users.Get("/me/mutes", requireUsername, h.User.ListMutedUsers)
-	users.Post("/me/mutes", requireUsername, h.User.MuteUser)
-	users.Delete("/me/mutes/:username", requireUsername, h.User.UnmuteUser)
-	users.Get("/:id", requireUsername, h.User.GetUserByID)
-	users.Get("/username/:username", requireUsername, h.User.GetUserByUsername)
-	users.Post("/username/:username/known", requireUsername, h.User.MarkUserKnown)
-	users.Post("/me/image", requireUsername, h.User.UploadProfileImage)
+	users.Get("/me", requireOnboarded, h.User.GetMe)
+	users.Put("/me/privacy", requireOnboarded, h.User.UpdatePrivacySettings)
+	users.Get("/me/blocks", requireOnboarded, h.User.ListBlockedUsers)
+	users.Post("/me/blocks", requireOnboarded, h.User.BlockUser)
+	users.Delete("/me/blocks/:username", requireOnboarded, h.User.UnblockUser)
+	users.Get("/me/mutes", requireOnboarded, h.User.ListMutedUsers)
+	users.Post("/me/mutes", requireOnboarded, h.User.MuteUser)
+	users.Delete("/me/mutes/:username", requireOnboarded, h.User.UnmuteUser)
+	users.Get("/:id", requireOnboarded, h.User.GetUserByID)
+	users.Get("/username/:username", requireOnboarded, h.User.GetUserByUsername)
+	users.Post("/username/:username/known", requireOnboarded, h.User.MarkUserKnown)
+	users.Post("/me/image", requireOnboarded, h.User.UploadProfileImage)
 
-	threads := app.Group("/threads", middleware.RequireAuth(issuer), requireUsername)
+	threads := app.Group("/threads", middleware.RequireAuth(issuer), requireOnboarded)
 	threads.Post("/", h.Thread.CreateThread)
 	threads.Put("/:id", h.Thread.UpdateThread)
 	threads.Delete("/:id", h.Thread.DeleteThread)
@@ -91,7 +91,7 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 
 	threads.Get("/:id/moments", h.Moment.ListThreadMoments)
 
-	moments := app.Group("/moments", middleware.RequireAuth(issuer), requireUsername)
+	moments := app.Group("/moments", middleware.RequireAuth(issuer), requireOnboarded)
 	moments.Post("/", h.Moment.CreateMoment)
 	moments.Get("/", h.Moment.ListMoments)
 	moments.Get("/search", h.Moment.SearchMoments)
@@ -121,11 +121,11 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	moments.Put("/:id/reactions", h.Reaction.SetReaction)
 	moments.Delete("/:id/reactions", h.Reaction.RemoveReaction)
 
-	mentioned := app.Group("/mentions", middleware.RequireAuth(issuer), requireUsername)
+	mentioned := app.Group("/mentions", middleware.RequireAuth(issuer), requireOnboarded)
 	mentioned.Get("/", h.Mention.ListMentionedMoments)
 	mentioned.Get("/users", h.Mention.SearchMentionableUsers)
 
-	circles := app.Group("/circles", middleware.RequireAuth(issuer), requireUsername)
+	circles := app.Group("/circles", middleware.RequireAuth(issuer), requireOnboarded)
 	circles.Post("/", h.Circle.CreateCircle)
 	circles.Get("/", h.Circle.ListMyCircles)
 	circles.Get("/:id", h.Circle.GetCircle)
@@ -151,25 +151,25 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	circles.Post("/:id/join-requests/:requestId/approve", h.CircleJoinRequest.Approve)
 	circles.Post("/:id/join-requests/:requestId/reject", h.CircleJoinRequest.Reject)
 
-	circleInvites := app.Group("/circle-invites", middleware.RequireAuth(issuer), requireUsername)
+	circleInvites := app.Group("/circle-invites", middleware.RequireAuth(issuer), requireOnboarded)
 	circleInvites.Get("/", h.CircleInvite.ListMyPendingInvites)
 	circleInvites.Post("/:id/accept", h.CircleInvite.AcceptInvite)
 	circleInvites.Post("/:id/decline", h.CircleInvite.DeclineInvite)
 
-	circleJoinRequests := app.Group("/circle-join-requests", middleware.RequireAuth(issuer), requireUsername)
+	circleJoinRequests := app.Group("/circle-join-requests", middleware.RequireAuth(issuer), requireOnboarded)
 	circleJoinRequests.Post("/", h.CircleJoinRequest.FollowInviteLink)
 	circleJoinRequests.Post("/:id/cancel", h.CircleJoinRequest.Cancel)
 
-	notifications := app.Group("/notifications", middleware.RequireAuth(issuer), requireUsername)
+	notifications := app.Group("/notifications", middleware.RequireAuth(issuer), requireOnboarded)
 	notifications.Get("/", h.Notification.ListNotifications)
 	notifications.Get("/preferences", h.Notification.GetNotificationPreferences)
 	notifications.Put("/preferences", h.Notification.UpdateNotificationPreferences)
 	notifications.Post("/read-all", h.Notification.MarkAllNotificationsRead)
 	notifications.Patch("/:id/read", h.Notification.MarkNotificationRead)
 
-	search := app.Group("/search", middleware.RequireAuth(issuer), requireUsername)
+	search := app.Group("/search", middleware.RequireAuth(issuer), requireOnboarded)
 	search.Get("/suggestions", h.Search.Suggestions)
 
-	album := app.Group("/album", middleware.RequireAuth(issuer), requireUsername)
+	album := app.Group("/album", middleware.RequireAuth(issuer), requireOnboarded)
 	album.Get("/", h.Album.ListAlbum)
 }
