@@ -1,12 +1,6 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
-  AvatarImage,
-} from '@/components/ui/avatar';
+import { AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar';
 import { useGetMomentsIdComments } from '@/lib/api/generated/comments/comments';
-import { useGetUserByID } from '@/lib/api/generated/users/users';
+import { CommentAuthorAvatar } from './comment-author-avatar';
 
 // How many distinct commenters' avatars show before collapsing the
 // rest into a "+N" count.
@@ -49,17 +43,5 @@ export function CommentAuthorsAvatarGroup({
         <AvatarGroupCount>+{overflowCount}</AvatarGroupCount>
       )}
     </AvatarGroup>
-  );
-}
-
-function CommentAuthorAvatar({ userId }: { userId: string }) {
-  const { data: user } = useGetUserByID(userId);
-  const name = user?.name ?? '';
-
-  return (
-    <Avatar size="sm">
-      <AvatarImage src={user?.image_path ?? undefined} alt={name} />
-      <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
-    </Avatar>
   );
 }
