@@ -146,6 +146,37 @@ func TestCircleRepository_LeaveAndRemoveMember(t *testing.T) {
 	require.ErrorIs(t, err, errs.ErrNotFound)
 }
 
+func TestCircleRepository_IsSoleActiveAdmin(t *testing.T) {
+	pool := setupTestDB(t)
+	adminID := seedTestUser(t, pool)
+	memberID := seedTestUser(t, pool)
+	repo := repository.NewCircleRepository(pool)
+
+	created, err := repo.Create(context.Background(), &entity.Circle{Name: "Sole admin test"})
+	require.NoError(t, err)
+	_, err = repo.AddCreatorAsAdmin(context.Background(), created.ID, adminID)
+	require.NoError(t, err)
+
+	isSole, err := repo.IsSoleActiveAdmin(context.Background(), created.ID, adminID)
+	require.NoError(t, err)
+	require.True(t, isSole, "the creator is currently the only active admin")
+
+	// A plain member is never "the sole admin", regardless of roster size.
+	isSole, err = repo.IsSoleActiveAdmin(context.Background(), created.ID, memberID)
+	require.NoError(t, err)
+	require.False(t, isSole)
+
+	_, err = pool.Exec(context.Background(),
+		`INSERT INTO circle_members (circle_id, user_id, role, can_invite, can_capture) VALUES ($1, $2, 'admin', true, true)`,
+		created.ID, memberID)
+	require.NoError(t, err)
+
+	// With a second active admin seated, neither admin is "sole" anymore.
+	isSole, err = repo.IsSoleActiveAdmin(context.Background(), created.ID, adminID)
+	require.NoError(t, err)
+	require.False(t, isSole)
+}
+
 func TestCircleRepository_UpdateMemberRole_PromotingForcesCanInvite(t *testing.T) {
 	pool := setupTestDB(t)
 	adminID := seedTestUser(t, pool)

@@ -108,20 +108,31 @@ func (_c *MockMomentImageRepository_Create_Call) RunAndReturn(run func(ctx conte
 }
 
 // Delete provides a mock function for the type MockMomentImageRepository
-func (_mock *MockMomentImageRepository) Delete(ctx context.Context, momentID uuid.UUID, imageID uuid.UUID) error {
+func (_mock *MockMomentImageRepository) Delete(ctx context.Context, momentID uuid.UUID, imageID uuid.UUID) (*entity.MomentImage, error) {
 	ret := _mock.Called(ctx, momentID, imageID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+	var r0 *entity.MomentImage
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) (*entity.MomentImage, error)); ok {
+		return returnFunc(ctx, momentID, imageID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID) *entity.MomentImage); ok {
 		r0 = returnFunc(ctx, momentID, imageID)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.MomentImage)
+		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, momentID, imageID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockMomentImageRepository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
@@ -160,12 +171,12 @@ func (_c *MockMomentImageRepository_Delete_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *MockMomentImageRepository_Delete_Call) Return(err error) *MockMomentImageRepository_Delete_Call {
-	_c.Call.Return(err)
+func (_c *MockMomentImageRepository_Delete_Call) Return(momentImage *entity.MomentImage, err error) *MockMomentImageRepository_Delete_Call {
+	_c.Call.Return(momentImage, err)
 	return _c
 }
 
-func (_c *MockMomentImageRepository_Delete_Call) RunAndReturn(run func(ctx context.Context, momentID uuid.UUID, imageID uuid.UUID) error) *MockMomentImageRepository_Delete_Call {
+func (_c *MockMomentImageRepository_Delete_Call) RunAndReturn(run func(ctx context.Context, momentID uuid.UUID, imageID uuid.UUID) (*entity.MomentImage, error)) *MockMomentImageRepository_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }

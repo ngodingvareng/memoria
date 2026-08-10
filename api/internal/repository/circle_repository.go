@@ -129,6 +129,15 @@ func (r *circleRepository) GetActiveMember(ctx context.Context, circleID, userID
 	return toEntityCircleMember(row), nil
 }
 
+// IsSoleActiveAdmin implements [usecase.CircleRepository].
+func (r *circleRepository) IsSoleActiveAdmin(ctx context.Context, circleID, userID uuid.UUID) (bool, error) {
+	isSole, err := r.q.IsSoleActiveCircleAdmin(ctx, db.IsSoleActiveCircleAdminParams{CircleID: circleID, UserID: userID})
+	if err != nil {
+		return false, fmt.Errorf("checking sole active circle admin: %w", err)
+	}
+	return isSole.Bool, nil
+}
+
 // Leave implements [usecase.CircleRepository]. LeaveCircle is a sqlc
 // :exec query, so a WHERE clause matching zero rows is a silent no-op.
 func (r *circleRepository) Leave(ctx context.Context, circleID, userID uuid.UUID) error {

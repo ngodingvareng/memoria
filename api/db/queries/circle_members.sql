@@ -20,6 +20,29 @@ WHERE circle_id = sqlc.arg(circle_id)
     AND left_at IS NULL
 ORDER BY joined_at;
 
+-- name: IsSoleActiveCircleAdmin :one
+-- True when user_id is currently an active admin of circle_id and no
+-- other active admin exists — the guard LeaveCircle and
+-- UpdateMemberRole (usecase layer) check before letting an admin
+-- self-leave or self-demote, so a Circle is never left with zero
+-- admins. Same TOCTOU tolerance as the other unlocked read-then-write
+-- sequences already accepted elsewhere in this codebase (see TODO.md).
+SELECT
+    EXISTS(
+        SELECT 1 FROM circle_members AS target
+        WHERE target.circle_id = sqlc.arg(circle_id)
+            AND target.user_id = sqlc.arg(user_id)
+            AND target.left_at IS NULL
+            AND target.role = 'admin'
+    )
+    AND NOT EXISTS(
+        SELECT 1 FROM circle_members AS other
+        WHERE other.circle_id = sqlc.arg(circle_id)
+            AND other.user_id != sqlc.arg(user_id)
+            AND other.left_at IS NULL
+            AND other.role = 'admin'
+    ) AS is_sole_admin;
+
 -- name: LeaveCircle :exec
 -- Self-service departure. :exec — a mismatched WHERE (not a member,
 -- already left) is a silent no-op; the caller already knows the actor's

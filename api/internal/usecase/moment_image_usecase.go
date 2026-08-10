@@ -13,7 +13,10 @@ import (
 type MomentImageRepository interface {
 	Create(ctx context.Context, image *entity.MomentImage) (*entity.MomentImage, error)
 	ListByMomentID(ctx context.Context, momentID uuid.UUID) ([]*entity.MomentImage, error)
-	Delete(ctx context.Context, momentID, imageID uuid.UUID) error
+	// Delete returns the deleted image (nil if id/momentID didn't match
+	// an existing row) so the caller can remove the matching storage
+	// object.
+	Delete(ctx context.Context, momentID, imageID uuid.UUID) (*entity.MomentImage, error)
 }
 
 type UploadMomentImageInput struct {
@@ -118,8 +121,15 @@ func (u *momentImageUsecase) DeleteMomentImage(ctx context.Context, momentID, im
 
 	// DB record deleted before the storage object, same ordering
 	// rationale as ThreadImageUsecase.DeleteThreadImage.
-	if err := u.repo.Delete(ctx, momentID, imageID); err != nil {
+	deleted, err := u.repo.Delete(ctx, momentID, imageID)
+	if err != nil {
 		return fmt.Errorf("deleting moment image record: %w", err)
+	}
+	if deleted == nil {
+		return nil
+	}
+	if err := u.storage.Delete(ctx, deleted.ImagePath); err != nil {
+		return fmt.Errorf("deleting moment image object: %w", err)
 	}
 	return nil
 }

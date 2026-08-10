@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/db"
 	"github.com/ngodingvareng/memoria/internal/entity"
@@ -43,13 +45,20 @@ func (r *threadImageRepository) ListByThreadID(ctx context.Context, threadID uui
 	return toEntityThreadImages(rows), nil
 }
 
-// Delete implements [usecase.ThreadImageRepository].
-func (r *threadImageRepository) Delete(ctx context.Context, threadID uuid.UUID, imageID uuid.UUID) error {
-	if err := r.q.DeleteThreadImage(ctx, db.DeleteThreadImageParams{
+// Delete implements [usecase.ThreadImageRepository]. Returns the deleted
+// image's path so the caller can remove the matching storage object; a
+// mismatched id/threadID is a silent no-op (nil, nil), matching the
+// ownership-check semantics used elsewhere in this package.
+func (r *threadImageRepository) Delete(ctx context.Context, threadID uuid.UUID, imageID uuid.UUID) (*entity.ThreadImage, error) {
+	row, err := r.q.DeleteThreadImage(ctx, db.DeleteThreadImageParams{
 		ID:       imageID,
 		ThreadID: threadID,
-	}); err != nil {
-		return fmt.Errorf("delete thread image: %w", err)
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("delete thread image: %w", err)
 	}
-	return nil
+	return toEntityThreadImage(row), nil
 }

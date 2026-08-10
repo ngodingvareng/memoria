@@ -47,6 +47,7 @@ var (
 	ErrEmailAlreadyExists    = New(http.StatusConflict, "email already registered")
 	ErrUsernameAlreadyExists = New(http.StatusConflict, "username already registered")
 	ErrUserAlreadyExists     = New(http.StatusConflict, "user already exists")
+	ErrLastCircleAdmin       = New(http.StatusConflict, "circle must keep at least one admin; promote another member first")
 
 	// 422 Unprocessable Entity
 	ErrUnprocessableEntity = New(http.StatusUnprocessableEntity, "unprocessable entity")

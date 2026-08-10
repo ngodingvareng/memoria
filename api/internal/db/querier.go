@@ -144,13 +144,25 @@ type Querier interface {
 	// Periodic cleanup job, same pattern as
 	// refresh_tokens.idx_refresh_tokens_expires_at.
 	DeleteExpiredUserVerifications(ctx context.Context) (int64, error)
-	DeleteMomentImage(ctx context.Context, arg DeleteMomentImageParams) error
+	// Returns the deleted row (specifically image_path) so the caller can
+	// remove the matching storage object after the DB record is gone — see
+	// MomentImageUsecase.DeleteMomentImage for the ordering rationale. No
+	// matching row (already deleted / wrong moment) surfaces as
+	// pgx.ErrNoRows, which the repository treats as a silent no-op, same as
+	// the :exec version this replaces.
+	DeleteMomentImage(ctx context.Context, arg DeleteMomentImageParams) (MomentImage, error)
 	// The Moment's owner deleting a mention they added by mistake — distinct
 	// from RemoveMomentMention, which is the mentioned user leaving on
 	// their own initiative.
 	DeleteMomentMention(ctx context.Context, arg DeleteMomentMentionParams) error
 	DeleteReaction(ctx context.Context, arg DeleteReactionParams) error
-	DeleteThreadImage(ctx context.Context, arg DeleteThreadImageParams) error
+	// Returns the deleted row (specifically image_path) so the caller can
+	// remove the matching storage object after the DB record is gone — see
+	// ThreadImageUsecase.DeleteThreadImage for the ordering rationale. No
+	// matching row (already deleted / wrong thread) surfaces as
+	// pgx.ErrNoRows, which the repository treats as a silent no-op, same as
+	// the :exec version this replaces.
+	DeleteThreadImage(ctx context.Context, arg DeleteThreadImageParams) (ThreadImage, error)
 	// Unlink a provider. user_id in the WHERE clause is a safety check so a
 	// caller can't unlink someone else's account by guessing an id.
 	DeleteUserAccount(ctx context.Context, arg DeleteUserAccountParams) error
@@ -265,6 +277,13 @@ type Querier interface {
 	// on user_blocks): this must gate every view/mention/comment/reaction
 	// access check, tested both ways since only the blocker's row exists.
 	IsBlockedEitherDirection(ctx context.Context, arg IsBlockedEitherDirectionParams) (bool, error)
+	// True when user_id is currently an active admin of circle_id and no
+	// other active admin exists — the guard LeaveCircle and
+	// UpdateMemberRole (usecase layer) check before letting an admin
+	// self-leave or self-demote, so a Circle is never left with zero
+	// admins. Same TOCTOU tolerance as the other unlocked read-then-write
+	// sequences already accepted elsewhere in this codebase (see TODO.md).
+	IsSoleActiveCircleAdmin(ctx context.Context, arg IsSoleActiveCircleAdminParams) (pgtype.Bool, error)
 	// Backs the mention-context half of ResponseAccessChecker.ResolveAudience:
 	// whether userID may act/read in a Moment's mention context (circle_id
 	// IS NULL comments/reactions) as something other than its owner.

@@ -15,7 +15,14 @@ FROM moment_images
 WHERE moment_id = sqlc.arg(moment_id)
 ORDER BY sort_order, created_at;
 
--- name: DeleteMomentImage :exec
+-- name: DeleteMomentImage :one
+-- Returns the deleted row (specifically image_path) so the caller can
+-- remove the matching storage object after the DB record is gone — see
+-- MomentImageUsecase.DeleteMomentImage for the ordering rationale. No
+-- matching row (already deleted / wrong moment) surfaces as
+-- pgx.ErrNoRows, which the repository treats as a silent no-op, same as
+-- the :exec version this replaces.
 DELETE FROM moment_images
 WHERE id = sqlc.arg(id)
-    AND moment_id = sqlc.arg(moment_id);
+    AND moment_id = sqlc.arg(moment_id)
+RETURNING *;

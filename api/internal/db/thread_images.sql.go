@@ -38,10 +38,11 @@ func (q *Queries) AddThreadImage(ctx context.Context, arg AddThreadImageParams) 
 	return i, err
 }
 
-const deleteThreadImage = `-- name: DeleteThreadImage :exec
+const deleteThreadImage = `-- name: DeleteThreadImage :one
 DELETE FROM thread_images
 WHERE id = $1
     AND thread_id = $2
+RETURNING id, thread_id, image_path, image_alt, sort_order, created_at
 `
 
 type DeleteThreadImageParams struct {
@@ -49,9 +50,24 @@ type DeleteThreadImageParams struct {
 	ThreadID uuid.UUID
 }
 
-func (q *Queries) DeleteThreadImage(ctx context.Context, arg DeleteThreadImageParams) error {
-	_, err := q.db.Exec(ctx, deleteThreadImage, arg.ID, arg.ThreadID)
-	return err
+// Returns the deleted row (specifically image_path) so the caller can
+// remove the matching storage object after the DB record is gone — see
+// ThreadImageUsecase.DeleteThreadImage for the ordering rationale. No
+// matching row (already deleted / wrong thread) surfaces as
+// pgx.ErrNoRows, which the repository treats as a silent no-op, same as
+// the :exec version this replaces.
+func (q *Queries) DeleteThreadImage(ctx context.Context, arg DeleteThreadImageParams) (ThreadImage, error) {
+	row := q.db.QueryRow(ctx, deleteThreadImage, arg.ID, arg.ThreadID)
+	var i ThreadImage
+	err := row.Scan(
+		&i.ID,
+		&i.ThreadID,
+		&i.ImagePath,
+		&i.ImageAlt,
+		&i.SortOrder,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const listThreadImagesByThreadID = `-- name: ListThreadImagesByThreadID :many

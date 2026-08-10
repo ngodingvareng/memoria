@@ -73,8 +73,10 @@ func TestMomentImageRepository_Delete(t *testing.T) {
 	created, err := repo.Create(ctx, &entity.MomentImage{MomentID: momentID, ImagePath: "moments/x/1.jpg"})
 	require.NoError(t, err)
 
-	err = repo.Delete(ctx, momentID, created.ID)
+	deleted, err := repo.Delete(ctx, momentID, created.ID)
 	require.NoError(t, err)
+	require.NotNil(t, deleted)
+	require.Equal(t, "moments/x/1.jpg", deleted.ImagePath)
 
 	images, err := repo.ListByMomentID(ctx, momentID)
 	require.NoError(t, err)
@@ -94,8 +96,9 @@ func TestMomentImageRepository_Delete_WrongMomentID_NoOp(t *testing.T) {
 	created, err := repo.Create(ctx, &entity.MomentImage{MomentID: momentID, ImagePath: "moments/x/1.jpg"})
 	require.NoError(t, err)
 
-	err = repo.Delete(ctx, otherMomentID, created.ID)
+	deleted, err := repo.Delete(ctx, otherMomentID, created.ID)
 	require.NoError(t, err)
+	require.Nil(t, deleted)
 
 	images, err := repo.ListByMomentID(ctx, momentID)
 	require.NoError(t, err)

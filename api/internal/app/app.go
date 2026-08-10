@@ -146,7 +146,7 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	// package is named "app", and reusing that name for a variable here
 	// reads confusingly once there are several fiberApp.Use(...) calls.
 	fiberApp := fiber.New(fiber.Config{
-		ErrorHandler: middleware.CustomErrorHandler,
+		ErrorHandler: middleware.NewErrorHandler(cfg.DebugMode),
 		// Default fasthttp body limit is 4MB — too small for image
 		// uploads. ThreadImageHandler also enforces its own
 		// maxImageUploadSize as a second, more specific check.

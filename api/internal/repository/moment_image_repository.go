@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ngodingvareng/memoria/internal/db"
 	"github.com/ngodingvareng/memoria/internal/entity"
@@ -48,10 +50,17 @@ func (r *momentImageRepository) ListByMomentID(ctx context.Context, momentID uui
 	return toEntityMomentImages(rows), nil
 }
 
-// Delete implements [usecase.MomentImageRepository].
-func (r *momentImageRepository) Delete(ctx context.Context, momentID, imageID uuid.UUID) error {
-	if err := r.q.DeleteMomentImage(ctx, db.DeleteMomentImageParams{ID: imageID, MomentID: momentID}); err != nil {
-		return fmt.Errorf("delete moment image: %w", err)
+// Delete implements [usecase.MomentImageRepository]. Returns the deleted
+// image's path so the caller can remove the matching storage object; a
+// mismatched id/momentID is a silent no-op (nil, nil), matching the
+// ownership-check semantics used elsewhere in this package.
+func (r *momentImageRepository) Delete(ctx context.Context, momentID, imageID uuid.UUID) (*entity.MomentImage, error) {
+	row, err := r.q.DeleteMomentImage(ctx, db.DeleteMomentImageParams{ID: imageID, MomentID: momentID})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("delete moment image: %w", err)
 	}
-	return nil
+	return toEntityMomentImage(row), nil
 }

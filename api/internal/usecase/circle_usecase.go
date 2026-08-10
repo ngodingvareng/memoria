@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ngodingvareng/memoria/internal/entity"
 	"github.com/ngodingvareng/memoria/internal/enum"
+	"github.com/ngodingvareng/memoria/internal/errs"
 )
 
 // --- Repository interface, defined here per the Dependency Rule ---
@@ -35,6 +36,10 @@ type CircleRepository interface {
 
 	ListMembers(ctx context.Context, circleID uuid.UUID) ([]*entity.CircleMember, error)
 	GetActiveMember(ctx context.Context, circleID, userID uuid.UUID) (*entity.CircleMember, error)
+	// IsSoleActiveAdmin reports whether userID is circleID's only active
+	// admin — checked before Leave/UpdateMemberRole would otherwise let
+	// that admin self-leave or self-demote and orphan the Circle.
+	IsSoleActiveAdmin(ctx context.Context, circleID, userID uuid.UUID) (bool, error)
 	Leave(ctx context.Context, circleID, userID uuid.UUID) error
 	RemoveMember(ctx context.Context, circleID, userID, removedByUserID uuid.UUID) error
 	UpdateMemberRole(ctx context.Context, circleID, userID, changedByUserID uuid.UUID, role enum.CircleRole) (*entity.CircleMember, error)
@@ -256,8 +261,19 @@ func (u *circleUsecase) ListMembers(ctx context.Context, circleID, userID uuid.U
 	return members, nil
 }
 
-// LeaveCircle implements [CircleUsecase]: self-service departure.
+// LeaveCircle implements [CircleUsecase]: self-service departure. Blocks
+// the Circle's sole active admin from leaving — otherwise the Circle
+// would be left with no admin able to manage it, invites, or join
+// requests ever again.
 func (u *circleUsecase) LeaveCircle(ctx context.Context, circleID, userID uuid.UUID) error {
+	isSoleAdmin, err := u.repo.IsSoleActiveAdmin(ctx, circleID, userID)
+	if err != nil {
+		return fmt.Errorf("checking sole admin status: %w", err)
+	}
+	if isSoleAdmin {
+		return errs.ErrLastCircleAdmin
+	}
+
 	if err := u.repo.Leave(ctx, circleID, userID); err != nil {
 		return fmt.Errorf("leaving circle: %w", err)
 	}
@@ -272,8 +288,20 @@ func (u *circleUsecase) RemoveMember(ctx context.Context, circleID, targetUserID
 	return nil
 }
 
-// UpdateMemberRole implements [CircleUsecase].
+// UpdateMemberRole implements [CircleUsecase]. Blocks demoting the
+// Circle's sole active admin to member — same orphaned-Circle concern as
+// LeaveCircle. Promoting someone to admin never needs the check.
 func (u *circleUsecase) UpdateMemberRole(ctx context.Context, input UpdateCircleMemberRoleInput) (*entity.CircleMember, error) {
+	if input.Role != enum.CircleRoleAdmin {
+		isSoleAdmin, err := u.repo.IsSoleActiveAdmin(ctx, input.CircleID, input.UserID)
+		if err != nil {
+			return nil, fmt.Errorf("checking sole admin status: %w", err)
+		}
+		if isSoleAdmin {
+			return nil, errs.ErrLastCircleAdmin
+		}
+	}
+
 	member, err := u.repo.UpdateMemberRole(ctx, input.CircleID, input.UserID, input.ChangedByUserID, input.Role)
 	if err != nil {
 		return nil, fmt.Errorf("updating circle member role: %w", err)

@@ -14,7 +14,10 @@ import (
 type ThreadImageRepository interface {
 	Create(ctx context.Context, image *entity.ThreadImage) (*entity.ThreadImage, error)
 	ListByThreadID(ctx context.Context, threadID uuid.UUID) ([]*entity.ThreadImage, error)
-	Delete(ctx context.Context, threadID, imageID uuid.UUID) error
+	// Delete returns the deleted image (nil if id/threadID didn't match
+	// an existing row) so the caller can remove the matching storage
+	// object.
+	Delete(ctx context.Context, threadID, imageID uuid.UUID) (*entity.ThreadImage, error)
 }
 
 // ThreadAccessChecker is the minimal capability this usecase needs
@@ -146,8 +149,15 @@ func (u *threadImageUsecase) DeleteThreadImage(ctx context.Context, threadID, im
 	// pointing at nothing — an orphan in storage is a cleanup-job
 	// problem; a dangling DB reference is a correctness problem for
 	// every other read path.
-	if err := u.repo.Delete(ctx, threadID, imageID); err != nil {
+	deleted, err := u.repo.Delete(ctx, threadID, imageID)
+	if err != nil {
 		return fmt.Errorf("deleting thread image record: %w", err)
+	}
+	if deleted == nil {
+		return nil
+	}
+	if err := u.storage.Delete(ctx, deleted.ImagePath); err != nil {
+		return fmt.Errorf("deleting thread image object: %w", err)
 	}
 	return nil
 

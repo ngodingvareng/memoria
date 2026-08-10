@@ -70,6 +70,13 @@ type Config struct {
 	// regardless of which IP is trying it.
 	LoginMaxFailedAttempts int           `mapstructure:"LOGIN_MAX_FAILED_ATTEMPTS"`
 	LoginLockoutDuration   time.Duration `mapstructure:"LOGIN_LOCKOUT_DURATION"`
+
+	// DebugMode opts in to including raw internal error text
+	// (err.Error()) in error responses — see
+	// middleware.NewErrorHandler. Defaults to false so production
+	// deployments don't leak internal call-path/DB error details
+	// unless explicitly enabled.
+	DebugMode bool `mapstructure:"DEBUG_MODE"`
 }
 
 func (c *Config) GetDSN() string {
@@ -88,6 +95,7 @@ func LoadConfig() (*Config, error) {
 	viper.SetDefault("LOGIN_MAX_FAILED_ATTEMPTS", 5)
 	viper.SetDefault("LOGIN_LOCKOUT_DURATION", 15*time.Minute)
 	viper.SetDefault("WEB_BASE_URL", "http://localhost:5173")
+	viper.SetDefault("DEBUG_MODE", false)
 
 	if err := viper.ReadInConfig(); err != nil {
 		// A missing .env is fine — env vars alone are a valid config

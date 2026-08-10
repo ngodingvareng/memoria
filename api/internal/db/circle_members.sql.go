@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addCircleCreatorAsAdmin = `-- name: AddCircleCreatorAsAdmin :one
@@ -165,6 +166,42 @@ func (q *Queries) GetActiveCircleMember(ctx context.Context, arg GetActiveCircle
 		&i.LeftAt,
 	)
 	return i, err
+}
+
+const isSoleActiveCircleAdmin = `-- name: IsSoleActiveCircleAdmin :one
+SELECT
+    EXISTS(
+        SELECT 1 FROM circle_members AS target
+        WHERE target.circle_id = $1
+            AND target.user_id = $2
+            AND target.left_at IS NULL
+            AND target.role = 'admin'
+    )
+    AND NOT EXISTS(
+        SELECT 1 FROM circle_members AS other
+        WHERE other.circle_id = $1
+            AND other.user_id != $2
+            AND other.left_at IS NULL
+            AND other.role = 'admin'
+    ) AS is_sole_admin
+`
+
+type IsSoleActiveCircleAdminParams struct {
+	CircleID uuid.UUID
+	UserID   uuid.UUID
+}
+
+// True when user_id is currently an active admin of circle_id and no
+// other active admin exists — the guard LeaveCircle and
+// UpdateMemberRole (usecase layer) check before letting an admin
+// self-leave or self-demote, so a Circle is never left with zero
+// admins. Same TOCTOU tolerance as the other unlocked read-then-write
+// sequences already accepted elsewhere in this codebase (see TODO.md).
+func (q *Queries) IsSoleActiveCircleAdmin(ctx context.Context, arg IsSoleActiveCircleAdminParams) (pgtype.Bool, error) {
+	row := q.db.QueryRow(ctx, isSoleActiveCircleAdmin, arg.CircleID, arg.UserID)
+	var is_sole_admin pgtype.Bool
+	err := row.Scan(&is_sole_admin)
+	return is_sole_admin, err
 }
 
 const leaveCircle = `-- name: LeaveCircle :exec

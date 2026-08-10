@@ -251,7 +251,7 @@ func setupTestApp(t *testing.T) *testApp {
 	reactionUsecase := usecase.NewReactionUsecase(reactionRepo, responseAccessChecker, responseEventRepo)
 	reactionHandler := handler.NewReactionHandler(reactionUsecase)
 
-	fiberApp := fiber.New(fiber.Config{ErrorHandler: middleware.CustomErrorHandler})
+	fiberApp := fiber.New(fiber.Config{ErrorHandler: middleware.NewErrorHandler(true)})
 	fiberApp.Use(recover.New())
 
 	// No rate limiting in tests — CORS/access-log/limiter are

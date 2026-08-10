@@ -138,11 +138,25 @@ func TestCircleUsecase_LeaveCircle_Success(t *testing.T) {
 	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
 
 	circleID, userID := uuid.New(), uuid.New()
+	repo.EXPECT().IsSoleActiveAdmin(mock.Anything, circleID, userID).Return(false, nil)
 	repo.EXPECT().Leave(mock.Anything, circleID, userID).Return(nil)
 
 	err := uc.LeaveCircle(context.Background(), circleID, userID)
 
 	assert.NoError(t, err)
+}
+
+func TestCircleUsecase_LeaveCircle_SoleAdmin_Rejected(t *testing.T) {
+	repo := mocks.NewMockCircleRepository(t)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
+
+	circleID, userID := uuid.New(), uuid.New()
+	repo.EXPECT().IsSoleActiveAdmin(mock.Anything, circleID, userID).Return(true, nil)
+	// repo.Leave deliberately not stubbed.
+
+	err := uc.LeaveCircle(context.Background(), circleID, userID)
+
+	assert.ErrorIs(t, err, errs.ErrLastCircleAdmin)
 }
 
 func TestCircleUsecase_RemoveMember_Success(t *testing.T) {
@@ -171,6 +185,43 @@ func TestCircleUsecase_UpdateMemberRole_NotFound(t *testing.T) {
 
 	assert.Nil(t, result)
 	assert.ErrorIs(t, err, errs.ErrNotFound)
+	// Promoting to admin never needs the sole-admin guard.
+	repo.AssertNotCalled(t, "IsSoleActiveAdmin", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestCircleUsecase_UpdateMemberRole_DemoteSoleAdmin_Rejected(t *testing.T) {
+	repo := mocks.NewMockCircleRepository(t)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
+
+	circleID, userID := uuid.New(), uuid.New()
+	repo.EXPECT().IsSoleActiveAdmin(mock.Anything, circleID, userID).Return(true, nil)
+	// repo.UpdateMemberRole deliberately not stubbed.
+
+	result, err := uc.UpdateMemberRole(context.Background(), usecase.UpdateCircleMemberRoleInput{
+		CircleID: circleID, UserID: userID, ChangedByUserID: uuid.New(), Role: enum.CircleRoleMember,
+	})
+
+	assert.Nil(t, result)
+	assert.ErrorIs(t, err, errs.ErrLastCircleAdmin)
+}
+
+func TestCircleUsecase_UpdateMemberRole_DemoteNonSoleAdmin_Success(t *testing.T) {
+	repo := mocks.NewMockCircleRepository(t)
+	uc := usecase.NewCircleUsecase(repo, mocks.NewMockProfileImageStorage(t))
+
+	circleID, userID, changedBy := uuid.New(), uuid.New(), uuid.New()
+	expected := &entity.CircleMember{CircleID: circleID, UserID: userID, Role: enum.CircleRoleMember}
+	repo.EXPECT().IsSoleActiveAdmin(mock.Anything, circleID, userID).Return(false, nil)
+	repo.EXPECT().
+		UpdateMemberRole(mock.Anything, circleID, userID, changedBy, enum.CircleRoleMember).
+		Return(expected, nil)
+
+	result, err := uc.UpdateMemberRole(context.Background(), usecase.UpdateCircleMemberRoleInput{
+		CircleID: circleID, UserID: userID, ChangedByUserID: changedBy, Role: enum.CircleRoleMember,
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, result)
 }
 
 func TestCircleUsecase_UpdateMemberPermissions_Success(t *testing.T) {
