@@ -1,13 +1,12 @@
+import { ConfirmDestructiveDialog } from '@/components/dialogs/confirm-destructive-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import Wrapper from '@/components/wrapper';
-import { ApiError } from '@/lib/api-client';
-import {
-  useGetUserByUsername,
-  useMarkUserKnown,
-} from '@/lib/api/generated/users/users';
+import { useUserRelationship } from '@/features/users';
+import { getApiErrorMessage } from '@/lib/api-client';
+import { useGetUserByUsername } from '@/lib/api/generated/users/users';
 import { useSession } from '@/lib/session';
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -20,24 +19,36 @@ function RouteComponent() {
   const { username } = Route.useParams();
   const session = useSession();
   const [error, setError] = useState<string | null>(null);
-  const [known, setKnown] = useState(false);
 
   const profileQuery = useGetUserByUsername(username);
-  const markKnown = useMarkUserKnown();
+  const relationship = useUserRelationship(username);
 
   const isOwnProfile = session?.user.username === username;
 
-  const handleMarkKnown = async () => {
+  const handleToggleKnown = async () => {
     setError(null);
     try {
-      await markKnown.mutateAsync({ username });
-      setKnown(true);
+      await relationship.toggleKnown();
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Something went wrong. Please try again.'
-      );
+      setError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
+    }
+  };
+
+  const handleToggleMute = async () => {
+    setError(null);
+    try {
+      await relationship.toggleMute();
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
+    }
+  };
+
+  const handleUnblock = async () => {
+    setError(null);
+    try {
+      await relationship.toggleBlock();
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
     }
   };
 
@@ -93,12 +104,42 @@ function RouteComponent() {
           )}
 
           {!isOwnProfile && (
-            <div>
+            <div className="flex flex-wrap gap-2">
               <Button
-                onClick={handleMarkKnown}
-                disabled={known || markKnown.isPending}
+                onClick={handleToggleKnown}
+                disabled={relationship.isTogglingKnown}
               >
-                {known ? 'You know this person' : 'I know this person'}
+                {relationship.isKnown
+                  ? 'You know this person'
+                  : 'I know this person'}
+              </Button>
+
+              {relationship.isBlocked ? (
+                <Button
+                  variant="outline"
+                  onClick={handleUnblock}
+                  disabled={relationship.isTogglingBlock}
+                >
+                  Unblock
+                </Button>
+              ) : (
+                <ConfirmDestructiveDialog
+                  triggerRender={<Button variant="outline" />}
+                  triggerLabel="Block"
+                  title={`Block ${user.name}?`}
+                  description="Neither of you will be able to see, mention, comment on, or react to the other's Moments, in any context."
+                  confirmLabel="Block"
+                  errorFallback="Failed to block this user. Please try again."
+                  onConfirm={relationship.toggleBlock}
+                />
+              )}
+
+              <Button
+                variant="outline"
+                onClick={handleToggleMute}
+                disabled={relationship.isTogglingMute}
+              >
+                {relationship.isMuted ? 'Unmute' : 'Mute'}
               </Button>
             </div>
           )}

@@ -417,6 +417,13 @@ definitions:
           $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.CommentResponse'
         type: array
     type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListKnownUsersResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PublicUserResponse'
+        type: array
+    type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMentionsResponse:
     properties:
       mentions:
@@ -501,6 +508,14 @@ definitions:
         type: integer
       user:
         $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UserResponse'
+    type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MarkUserKnownRequest:
+    properties:
+      username:
+        example: budisantoso
+        type: string
+    required:
+    - username
     type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MentionResponse:
     properties:
@@ -1358,6 +1373,18 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCommentsResponse'
+      errors: {}
+      message:
+        example: Success
+        type: string
+    type: object
+  ? github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListKnownUsersResponse
+  : properties:
+      code:
+        example: 200
+        type: integer
+      data:
+        $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListKnownUsersResponse'
       errors: {}
       message:
         example: Success
@@ -3735,6 +3762,62 @@ paths:
       summary: Upload the current user's profile photo
       tags:
       - users
+  /users/me/knowns:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListKnownUsersResponse'
+      summary: List users the caller has marked known
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: One-directional, silent, idempotent — grants username's "known"
+        audience tier toward the caller (FEATURES.md, Privacy & Control)
+      parameters:
+      - description: Username to mark known
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MarkUserKnownRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Mark a user as known
+      tags:
+      - users
+  /users/me/knowns/{username}:
+    delete:
+      parameters:
+      - description: Username to unmark
+        in: path
+        name: username
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Unmark a user as known
+      tags:
+      - users
   /users/me/mutes:
     get:
       produces:
@@ -3893,31 +3976,6 @@ paths:
           schema:
             $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
       summary: Get a user's public profile by username
-      tags:
-      - users
-  /users/username/{username}/known:
-    post:
-      description: One-directional, silent, idempotent — grants username's "known"
-        audience tier toward the caller (FEATURES.md, Privacy & Control)
-      operationId: MarkUserKnown
-      parameters:
-      - description: Username to mark known
-        in: path
-        name: username
-        required: true
-        type: string
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
-      summary: Mark a user as known
       tags:
       - users
 swagger: "2.0"

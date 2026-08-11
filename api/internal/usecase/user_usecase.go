@@ -75,11 +75,16 @@ type UserUsecase interface {
 	// UpdatePrivacySettings implements the Social Interaction + Data
 	// Controls settings screen.
 	UpdatePrivacySettings(ctx context.Context, input UpdatePrivacySettingsInput) (*entity.User, error)
-	// MarkUserKnown records that knowerUserID knows username (FEATURES.md,
-	// Privacy & Control's "known" audience tier) — one-directional,
-	// silent, and idempotent (see UserKnownRepository). Returns
-	// errs.ErrNotFound if username doesn't resolve to a user.
+	// MarkUserKnown/UnmarkUserKnown/ListKnownUsers back the "Known
+	// people" settings surface (FEATURES.md, Privacy & Control's
+	// "known" audience tier). Marking is one-directional and silent
+	// toward the known user — they're never notified and there's no
+	// reverse-direction query (who marked *me*). Mark/Unmark resolve
+	// username the same way BlockUser does, and are idempotent (see
+	// UserKnownRepository).
 	MarkUserKnown(ctx context.Context, knowerUserID uuid.UUID, username string) error
+	UnmarkUserKnown(ctx context.Context, knowerUserID uuid.UUID, username string) error
+	ListKnownUsers(ctx context.Context, knowerUserID uuid.UUID) ([]*entity.User, error)
 	// UploadProfileImage replaces the caller's own profile photo,
 	// best-effort deleting whichever one it replaces.
 	UploadProfileImage(ctx context.Context, input UploadProfileImageInput) (*entity.User, error)

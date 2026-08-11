@@ -14,11 +14,13 @@ import (
 // because all three need the exact identical signature (CODING_STANDARDS.md
 // §5) — see user_privacy_repository.go for the single implementation.
 //
-// UserBlockRepository/UserMuteRepository below are the write/list
-// counterparts to UserBlockChecker/UserMuteChecker — a user managing
-// their own Block/Mute list (user_usecase.go's BlockUser/UnblockUser/
-// MuteUser/UnmuteUser). Known still only has MarkKnown (no unmark, no
-// "People I know" list yet) — that remains out of scope.
+// UserBlockRepository/UserMuteRepository/UserKnownRepository below are
+// the write/list counterparts to UserBlockChecker/UserMuteChecker/
+// UserKnownChecker — a user managing their own Block/Mute/Known list
+// (user_usecase.go's BlockUser/UnblockUser/MuteUser/UnmuteUser/
+// MarkUserKnown/UnmarkUserKnown). All three now share the same shape:
+// mark, unmark, list — see the "Known People" settings surface
+// (FEATURES.md, Privacy & Control).
 
 // UserBlockChecker gates every view/mention/comment/reaction access
 // check (FEATURES.md, Privacy & Control): blocking is symmetric in
@@ -35,11 +37,16 @@ type UserKnownChecker interface {
 	IsKnownTo(ctx context.Context, ownerUserID, otherUserID uuid.UUID) (bool, error)
 }
 
-// UserKnownRepository is the write counterpart to UserKnownChecker: it
-// lets knowerUserID mark knownUserID as known. One-directional and
-// idempotent (see entity.UserKnown) — used by UserUsecase.MarkUserKnown.
+// UserKnownRepository is the write/list counterpart to UserKnownChecker
+// — backs the "Known people" settings surface (FEATURES.md, Privacy &
+// Control). Mark/Unmark are idempotent (see entity.UserKnown). There is
+// deliberately no reverse-direction list (who marked *me*) — see
+// ListKnownUserIDs' backing query comment for why that stays out of
+// scope even though the forward list doesn't.
 type UserKnownRepository interface {
 	MarkKnown(ctx context.Context, knowerUserID, knownUserID uuid.UUID) error
+	Unmark(ctx context.Context, knowerUserID, knownUserID uuid.UUID) error
+	ListKnownUserIDs(ctx context.Context, knowerUserID uuid.UUID) ([]uuid.UUID, error)
 }
 
 // UserMuteChecker is a view filter only, never an access gate

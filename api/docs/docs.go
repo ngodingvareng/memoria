@@ -3074,6 +3074,91 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/me/knowns": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "List users the caller has marked known",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListKnownUsersResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "One-directional, silent, idempotent — grants username's \"known\" audience tier toward the caller (FEATURES.md, Privacy \u0026 Control)",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Mark a user as known",
+                "parameters": [
+                    {
+                        "description": "Username to mark known",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MarkUserKnownRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/knowns/{username}": {
+            "delete": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Unmark a user as known",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Username to unmark",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/users/me/mutes": {
             "get": {
                 "produces": [
@@ -3300,42 +3385,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_PublicUserResponse"
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/username/{username}/known": {
-            "post": {
-                "description": "One-directional, silent, idempotent — grants username's \"known\" audience tier toward the caller (FEATURES.md, Privacy \u0026 Control)",
-                "tags": [
-                    "users"
-                ],
-                "summary": "Mark a user as known",
-                "operationId": "MarkUserKnown",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Username to mark known",
-                        "name": "username",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -3968,6 +4017,17 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListKnownUsersResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.PublicUserResponse"
+                    }
+                }
+            }
+        },
         "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListMentionsResponse": {
             "type": "object",
             "properties": {
@@ -4087,6 +4147,18 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.UserResponse"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.MarkUserKnownRequest": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "example": "budisantoso"
                 }
             }
         },
@@ -5271,6 +5343,23 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListCommentsResponse"
+                },
+                "errors": {},
+                "message": {
+                    "type": "string",
+                    "example": "Success"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-github_com_ngodingvareng_memoria_internal_delivery_rest_dto_ListKnownUsersResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.ListKnownUsersResponse"
                 },
                 "errors": {},
                 "message": {

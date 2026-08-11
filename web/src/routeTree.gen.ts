@@ -37,6 +37,7 @@ import { Route as AppThreadIndexRouteImport } from './routes/_app/thread.index'
 import { Route as AppThreadNewRouteImport } from './routes/_app/thread.new'
 import { Route as UserUserIndexRouteImport } from './routes/_user/user.index'
 import { Route as UserUserAccountRouteImport } from './routes/_user/user.account'
+import { Route as UserUserKnownPeopleRouteImport } from './routes/_user/user.known-people'
 import { Route as UserUserNotificationRouteImport } from './routes/_user/user.notification'
 import { Route as UserUserPrivacyRouteImport } from './routes/_user/user.privacy'
 import { Route as AppThreadIdIndexRouteImport } from './routes/_app/thread.$id.index'
@@ -186,6 +187,11 @@ const UserUserAccountRoute = UserUserAccountRouteImport.update({
   path: '/user/account',
   getParentRoute: () => UserRoute,
 } as any)
+const UserUserKnownPeopleRoute = UserUserKnownPeopleRouteImport.update({
+  id: '/user/known-people',
+  path: '/user/known-people',
+  getParentRoute: () => UserRoute,
+} as any)
 const UserUserNotificationRoute = UserUserNotificationRouteImport.update({
   id: '/user/notification',
   path: '/user/notification',
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/recap/$period': typeof AppRecapPeriodRoute
   '/thread/new': typeof AppThreadNewRoute
   '/user/account': typeof UserUserAccountRoute
+  '/user/known-people': typeof UserUserKnownPeopleRoute
   '/user/notification': typeof UserUserNotificationRoute
   '/user/privacy': typeof UserUserPrivacyRoute
   '/album/': typeof AppAlbumIndexRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/recap/$period': typeof AppRecapPeriodRoute
   '/thread/new': typeof AppThreadNewRoute
   '/user/account': typeof UserUserAccountRoute
+  '/user/known-people': typeof UserUserKnownPeopleRoute
   '/user/notification': typeof UserUserNotificationRoute
   '/user/privacy': typeof UserUserPrivacyRoute
   '/album': typeof AppAlbumIndexRoute
@@ -342,6 +350,7 @@ export interface FileRoutesById {
   '/_app/recap/$period': typeof AppRecapPeriodRoute
   '/_app/thread/new': typeof AppThreadNewRoute
   '/_user/user/account': typeof UserUserAccountRoute
+  '/_user/user/known-people': typeof UserUserKnownPeopleRoute
   '/_user/user/notification': typeof UserUserNotificationRoute
   '/_user/user/privacy': typeof UserUserPrivacyRoute
   '/_app/album/': typeof AppAlbumIndexRoute
@@ -381,6 +390,7 @@ export interface FileRouteTypes {
     | '/recap/$period'
     | '/thread/new'
     | '/user/account'
+    | '/user/known-people'
     | '/user/notification'
     | '/user/privacy'
     | '/album/'
@@ -418,6 +428,7 @@ export interface FileRouteTypes {
     | '/recap/$period'
     | '/thread/new'
     | '/user/account'
+    | '/user/known-people'
     | '/user/notification'
     | '/user/privacy'
     | '/album'
@@ -459,6 +470,7 @@ export interface FileRouteTypes {
     | '/_app/recap/$period'
     | '/_app/thread/new'
     | '/_user/user/account'
+    | '/_user/user/known-people'
     | '/_user/user/notification'
     | '/_user/user/privacy'
     | '/_app/album/'
@@ -684,6 +696,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserUserAccountRouteImport
       parentRoute: typeof UserRoute
     }
+    '/_user/user/known-people': {
+      id: '/_user/user/known-people'
+      path: '/user/known-people'
+      fullPath: '/user/known-people'
+      preLoaderRoute: typeof UserUserKnownPeopleRouteImport
+      parentRoute: typeof UserRoute
+    }
     '/_user/user/notification': {
       id: '/_user/user/notification'
       path: '/user/notification'
@@ -848,6 +867,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface UserRouteChildren {
   UserUserAccountRoute: typeof UserUserAccountRoute
+  UserUserKnownPeopleRoute: typeof UserUserKnownPeopleRoute
   UserUserNotificationRoute: typeof UserUserNotificationRoute
   UserUserPrivacyRoute: typeof UserUserPrivacyRoute
   UserUserIndexRoute: typeof UserUserIndexRoute
@@ -855,6 +875,7 @@ interface UserRouteChildren {
 
 const UserRouteChildren: UserRouteChildren = {
   UserUserAccountRoute: UserUserAccountRoute,
+  UserUserKnownPeopleRoute: UserUserKnownPeopleRoute,
   UserUserNotificationRoute: UserUserNotificationRoute,
   UserUserPrivacyRoute: UserUserPrivacyRoute,
   UserUserIndexRoute: UserUserIndexRoute,

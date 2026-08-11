@@ -27,6 +27,8 @@ import {
   ReactionPicker,
   ReactionSummary,
 } from '@/features/threads';
+import { useUserRelationship } from '@/features/users';
+import { getApiErrorMessage } from '@/lib/api-client';
 import {
   getGetMentionsQueryKey,
   useGetMomentsIdMentions,
@@ -46,6 +48,9 @@ import {
   Logout01Icon,
   MoreVerticalIcon,
   PaintBoardIcon,
+  UserBlock01Icon,
+  VolumeHighIcon,
+  VolumeMute01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
@@ -102,11 +107,16 @@ export function MomentCard({
   const [isLightboxOpen, setIsLightboxOpen] = React.useState(false);
   const [lightboxIndex, setLightboxIndex] = React.useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isBlockDialogOpen, setIsBlockDialogOpen] = React.useState(false);
   const [isEditingNote, setIsEditingNote] = React.useState(false);
   const [isLeavingMention, setIsLeavingMention] = React.useState(false);
   const [colorChangeError, setColorChangeError] = React.useState<string | null>(
     null
   );
+  const [restrictionError, setRestrictionError] = React.useState<
+    string | null
+  >(null);
+  const relationship = useUserRelationship(user.username);
   const imagesQuery = useGetMomentsIdImages(id ?? '', {
     query: { enabled: !!id },
   });
@@ -139,9 +149,35 @@ export function MomentCard({
   const canLeaveMention =
     !isOwnedByCurrentUser &&
     audience.contexts.some((context) => context.type === 'mention');
-  const showMenu = canManage || canLeaveMention;
+  // Block/Mute apply to any other author, not just an owned or
+  // mentioned Moment — so the menu now shows for every Moment that
+  // isn't the viewer's own, giving plain Circle-feed Moments a menu
+  // for the first time too.
+  const showMenu = canManage || !isOwnedByCurrentUser;
 
   const leaveMention = usePostMomentsIdMentionsLeave();
+
+  const handleUnblock = async () => {
+    setRestrictionError(null);
+    try {
+      await relationship.toggleBlock();
+    } catch (err) {
+      setRestrictionError(
+        getApiErrorMessage(err, 'Failed to unblock this user. Please try again.')
+      );
+    }
+  };
+
+  const handleToggleMute = async () => {
+    setRestrictionError(null);
+    try {
+      await relationship.toggleMute();
+    } catch (err) {
+      setRestrictionError(
+        getApiErrorMessage(err, 'Failed to update mute status. Please try again.')
+      );
+    }
+  };
 
   const handleColorChange = async (hex: string) => {
     setColorChangeError(null);
@@ -221,13 +257,60 @@ export function MomentCard({
                         </DropdownMenuItem>
                       </>
                     ) : (
-                      <DropdownMenuItem
-                        onClick={handleLeaveMention}
-                        disabled={isLeavingMention}
-                      >
-                        <HugeiconsIcon strokeWidth={2} icon={Logout01Icon} />
-                        Leave mention
-                      </DropdownMenuItem>
+                      <>
+                        {canLeaveMention && (
+                          <>
+                            <DropdownMenuItem
+                              onClick={handleLeaveMention}
+                              disabled={isLeavingMention}
+                            >
+                              <HugeiconsIcon
+                                strokeWidth={2}
+                                icon={Logout01Icon}
+                              />
+                              Leave mention
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                          </>
+                        )}
+                        {relationship.isBlocked ? (
+                          <DropdownMenuItem
+                            onClick={handleUnblock}
+                            disabled={relationship.isTogglingBlock}
+                          >
+                            <HugeiconsIcon
+                              strokeWidth={2}
+                              icon={UserBlock01Icon}
+                            />
+                            Unblock
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => setIsBlockDialogOpen(true)}
+                          >
+                            <HugeiconsIcon
+                              strokeWidth={2}
+                              icon={UserBlock01Icon}
+                            />
+                            Block
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          onClick={handleToggleMute}
+                          disabled={relationship.isTogglingMute}
+                        >
+                          <HugeiconsIcon
+                            strokeWidth={2}
+                            icon={
+                              relationship.isMuted
+                                ? VolumeHighIcon
+                                : VolumeMute01Icon
+                            }
+                          />
+                          {relationship.isMuted ? 'Unmute' : 'Mute'}
+                        </DropdownMenuItem>
+                      </>
                     )}
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
@@ -306,6 +389,11 @@ export function MomentCard({
                   <AlertDescription>{colorChangeError}</AlertDescription>
                 </Alert>
               )}
+              {restrictionError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{restrictionError}</AlertDescription>
+                </Alert>
+              )}
             </ItemContent>
             {id && hasAudience && (
               <ItemFooter className="-ml-3 flex items-center justify-start gap-2">
@@ -345,6 +433,15 @@ export function MomentCard({
         onConfirm={async () => {
           await onDelete?.();
         }}
+      />
+      <ConfirmDestructiveDialog
+        open={isBlockDialogOpen}
+        onOpenChange={setIsBlockDialogOpen}
+        title={`Block @${user.username}?`}
+        description="Neither of you will be able to see, mention, comment on, or react to the other's Moments, in any context."
+        confirmLabel="Block"
+        errorFallback="Failed to block this user. Please try again."
+        onConfirm={relationship.toggleBlock}
       />
     </Item>
   );

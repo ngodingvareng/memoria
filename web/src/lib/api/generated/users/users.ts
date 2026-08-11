@@ -25,7 +25,9 @@ import type {
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCheckUsernameAvailabilityResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListBlockedUsersResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListKnownUsersResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMutedUsersResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPrivateUserResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoPublicUserResponse,
@@ -622,6 +624,344 @@ export const useUploadProfileImage = <
 > => {
   return useMutation(
     getUploadProfileImageMutationOptions(options),
+    queryClient
+  );
+};
+export const getGetUsersMeKnownsUrl = () => {
+  return `/users/me/knowns`;
+};
+
+/**
+ * @summary List users the caller has marked known
+ */
+export const getUsersMeKnowns = async (
+  options?: RequestInit
+): Promise<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListKnownUsersResponse> => {
+  return apiMutator<GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListKnownUsersResponse>(
+    getGetUsersMeKnownsUrl(),
+    {
+      ...options,
+      method: 'GET',
+    }
+  );
+};
+
+export const getGetUsersMeKnownsQueryKey = () => {
+  return [`/users/me/knowns`] as const;
+};
+
+export const getGetUsersMeKnownsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUsersMeKnowns>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getUsersMeKnowns>>, TError, TData>
+  >;
+}) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetUsersMeKnownsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getUsersMeKnowns>>
+  > = ({ signal }) => getUsersMeKnowns({ signal });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getUsersMeKnowns>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetUsersMeKnownsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUsersMeKnowns>>
+>;
+export type GetUsersMeKnownsQueryError = unknown;
+
+export function useGetUsersMeKnowns<
+  TData = Awaited<ReturnType<typeof getUsersMeKnowns>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeKnowns>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersMeKnowns>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersMeKnowns>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUsersMeKnowns<
+  TData = Awaited<ReturnType<typeof getUsersMeKnowns>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeKnowns>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUsersMeKnowns>>,
+          TError,
+          Awaited<ReturnType<typeof getUsersMeKnowns>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetUsersMeKnowns<
+  TData = Awaited<ReturnType<typeof getUsersMeKnowns>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeKnowns>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary List users the caller has marked known
+ */
+
+export function useGetUsersMeKnowns<
+  TData = Awaited<ReturnType<typeof getUsersMeKnowns>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getUsersMeKnowns>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetUsersMeKnownsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getPostUsersMeKnownsUrl = () => {
+  return `/users/me/knowns`;
+};
+
+/**
+ * One-directional, silent, idempotent — grants username's "known" audience tier toward the caller (FEATURES.md, Privacy & Control)
+ * @summary Mark a user as known
+ */
+export const postUsersMeKnowns = async (
+  githubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest,
+  options?: RequestInit
+): Promise<void> => {
+  return apiMutator<void>(getPostUsersMeKnownsUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      githubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest
+    ),
+  });
+};
+
+export const getPostUsersMeKnownsMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postUsersMeKnowns>>,
+    TError,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest;
+    },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postUsersMeKnowns>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest;
+  },
+  TContext
+> => {
+  const mutationKey = ['postUsersMeKnowns'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postUsersMeKnowns>>,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest;
+    }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return postUsersMeKnowns(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PostUsersMeKnownsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postUsersMeKnowns>>
+>;
+export type PostUsersMeKnownsMutationBody =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest;
+export type PostUsersMeKnownsMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Mark a user as known
+ */
+export const usePostUsersMeKnowns = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postUsersMeKnowns>>,
+      TError,
+      {
+        data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest;
+      },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof postUsersMeKnowns>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMarkUserKnownRequest;
+  },
+  TContext
+> => {
+  return useMutation(getPostUsersMeKnownsMutationOptions(options), queryClient);
+};
+export const getDeleteUsersMeKnownsUsernameUrl = (username: string) => {
+  return `/users/me/knowns/${username}`;
+};
+
+/**
+ * @summary Unmark a user as known
+ */
+export const deleteUsersMeKnownsUsername = async (
+  username: string,
+  options?: RequestInit
+): Promise<void> => {
+  return apiMutator<void>(getDeleteUsersMeKnownsUsernameUrl(username), {
+    ...options,
+    method: 'DELETE',
+  });
+};
+
+export const getDeleteUsersMeKnownsUsernameMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteUsersMeKnownsUsername>>,
+    TError,
+    { username: string },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteUsersMeKnownsUsername>>,
+  TError,
+  { username: string },
+  TContext
+> => {
+  const mutationKey = ['deleteUsersMeKnownsUsername'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteUsersMeKnownsUsername>>,
+    { username: string }
+  > = (props) => {
+    const { username } = props ?? {};
+
+    return deleteUsersMeKnownsUsername(username);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteUsersMeKnownsUsernameMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteUsersMeKnownsUsername>>
+>;
+
+export type DeleteUsersMeKnownsUsernameMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Unmark a user as known
+ */
+export const useDeleteUsersMeKnownsUsername = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteUsersMeKnownsUsername>>,
+      TError,
+      { username: string },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteUsersMeKnownsUsername>>,
+  TError,
+  { username: string },
+  TContext
+> => {
+  return useMutation(
+    getDeleteUsersMeKnownsUsernameMutationOptions(options),
     queryClient
   );
 };
@@ -1517,92 +1857,6 @@ export function useGetUserByUsername<
   return withQueryKey(query, queryOptions.queryKey);
 }
 
-export const getMarkUserKnownUrl = (username: string) => {
-  return `/users/username/${username}/known`;
-};
-
-/**
- * One-directional, silent, idempotent — grants username's "known" audience tier toward the caller (FEATURES.md, Privacy & Control)
- * @summary Mark a user as known
- */
-export const markUserKnown = async (
-  username: string,
-  options?: RequestInit
-): Promise<void> => {
-  return apiMutator<void>(getMarkUserKnownUrl(username), {
-    ...options,
-    method: 'POST',
-  });
-};
-
-export const getMarkUserKnownMutationOptions = <
-  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof markUserKnown>>,
-    TError,
-    { username: string },
-    TContext
-  >;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof markUserKnown>>,
-  TError,
-  { username: string },
-  TContext
-> => {
-  const mutationKey = ['markUserKnown'];
-  const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      'mutationKey' in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey } };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof markUserKnown>>,
-    { username: string }
-  > = (props) => {
-    const { username } = props ?? {};
-
-    return markUserKnown(username);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type MarkUserKnownMutationResult = NonNullable<
-  Awaited<ReturnType<typeof markUserKnown>>
->;
-
-export type MarkUserKnownMutationError =
-  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
-
-/**
- * @summary Mark a user as known
- */
-export const useMarkUserKnown = <
-  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
-  TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof markUserKnown>>,
-      TError,
-      { username: string },
-      TContext
-    >;
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof markUserKnown>>,
-  TError,
-  { username: string },
-  TContext
-> => {
-  return useMutation(getMarkUserKnownMutationOptions(options), queryClient);
-};
 export const getGetUserByIDUrl = (id: string) => {
   return `/users/${id}`;
 };

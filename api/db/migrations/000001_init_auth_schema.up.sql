@@ -304,6 +304,9 @@ CREATE TABLE user_mutes(
 --
 -- This is privacy plumbing, not a social graph (FEATURES.md, Non-Goals).
 -- Nothing may expose counts, mutual edges, or suggestions built on it.
+-- The knower may list/unmark their own forward rows (the "Known
+-- people" settings surface) — there is still no reverse-direction
+-- query, so who has marked a given user remains unexposed.
 CREATE TABLE user_knows(
     knower_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     known_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

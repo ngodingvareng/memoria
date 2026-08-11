@@ -55,8 +55,8 @@ type UpdatePrivacySettingsRequest struct {
 	StripPhotoMetadata     bool   `json:"strip_photo_metadata" example:"false"`
 }
 
-// BlockUserRequest / MuteUserRequest resolve the target the same way
-// MarkUserKnown does — by username.
+// BlockUserRequest / MuteUserRequest / MarkUserKnownRequest resolve the
+// target the same way — by username.
 type BlockUserRequest struct {
 	Username string `json:"username" validate:"required,username" example:"budisantoso"`
 }
@@ -65,11 +65,19 @@ type MuteUserRequest struct {
 	Username string `json:"username" validate:"required,username" example:"budisantoso"`
 }
 
+type MarkUserKnownRequest struct {
+	Username string `json:"username" validate:"required,username" example:"budisantoso"`
+}
+
 type ListBlockedUsersResponse struct {
 	Users []PublicUserResponse `json:"users"`
 }
 
 type ListMutedUsersResponse struct {
+	Users []PublicUserResponse `json:"users"`
+}
+
+type ListKnownUsersResponse struct {
 	Users []PublicUserResponse `json:"users"`
 }
 
@@ -83,6 +91,14 @@ func NewListBlockedUsersResponse(users []*entity.User) ListBlockedUsersResponse 
 
 func NewListMutedUsersResponse(users []*entity.User) ListMutedUsersResponse {
 	response := ListMutedUsersResponse{Users: make([]PublicUserResponse, len(users))}
+	for i, u := range users {
+		response.Users[i] = NewPublicUserResponse(u)
+	}
+	return response
+}
+
+func NewListKnownUsersResponse(users []*entity.User) ListKnownUsersResponse {
+	response := ListKnownUsersResponse{Users: make([]PublicUserResponse, len(users))}
 	for i, u := range users {
 		response.Users[i] = NewPublicUserResponse(u)
 	}

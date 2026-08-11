@@ -152,33 +152,87 @@ func (h *UserHandler) GetUserByUsername(c fiber.Ctx) error {
 }
 
 // MarkUserKnown godoc
-// @ID           MarkUserKnown
 // @Summary      Mark a user as known
 // @Description  One-directional, silent, idempotent — grants username's "known" audience tier toward the caller (FEATURES.md, Privacy & Control)
 // @Tags         users
-// @Param        username path string true "Username to mark known"
+// @Accept       json
+// @Param        request body dto.MarkUserKnownRequest true "Username to mark known"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /users/username/{username}/known [post]
+// @Router       /users/me/knowns [post]
 func (h *UserHandler) MarkUserKnown(c fiber.Ctx) error {
-	username := c.Params("username")
-	if !validate.UsernameFormat.MatchString(username) {
-		return errs.ErrInvalidInput
-	}
-
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
 		return errs.ErrUnauthorized
 	}
 
-	if err := h.usecase.MarkUserKnown(c, userID, username); err != nil {
+	var req dto.MarkUserKnownRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(req); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	if err := h.usecase.MarkUserKnown(c, userID, req.Username); err != nil {
 		return err
 	}
 
 	slog.InfoContext(c, "user marked known", "user_id", userID)
 
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// UnmarkUserKnown godoc
+// @Summary      Unmark a user as known
+// @Tags         users
+// @Param        username path string true "Username to unmark"
+// @Success      204
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /users/me/knowns/{username} [delete]
+func (h *UserHandler) UnmarkUserKnown(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	username := c.Params("username")
+	if !validate.UsernameFormat.MatchString(username) {
+		return errs.ErrInvalidInput
+	}
+
+	if err := h.usecase.UnmarkUserKnown(c, userID, username); err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "user unmarked known", "user_id", userID)
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// ListKnownUsers godoc
+// @Summary      List users the caller has marked known
+// @Tags         users
+// @Produce      json
+// @Success      200 {object} dto.WebResponse[dto.ListKnownUsersResponse]
+// @Router       /users/me/knowns [get]
+func (h *UserHandler) ListKnownUsers(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	users, err := h.usecase.ListKnownUsers(c, userID)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(dto.WebResponse[dto.ListKnownUsersResponse]{
+		Code:    fiber.StatusOK,
+		Message: "success",
+		Data:    dto.NewListKnownUsersResponse(users),
+	})
 }
 
 // GetMe godoc

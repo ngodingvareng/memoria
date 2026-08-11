@@ -140,6 +140,48 @@ func TestUserUsecase_MarkUserKnown_UsernameNotFound(t *testing.T) {
 	assert.ErrorIs(t, err, errs.ErrNotFound)
 }
 
+func TestUserUsecase_UnmarkUserKnown_ResolvesUsernameThenUnmarks(t *testing.T) {
+	uc, users, knowns, _ := newUserUsecase(t)
+
+	knowerID := uuid.New()
+	target := &entity.User{ID: uuid.New(), Username: strPtr("gede")}
+	users.EXPECT().GetByUsername(mock.Anything, "gede").Return(target, nil)
+	knowns.EXPECT().Unmark(mock.Anything, knowerID, target.ID).Return(nil)
+
+	err := uc.UnmarkUserKnown(context.Background(), knowerID, "gede")
+
+	assert.NoError(t, err)
+}
+
+func TestUserUsecase_UnmarkUserKnown_UsernameNotFound(t *testing.T) {
+	uc, users, _, _ := newUserUsecase(t)
+
+	users.EXPECT().GetByUsername(mock.Anything, "ghost").Return(nil, errs.ErrNotFound)
+
+	// knowns.Unmark must never be reached — no expectation set on it at
+	// all, so mockery's t.Cleanup assertion fails the test if it is.
+	err := uc.UnmarkUserKnown(context.Background(), uuid.New(), "ghost")
+
+	assert.ErrorIs(t, err, errs.ErrNotFound)
+}
+
+func TestUserUsecase_ListKnownUsers_SkipsUnresolvableIDs(t *testing.T) {
+	uc, users, knowns, _ := newUserUsecase(t)
+
+	knowerID := uuid.New()
+	staleID, activeID := uuid.New(), uuid.New()
+	active := &entity.User{ID: activeID, Name: "Gede"}
+
+	knowns.EXPECT().ListKnownUserIDs(mock.Anything, knowerID).Return([]uuid.UUID{staleID, activeID}, nil)
+	users.EXPECT().GetByID(mock.Anything, staleID).Return(nil, errs.ErrNotFound)
+	users.EXPECT().GetByID(mock.Anything, activeID).Return(active, nil)
+
+	result, err := uc.ListKnownUsers(context.Background(), knowerID)
+
+	require.NoError(t, err)
+	assert.Equal(t, []*entity.User{active}, result)
+}
+
 func TestUserUsecase_UploadProfileImage_NoExistingImage_Success(t *testing.T) {
 	uc, users, _, storage := newUserUsecase(t)
 

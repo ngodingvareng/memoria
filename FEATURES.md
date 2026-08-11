@@ -449,7 +449,7 @@ A macro-level account control system. Reinforces Memoria's position as a privacy
 
 #### Known
 
-Search a username, tap once, and that person is marked as known to you. That is the entire feature.
+Search a username, tap once, and that person is marked as known to you. A "Known people" settings screen lets you review who you've marked and unmark them, the same way Blocked and Muted already have their own settings lists — but the feature itself is still just marking and unmarking, nothing more.
 
 **It is one-directional and silent.** The other person is not notified, is not asked to confirm, and never sees that you marked them. There is nothing to accept and nothing to refuse. Memoria has no friend requests, no pending invitations between individuals, and no list anyone else can see — the same reason a rejected join request is never announced.
 
@@ -457,7 +457,7 @@ Search a username, tap once, and that person is marked as known to you. That is 
 
 It also keeps the control entirely yours. Under a mutual model, restricting who may mention you would mean negotiating with every person one at a time, and your privacy setting would only take effect once they agreed. Here you curate your own list and it takes effect immediately.
 
-**Known is not a social graph, and must never become one.** There are no counts, no visible lists, no mutual-friend surfaces, no suggestions. It exists to give the privacy settings a usable middle tier and nothing else — see [Non-Goals](#non-goals).
+**Known is not a social graph, and must never become one.** You may review and prune your own forward list — a private management surface, not a public one, mirroring Block and Mute — but nothing else about the design changes: there are still no counts, no way to see who has marked *you* (no reverse query exists), no mutual-friend surfaces, and no suggestions. It exists to give the privacy settings a usable middle tier, plus a way to undo a mark, and nothing else — see [Non-Goals](#non-goals).
 
 **Sharing a Circle counts as knowing.** The middle tier resolves to *people you marked, plus people you already share an active Circle with*. Without the second half, the setting would deadlock: you can only be invited to your first Circle by someone you already share a Circle with. Leaving a Circle ends that half of it, but an explicit mark survives.
 

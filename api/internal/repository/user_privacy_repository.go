@@ -18,9 +18,8 @@ var _ usecase.UserMuteChecker = (*userPrivacyRepository)(nil)
 var _ usecase.UserMuteRepository = (*userPrivacyRepository)(nil)
 
 // userPrivacyRepository wraps user_blocks.sql/user_knows.sql/
-// user_mutes.sql: the read-only Is*/gating checks, Block/Mute CRUD +
-// List, and Known's one write path (MarkKnown). Known still has no
-// unmark/list — that remains out of scope (see user_privacy.go).
+// user_mutes.sql: the read-only Is*/gating checks, and the Block/Mute/
+// Known mark + unmark + list CRUD (see user_privacy.go).
 type userPrivacyRepository struct {
 	q *db.Queries
 }
@@ -47,7 +46,9 @@ func (r *userPrivacyRepository) IsKnownTo(ctx context.Context, ownerUserID, othe
 	return known.Bool, nil
 }
 
-// MarkKnown implements [usecase.UserKnownRepository].
+// MarkKnown implements [usecase.UserKnownRepository]. Idempotent (see
+// user_knows.sql's CreateUserKnown) — marking someone already known is
+// a no-op, not an error.
 func (r *userPrivacyRepository) MarkKnown(ctx context.Context, knowerUserID, knownUserID uuid.UUID) error {
 	if err := r.q.CreateUserKnown(ctx, db.CreateUserKnownParams{
 		KnowerUserID: knowerUserID,
@@ -56,6 +57,31 @@ func (r *userPrivacyRepository) MarkKnown(ctx context.Context, knowerUserID, kno
 		return fmt.Errorf("marking user known: %w", err)
 	}
 	return nil
+}
+
+// Unmark implements [usecase.UserKnownRepository]. Silent no-op if the
+// pair isn't currently marked known.
+func (r *userPrivacyRepository) Unmark(ctx context.Context, knowerUserID, knownUserID uuid.UUID) error {
+	if err := r.q.DeleteUserKnown(ctx, db.DeleteUserKnownParams{
+		KnowerUserID: knowerUserID,
+		KnownUserID:  knownUserID,
+	}); err != nil {
+		return fmt.Errorf("unmarking user known: %w", err)
+	}
+	return nil
+}
+
+// ListKnownUserIDs implements [usecase.UserKnownRepository].
+func (r *userPrivacyRepository) ListKnownUserIDs(ctx context.Context, knowerUserID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := r.q.ListKnownUsersByKnowerID(ctx, knowerUserID)
+	if err != nil {
+		return nil, fmt.Errorf("listing known users: %w", err)
+	}
+	ids := make([]uuid.UUID, len(rows))
+	for i, row := range rows {
+		ids[i] = row.KnownUserID
+	}
+	return ids, nil
 }
 
 // IsMuted implements [usecase.UserMuteChecker].

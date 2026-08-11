@@ -73,9 +73,11 @@ func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimit
 	users.Get("/me/mutes", requireOnboarded, h.User.ListMutedUsers)
 	users.Post("/me/mutes", requireOnboarded, h.User.MuteUser)
 	users.Delete("/me/mutes/:username", requireOnboarded, h.User.UnmuteUser)
+	users.Get("/me/knowns", requireOnboarded, h.User.ListKnownUsers)
+	users.Post("/me/knowns", requireOnboarded, h.User.MarkUserKnown)
+	users.Delete("/me/knowns/:username", requireOnboarded, h.User.UnmarkUserKnown)
 	users.Get("/:id", requireOnboarded, h.User.GetUserByID)
 	users.Get("/username/:username", requireOnboarded, h.User.GetUserByUsername)
-	users.Post("/username/:username/known", requireOnboarded, h.User.MarkUserKnown)
 	users.Post("/me/image", requireOnboarded, h.User.UploadProfileImage)
 
 	threads := app.Group("/threads", middleware.RequireAuth(issuer), requireOnboarded)

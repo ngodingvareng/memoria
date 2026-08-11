@@ -24,6 +24,10 @@ const data = {
       title: 'Privacy',
       url: '/user/privacy',
     },
+    {
+      title: 'Known people',
+      url: '/user/known-people',
+    },
   ],
 };
 
