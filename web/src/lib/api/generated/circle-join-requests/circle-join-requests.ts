@@ -67,10 +67,7 @@ export const postCircleJoinRequests = async (
     {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoFollowInviteLinkRequest
       ),

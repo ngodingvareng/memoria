@@ -41,10 +41,7 @@ export const forgotPassword = async (
     {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest
       ),
@@ -153,10 +150,7 @@ export const googleLogin = async (
     {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoGoogleLoginRequest
       ),
@@ -261,10 +255,7 @@ export const login = async (
     {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginRequest
       ),
@@ -279,9 +270,7 @@ export const getLoginMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof login>>,
     TError,
-    {
-      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginRequest;
-    },
+    { data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginRequest },
     TContext
   >;
 }): UseMutationOptions<
@@ -301,9 +290,7 @@ export const getLoginMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof login>>,
-    {
-      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginRequest;
-    }
+    { data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoLoginRequest }
   > = (props) => {
     const { data } = props ?? {};
 
@@ -533,10 +520,7 @@ export const register = async (
     {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoRegisterRequest
       ),
@@ -559,9 +543,7 @@ export const getRegisterMutationOptions = <
 }): UseMutationOptions<
   Awaited<ReturnType<typeof register>>,
   TError,
-  {
-    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoRegisterRequest;
-  },
+  { data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoRegisterRequest },
   TContext
 > => {
   const mutationKey = ['register'];
@@ -616,9 +598,7 @@ export const useRegister = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof register>>,
   TError,
-  {
-    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoRegisterRequest;
-  },
+  { data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoRegisterRequest },
   TContext
 > => {
   return useMutation(getRegisterMutationOptions(options), queryClient);
@@ -640,10 +620,7 @@ export const resetPassword = async (
     {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoResetPasswordRequest
       ),

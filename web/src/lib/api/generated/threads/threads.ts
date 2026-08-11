@@ -392,10 +392,7 @@ export const postThreads = async (
     {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateThreadRequest
       ),
@@ -648,10 +645,7 @@ export const putThreadsId = async (
     {
       ...options,
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdateThreadRequest
       ),

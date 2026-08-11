@@ -2,3 +2,4 @@ node_modules
 dist
 .output
 src/routeTree.gen.ts
+src/lib/api/generated

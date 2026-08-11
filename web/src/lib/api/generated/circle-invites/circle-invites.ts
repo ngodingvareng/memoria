@@ -569,10 +569,7 @@ export const postCirclesIdInviteLink = async (
     {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateOrRotateInviteLinkRequest
       ),
@@ -684,10 +681,7 @@ export const patchCirclesIdInviteLinkApproval = async (
     {
       ...options,
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoSetInviteLinkRequiresApprovalRequest
       ),
@@ -895,10 +889,7 @@ export const postCirclesIdMembersDirect = async (
     {
       ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoInviteDirectRequest
       ),
