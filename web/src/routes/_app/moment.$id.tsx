@@ -30,8 +30,6 @@ function RouteComponent() {
         </Button>
       </div>
 
-      <h1 className="pb-4 text-2xl font-semibold">Moment Comments</h1>
-
       {momentQuery.isPending && (
         <div className="flex flex-col gap-4">
           <Skeleton className="h-40 w-full rounded-2xl" />

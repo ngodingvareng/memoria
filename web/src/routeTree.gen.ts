@@ -39,7 +39,6 @@ import { Route as UserUserIndexRouteImport } from './routes/_user/user.index'
 import { Route as UserUserAccountRouteImport } from './routes/_user/user.account'
 import { Route as UserUserNotificationRouteImport } from './routes/_user/user.notification'
 import { Route as UserUserPrivacyRouteImport } from './routes/_user/user.privacy'
-import { Route as UserUserThreadsRouteImport } from './routes/_user/user.threads'
 import { Route as AppThreadIdIndexRouteImport } from './routes/_app/thread.$id.index'
 import { Route as AppThreadIdManageRouteImport } from './routes/_app/thread.$id.manage'
 import { Route as AppCircleCIdIndexRouteImport } from './routes/_app/_circle/c.$id.index'
@@ -197,11 +196,6 @@ const UserUserPrivacyRoute = UserUserPrivacyRouteImport.update({
   path: '/user/privacy',
   getParentRoute: () => UserRoute,
 } as any)
-const UserUserThreadsRoute = UserUserThreadsRouteImport.update({
-  id: '/user/threads',
-  path: '/user/threads',
-  getParentRoute: () => UserRoute,
-} as any)
 const AppThreadIdIndexRoute = AppThreadIdIndexRouteImport.update({
   id: '/thread/$id/',
   path: '/thread/$id/',
@@ -271,7 +265,6 @@ export interface FileRoutesByFullPath {
   '/user/account': typeof UserUserAccountRoute
   '/user/notification': typeof UserUserNotificationRoute
   '/user/privacy': typeof UserUserPrivacyRoute
-  '/user/threads': typeof UserUserThreadsRoute
   '/album/': typeof AppAlbumIndexRoute
   '/circle/': typeof AppCircleIndexRoute
   '/thread/': typeof AppThreadIndexRoute
@@ -309,7 +302,6 @@ export interface FileRoutesByTo {
   '/user/account': typeof UserUserAccountRoute
   '/user/notification': typeof UserUserNotificationRoute
   '/user/privacy': typeof UserUserPrivacyRoute
-  '/user/threads': typeof UserUserThreadsRoute
   '/album': typeof AppAlbumIndexRoute
   '/circle': typeof AppCircleIndexRoute
   '/thread': typeof AppThreadIndexRoute
@@ -352,7 +344,6 @@ export interface FileRoutesById {
   '/_user/user/account': typeof UserUserAccountRoute
   '/_user/user/notification': typeof UserUserNotificationRoute
   '/_user/user/privacy': typeof UserUserPrivacyRoute
-  '/_user/user/threads': typeof UserUserThreadsRoute
   '/_app/album/': typeof AppAlbumIndexRoute
   '/_app/circle/': typeof AppCircleIndexRoute
   '/_app/thread/': typeof AppThreadIndexRoute
@@ -392,7 +383,6 @@ export interface FileRouteTypes {
     | '/user/account'
     | '/user/notification'
     | '/user/privacy'
-    | '/user/threads'
     | '/album/'
     | '/circle/'
     | '/thread/'
@@ -430,7 +420,6 @@ export interface FileRouteTypes {
     | '/user/account'
     | '/user/notification'
     | '/user/privacy'
-    | '/user/threads'
     | '/album'
     | '/circle'
     | '/thread'
@@ -472,7 +461,6 @@ export interface FileRouteTypes {
     | '/_user/user/account'
     | '/_user/user/notification'
     | '/_user/user/privacy'
-    | '/_user/user/threads'
     | '/_app/album/'
     | '/_app/circle/'
     | '/_app/thread/'
@@ -710,13 +698,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UserUserPrivacyRouteImport
       parentRoute: typeof UserRoute
     }
-    '/_user/user/threads': {
-      id: '/_user/user/threads'
-      path: '/user/threads'
-      fullPath: '/user/threads'
-      preLoaderRoute: typeof UserUserThreadsRouteImport
-      parentRoute: typeof UserRoute
-    }
     '/_app/thread/$id/': {
       id: '/_app/thread/$id/'
       path: '/thread/$id'
@@ -869,7 +850,6 @@ interface UserRouteChildren {
   UserUserAccountRoute: typeof UserUserAccountRoute
   UserUserNotificationRoute: typeof UserUserNotificationRoute
   UserUserPrivacyRoute: typeof UserUserPrivacyRoute
-  UserUserThreadsRoute: typeof UserUserThreadsRoute
   UserUserIndexRoute: typeof UserUserIndexRoute
 }
 
@@ -877,7 +857,6 @@ const UserRouteChildren: UserRouteChildren = {
   UserUserAccountRoute: UserUserAccountRoute,
   UserUserNotificationRoute: UserUserNotificationRoute,
   UserUserPrivacyRoute: UserUserPrivacyRoute,
-  UserUserThreadsRoute: UserUserThreadsRoute,
   UserUserIndexRoute: UserUserIndexRoute,
 }
 

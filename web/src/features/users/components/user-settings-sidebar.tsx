@@ -1,4 +1,3 @@
-import { Link } from '@tanstack/react-router';
 import {
   Sidebar,
   SidebarContent,
@@ -9,16 +8,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { Link } from '@tanstack/react-router';
 
 const data = {
   user: [
     {
       title: 'Account',
       url: '/user/account',
-    },
-    {
-      title: 'Threads',
-      url: '/user/threads',
     },
     {
       title: 'Notification',
