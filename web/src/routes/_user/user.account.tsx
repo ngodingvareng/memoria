@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import Wrapper from '@/components/wrapper';
 import { ProfileImageUploader } from '@/features/users';
 import { useGetUserByID } from '@/lib/api/generated/users/users';
 import { useSession } from '@/lib/session';
@@ -26,17 +27,19 @@ function RouteComponent() {
   const name = userQuery.data?.name ?? session?.user.name ?? '';
 
   return (
-    <div className="flex max-w-xl flex-col gap-6">
-      <ProfileImageUploader
-        imagePath={userQuery.data?.image_path}
-        name={name}
-      />
-      <div>
-        <p className="text-lg font-medium">{name}</p>
-        {session?.user.username && (
-          <p className="text-muted-foreground">@{session.user.username}</p>
-        )}
+    <Wrapper fullWidth>
+      <div className="flex max-w-xl flex-col gap-6">
+        <ProfileImageUploader
+          imagePath={userQuery.data?.image_path}
+          name={name}
+        />
+        <div>
+          <p className="text-lg font-medium">{name}</p>
+          {session?.user.username && (
+            <p className="text-muted-foreground">@{session.user.username}</p>
+          )}
+        </div>
       </div>
-    </div>
+    </Wrapper>
   );
 }
