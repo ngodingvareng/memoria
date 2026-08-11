@@ -55,7 +55,7 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import React from 'react';
-import { ColorSwatchPicker } from './color-swatch-picker';
+import { ColorSwatchPicker } from '../../../components/color-swatch-picker';
 import { MomentCardCover } from './moment-card-cover';
 import { MomentNoteEditor } from './moment-note-editor';
 import { useMomentAudience } from '../lib/use-moment-audience';

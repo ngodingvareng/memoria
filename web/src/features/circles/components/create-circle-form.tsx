@@ -1,7 +1,3 @@
-import {
-  getGetCirclesQueryKey,
-  usePostCircles,
-} from '@/lib/api/generated/circles/circles';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,9 +12,13 @@ import {
   InputGroupInput,
   InputGroupText,
 } from '@/components/ui/input-group';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { ColorSwatchPicker } from '@/components/color-swatch-picker';
 import { useFormSubmitError } from '@/hooks/use-form-submit-error';
+import {
+  getGetCirclesQueryKey,
+  usePostCircles,
+} from '@/lib/api/generated/circles/circles';
 import { queryClient } from '@/lib/query-client';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
@@ -149,30 +149,10 @@ export function CreateCircleForm() {
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Color</FieldLabel>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={
-                        hexColorPattern.test(field.state.value)
-                          ? field.state.value
-                          : '#94a3b8'
-                      }
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      className="border-border size-9 cursor-pointer rounded-full border bg-transparent p-0"
-                      aria-label="Pick a color"
-                    />
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                      placeholder="#4F46E5"
-                      autoComplete="off"
-                      className="max-w-32"
-                    />
-                  </div>
+                  <ColorSwatchPicker
+                    value={field.state.value}
+                    onChange={(hex) => field.handleChange(hex)}
+                  />
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
               );

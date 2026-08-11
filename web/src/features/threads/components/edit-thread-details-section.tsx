@@ -6,8 +6,8 @@ import {
   FieldGroup,
   FieldLabel,
 } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { ColorSwatchPicker } from '@/components/color-swatch-picker';
 import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse } from '@/lib/api/generated/models';
 import {
@@ -116,30 +116,10 @@ export function EditThreadDetailsSection({
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Color</FieldLabel>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={
-                        hexColorPattern.test(field.state.value)
-                          ? field.state.value
-                          : '#94a3b8'
-                      }
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      className="border-border size-9 cursor-pointer rounded-full border bg-transparent p-0"
-                      aria-label="Pick a color"
-                    />
-                    <Input
-                      id={field.name}
-                      name={field.name}
+                    <ColorSwatchPicker
                       value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                      placeholder="#4F46E5"
-                      autoComplete="off"
-                      className="max-w-32"
+                      onChange={(hex) => field.handleChange(hex)}
                     />
-                  </div>
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
               );

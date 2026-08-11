@@ -16,7 +16,7 @@ import {
 import { ArrowUp02Icon, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useRef, useState } from 'react';
-import { ColorSwatchPicker } from './color-swatch-picker';
+import { ColorSwatchPicker } from '../../../components/color-swatch-picker';
 
 export interface MomentDraft {
   note: string;

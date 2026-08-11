@@ -8,10 +8,10 @@ import (
 	"github.com/ngodingvareng/memoria/internal/entity"
 )
 
-// defaultColorHex is taken from https://tailwindcss.com/docs/colors (Gray 700)
+// defaultColorHex is taken from https://tailwindcss.com/docs/colors (Gray 500)
 // We recommended using using dark gray and similar tones from that
 // source so it matches  seamlessly with the frontend.
-const defaultColorHex string = "#374151"
+const defaultColorHex string = "#6b7280"
 
 const (
 	defaultPage     int32 = 1

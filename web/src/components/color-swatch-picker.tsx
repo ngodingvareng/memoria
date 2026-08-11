@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { MOMENT_COLOR_PRESETS } from '../lib/color-presets';
+import { MOMENT_COLOR_PRESETS } from '@/lib/color-presets';
 
 interface ColorSwatchPickerProps {
   value: string;
@@ -22,7 +22,7 @@ export function ColorSwatchPicker({
           onClick={() => onChange(value === preset.hex ? '' : preset.hex)}
           style={{ backgroundColor: preset.hex }}
           className={cn(
-            'ring-offset-background size-7 cursor-pointer rounded-full ring-offset-2 transition-all',
+            'ring-offset-background size-7 cursor-pointer rounded-full ring-offset-1 transition-all',
             value === preset.hex
               ? 'ring-primary ring-2'
               : 'hover:ring-primary/50 hover:ring-2'

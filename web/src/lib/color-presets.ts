@@ -1,4 +1,5 @@
 export const MOMENT_COLOR_PRESETS = [
+  { name: 'Gray', hex: '#6b7280' },
   { name: 'Rose', hex: '#f43f5e' },
   { name: 'Amber', hex: '#f59e0b' },
   { name: 'Emerald', hex: '#10b981' },

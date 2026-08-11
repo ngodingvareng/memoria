@@ -36,7 +36,7 @@ import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
 import { useRef, useState } from 'react';
 import * as z from 'zod';
-import { ColorSwatchPicker } from './color-swatch-picker';
+import { ColorSwatchPicker } from '../../../components/color-swatch-picker';
 import { toDatetimeLocalValue, toRFC3339WithOffset } from '../lib/occurred-at';
 
 const formSchema = z.object({
