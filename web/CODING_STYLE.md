@@ -122,3 +122,28 @@ own `children` into `ownProps`; if the `render` element also carries
 no error, just missing content. Keeping children on the outer component
 avoids this entirely and stays consistent across every primitive, not just
 the ones that happen not to synthesize children today.
+
+## 5. `src/components/ui/` is generated — AI must never hand-edit it
+
+This directory is ShadCN-generated/vendored output (see §1's exception and
+the root `CLAUDE.md`). An AI assistant working in this repo must not modify
+the contents of any file under `src/components/ui/` directly — no styling
+tweaks, no prop additions, no bug fixes, no refactors, regardless of how
+small or how clearly correct the change seems.
+
+The only two AI-permitted ways to change what's in `src/components/ui/` are:
+
+- **Installing/updating a component through the `shadcn` CLI**, letting it
+  (re)generate the file(s) — e.g. `bunx shadcn@latest add <component>`. The
+  generated diff is the change; do not follow it up with manual edits to
+  "fix" the output.
+- **Deleting a component file** when it has no remaining references
+  anywhere in `web/` (verify with a repo-wide search before deleting, not
+  just a guess) — i.e. removing dead vendored code, not editing live code.
+
+If a primitive genuinely needs different behavior or styling than what
+ShadCN generated, that's a signal to compose around it from `src/features/`
+or `src/components/` (wrapper components, `className`/`cn()` overrides,
+`render` prop composition per §4) rather than editing the vendored file.
+If composition truly can't achieve it, stop and ask the user how they want
+to proceed — don't hand-edit `components/ui/` as a shortcut.
