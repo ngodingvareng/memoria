@@ -32,7 +32,7 @@ services:
       retries: 5
 
   rustfs:
-    image: rustfs/rustfs:1.0.0-beta.12
+    image: rustfs/rustfs:1.0.0-rc.1
     container_name: memoria-rustfs-dev
     restart: no
     ports:
