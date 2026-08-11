@@ -27,7 +27,9 @@ export function PendingCircleInvites() {
       queryClient.invalidateQueries({
         queryKey: getGetCircleInvitesQueryKey(),
       }),
-      queryClient.invalidateQueries({ queryKey: getGetCirclesQueryKey() }),
+      queryClient.invalidateQueries({
+        queryKey: getGetCirclesQueryKey(),
+      }),
     ]);
 
   const invites = invitesQuery.data?.invites ?? [];
@@ -55,7 +57,9 @@ export function PendingCircleInvites() {
                   size="sm"
                   variant="outline"
                   onClick={async () => {
-                    await decline.mutateAsync({ id: invite.id! });
+                    await decline.mutateAsync({
+                      id: invite.id!,
+                    });
                     await invalidate();
                   }}
                 >
@@ -64,7 +68,9 @@ export function PendingCircleInvites() {
                 <Button
                   size="sm"
                   onClick={async () => {
-                    await accept.mutateAsync({ id: invite.id! });
+                    await accept.mutateAsync({
+                      id: invite.id!,
+                    });
                     await invalidate();
                   }}
                 >

@@ -8,6 +8,15 @@
   "ignorePatterns": [
     "node_modules",
     "dist",
-    "src/routeTree.gen.ts"
+    "src/routeTree.gen.ts",
+    "src/components/ui"
+  ],
+  "overrides": [
+    {
+      "files": ["src/routes/**/*.tsx", "src/routes/**/*.ts"],
+      "rules": {
+        "react/only-export-components": "off"
+      }
+    }
   ]
 }

@@ -32,7 +32,9 @@ export function SearchSuggestionRow({
         <>
           <span
             className="border-foreground/20 size-2.5 shrink-0 rounded-full border"
-            style={{ backgroundColor: item.data.color_hex || undefined }}
+            style={{
+              backgroundColor: item.data.color_hex || undefined,
+            }}
           />
           <p className="truncate text-sm font-medium">{item.data.name}</p>
         </>

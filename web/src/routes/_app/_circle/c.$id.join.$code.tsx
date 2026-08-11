@@ -22,7 +22,9 @@ function RouteComponent() {
   const handleJoin = async () => {
     setError(null);
     try {
-      const result = await followLink.mutateAsync({ data: { token: code } });
+      const result = await followLink.mutateAsync({
+        data: { token: code },
+      });
       await queryClient.invalidateQueries({
         queryKey: getGetCirclesQueryKey(),
       });

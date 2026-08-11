@@ -79,9 +79,8 @@ export function PrivacySettingsForm() {
       }}
     >
       <FieldGroup>
-        <form.Field
-          name="mention_policy"
-          children={(field) => (
+        <form.Field name="mention_policy">
+          {(field) => (
             <Field orientation="horizontal">
               <FieldContent>
                 <FieldTitle>Who can mention me</FieldTitle>
@@ -108,11 +107,10 @@ export function PrivacySettingsForm() {
               </Select>
             </Field>
           )}
-        />
+        </form.Field>
 
-        <form.Field
-          name="circle_invite_policy"
-          children={(field) => (
+        <form.Field name="circle_invite_policy">
+          {(field) => (
             <Field orientation="horizontal">
               <FieldContent>
                 <FieldTitle>Who can invite me to a circle</FieldTitle>
@@ -140,13 +138,12 @@ export function PrivacySettingsForm() {
               </Select>
             </Field>
           )}
-        />
+        </form.Field>
 
         <FieldSeparator />
 
-        <form.Field
-          name="discoverable_by_username"
-          children={(field) => (
+        <form.Field name="discoverable_by_username">
+          {(field) => (
             <Field orientation="horizontal">
               <FieldContent>
                 <FieldTitle>Discoverable by username</FieldTitle>
@@ -160,11 +157,10 @@ export function PrivacySettingsForm() {
               />
             </Field>
           )}
-        />
+        </form.Field>
 
-        <form.Field
-          name="strip_photo_metadata"
-          children={(field) => (
+        <form.Field name="strip_photo_metadata">
+          {(field) => (
             <Field orientation="horizontal">
               <FieldContent>
                 <FieldTitle>Strip photo metadata</FieldTitle>
@@ -178,7 +174,7 @@ export function PrivacySettingsForm() {
               />
             </Field>
           )}
-        />
+        </form.Field>
 
         {submitError && (
           <Alert variant="destructive">
@@ -189,7 +185,8 @@ export function PrivacySettingsForm() {
         <Field orientation="horizontal" className="justify-end">
           <form.Subscribe
             selector={(state) => [state.isDefaultValue, state.isSubmitting]}
-            children={([isDefaultValue, isSubmitting]) => (
+          >
+            {([isDefaultValue, isSubmitting]) => (
               <Button
                 type="submit"
                 form="privacy-settings-form"
@@ -198,7 +195,7 @@ export function PrivacySettingsForm() {
                 Save
               </Button>
             )}
-          />
+          </form.Subscribe>
         </Field>
       </FieldGroup>
     </form>

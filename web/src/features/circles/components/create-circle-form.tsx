@@ -81,9 +81,8 @@ export function CreateCircleForm() {
         }}
       >
         <FieldGroup>
-          <form.Field
-            name="name"
-            children={(field) => {
+          <form.Field name="name">
+            {(field) => {
               const isInvalid =
                 field.state.meta.isTouched && !field.state.meta.isValid;
               return (
@@ -115,11 +114,10 @@ export function CreateCircleForm() {
                 </Field>
               );
             }}
-          />
+          </form.Field>
 
-          <form.Field
-            name="description"
-            children={(field) => {
+          <form.Field name="description">
+            {(field) => {
               const isInvalid =
                 field.state.meta.isTouched && !field.state.meta.isValid;
               return (
@@ -139,11 +137,10 @@ export function CreateCircleForm() {
                 </Field>
               );
             }}
-          />
+          </form.Field>
 
-          <form.Field
-            name="color_hex"
-            children={(field) => {
+          <form.Field name="color_hex">
+            {(field) => {
               const isInvalid =
                 field.state.meta.isTouched && !field.state.meta.isValid;
               return (
@@ -157,7 +154,7 @@ export function CreateCircleForm() {
                 </Field>
               );
             }}
-          />
+          </form.Field>
 
           {submitError && (
             <Alert variant="destructive">
@@ -168,7 +165,8 @@ export function CreateCircleForm() {
           <Field orientation="horizontal" className="justify-end">
             <form.Subscribe
               selector={(state) => [state.isDefaultValue, state.isSubmitting]}
-              children={([isDefaultValue, isSubmitting]) => (
+            >
+              {([isDefaultValue, isSubmitting]) => (
                 <Button
                   type="submit"
                   form="create-circle-form"
@@ -177,7 +175,7 @@ export function CreateCircleForm() {
                   Create
                 </Button>
               )}
-            />
+            </form.Subscribe>
           </Field>
         </FieldGroup>
       </form>

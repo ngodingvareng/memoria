@@ -19,7 +19,7 @@ interface MentionShareOfferToastProps {
 // step (FEATURES.md, Mention) — mentioning now happens by editing note
 // text rather than through a form with room for this offer inline, so
 // it surfaces as a toast right after the mention is created instead.
-function MentionShareOfferToast({
+export function MentionShareOfferToast({
   momentId,
   offer,
   toastId,
@@ -64,19 +64,4 @@ function MentionShareOfferToast({
       </div>
     </div>
   );
-}
-
-export function showMentionShareOffers(
-  momentId: string,
-  offers: MentionShareOffer[]
-) {
-  for (const offer of offers) {
-    toast.custom((toastId) => (
-      <MentionShareOfferToast
-        momentId={momentId}
-        offer={offer}
-        toastId={toastId}
-      />
-    ));
-  }
 }

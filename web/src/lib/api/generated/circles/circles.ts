@@ -204,7 +204,10 @@ export const postCircles = async (
     {
       ...options,
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateCircleRequest
       ),
@@ -457,7 +460,10 @@ export const putCirclesId = async (
     {
       ...options,
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdateCircleRequest
       ),
@@ -1017,7 +1023,10 @@ export const patchCirclesIdMembersUserId = async (
     {
       ...options,
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdateCircleMemberPermissionsRequest
       ),
@@ -1139,7 +1148,10 @@ export const patchCirclesIdMembersUserIdRole = async (
     {
       ...options,
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdateCircleMemberRoleRequest
       ),

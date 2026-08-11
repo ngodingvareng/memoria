@@ -180,9 +180,8 @@ export function NotificationPreferencesForm() {
           description="A once-daily summary of comments and reactions, never individual pings."
         />
 
-        <form.Field
-          name="response_digest_hour"
-          children={(field) => (
+        <form.Field name="response_digest_hour">
+          {(field) => (
             <Field orientation="horizontal">
               <FieldContent>
                 <FieldTitle>Digest hour</FieldTitle>
@@ -207,7 +206,7 @@ export function NotificationPreferencesForm() {
               </Select>
             </Field>
           )}
-        />
+        </form.Field>
 
         <FieldSeparator />
 
@@ -218,9 +217,8 @@ export function NotificationPreferencesForm() {
             it ends.
           </FieldDescription>
           <div className="flex items-center gap-2">
-            <form.Field
-              name="quiet_hours_start"
-              children={(field) => (
+            <form.Field name="quiet_hours_start">
+              {(field) => (
                 <input
                   type="time"
                   value={field.state.value}
@@ -228,11 +226,10 @@ export function NotificationPreferencesForm() {
                   className="bg-input/50 focus-visible:border-ring focus-visible:ring-ring/30 h-9 rounded-3xl border border-transparent px-3 text-sm outline-none focus-visible:ring-3"
                 />
               )}
-            />
+            </form.Field>
             <span className="text-muted-foreground text-sm">to</span>
-            <form.Field
-              name="quiet_hours_end"
-              children={(field) => (
+            <form.Field name="quiet_hours_end">
+              {(field) => (
                 <input
                   type="time"
                   value={field.state.value}
@@ -240,7 +237,7 @@ export function NotificationPreferencesForm() {
                   className="bg-input/50 focus-visible:border-ring focus-visible:ring-ring/30 h-9 rounded-3xl border border-transparent px-3 text-sm outline-none focus-visible:ring-3"
                 />
               )}
-            />
+            </form.Field>
           </div>
         </Field>
 
@@ -253,7 +250,8 @@ export function NotificationPreferencesForm() {
         <Field orientation="horizontal" className="justify-end">
           <form.Subscribe
             selector={(state) => [state.isDefaultValue, state.isSubmitting]}
-            children={([isDefaultValue, isSubmitting]) => (
+          >
+            {([isDefaultValue, isSubmitting]) => (
               <Button
                 type="submit"
                 form="notification-preferences-form"
@@ -262,7 +260,7 @@ export function NotificationPreferencesForm() {
                 Save
               </Button>
             )}
-          />
+          </form.Subscribe>
         </Field>
       </FieldGroup>
     </form>

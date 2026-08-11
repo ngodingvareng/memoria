@@ -7,7 +7,10 @@ export function useCircleAlbumImages(circleId: string) {
   return useInfiniteQuery({
     queryKey: ['circles', circleId, 'album'],
     queryFn: ({ pageParam }) =>
-      getCirclesIdAlbum(circleId, { page: pageParam, page_size: PAGE_SIZE }),
+      getCirclesIdAlbum(circleId, {
+        page: pageParam,
+        page_size: PAGE_SIZE,
+      }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) =>
       (lastPage.images?.length ?? 0) < PAGE_SIZE

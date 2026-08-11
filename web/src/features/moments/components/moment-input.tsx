@@ -122,7 +122,9 @@ export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
                 >
                   <span
                     className="border-foreground size-4 rounded-full border"
-                    style={{ backgroundColor: colorHex || undefined }}
+                    style={{
+                      backgroundColor: colorHex || undefined,
+                    }}
                   />
                   <span>Color</span>
                 </DropdownMenuTrigger>
@@ -130,7 +132,7 @@ export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
                   <ColorSwatchPicker
                     value={colorHex}
                     onChange={setColorHex}
-                    className="p-2 grid! grid-cols-5!"
+                    className="grid! grid-cols-5! p-2"
                   />
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -48,7 +48,9 @@ export function ThreadSuggestions({
         >
           <span
             className="border-foreground/20 size-2.5 shrink-0 rounded-full border"
-            style={{ backgroundColor: thread.color_hex || undefined }}
+            style={{
+              backgroundColor: thread.color_hex || undefined,
+            }}
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{thread.name}</p>

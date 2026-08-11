@@ -419,7 +419,10 @@ export const postMoments = async (
     {
       ...options,
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateMomentRequest
       ),
@@ -850,7 +853,10 @@ export const putMomentsId = async (
     {
       ...options,
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdateMomentRequest
       ),

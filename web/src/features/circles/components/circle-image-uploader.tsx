@@ -36,7 +36,10 @@ export function CircleImageUploader({
 
     setError(null);
     try {
-      await uploadImage.mutateAsync({ id: circleId, data: { image: file } });
+      await uploadImage.mutateAsync({
+        id: circleId,
+        data: { image: file },
+      });
       await queryClient.invalidateQueries({
         queryKey: getGetCirclesIdQueryKey(circleId),
       });

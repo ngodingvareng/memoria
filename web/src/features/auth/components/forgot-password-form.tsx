@@ -32,7 +32,9 @@ export function ForgotPasswordForm() {
     validators: { onSubmit: formSchema },
     onSubmit: ({ value }) =>
       guard(async () => {
-        await forgotPassword.mutateAsync({ data: { email: value.email } });
+        await forgotPassword.mutateAsync({
+          data: { email: value.email },
+        });
         // The backend responds identically whether or not the email is
         // registered — this screen must too, or it becomes an oracle
         // for probing which emails have accounts.
@@ -60,9 +62,8 @@ export function ForgotPasswordForm() {
       }}
     >
       <FieldGroup>
-        <form.Field
-          name="email"
-          children={(field) => {
+        <form.Field name="email">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -86,7 +87,7 @@ export function ForgotPasswordForm() {
               </Field>
             );
           }}
-        />
+        </form.Field>
 
         {submitError && (
           <Alert variant="destructive">
@@ -95,9 +96,8 @@ export function ForgotPasswordForm() {
         )}
 
         <Field>
-          <form.Subscribe
-            selector={(state) => state.isSubmitting}
-            children={(isSubmitting) => (
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
               <Button
                 type="submit"
                 form="forgot-password-form"
@@ -106,7 +106,7 @@ export function ForgotPasswordForm() {
                 Send reset link
               </Button>
             )}
-          />
+          </form.Subscribe>
         </Field>
 
         <Field>

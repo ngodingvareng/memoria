@@ -52,7 +52,10 @@ export function MomentFeedItem({
     <MomentCard
       id={moment.id}
       user={user}
-      thread={{ id: moment.thread_id, name: threadQuery.data?.name ?? '' }}
+      thread={{
+        id: moment.thread_id,
+        name: threadQuery.data?.name ?? '',
+      }}
       colorHex={moment.color_hex}
       content={moment.note ?? ''}
       createdAt={new Date(moment.created_at ?? moment.occurred_at ?? 0)}

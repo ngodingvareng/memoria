@@ -79,7 +79,10 @@ function RouteComponent() {
       if (draft.images.length > 0 && moment.id) {
         await Promise.all(
           draft.images.map((image) =>
-            uploadMomentImage.mutateAsync({ id: moment.id!, data: { image } })
+            uploadMomentImage.mutateAsync({
+              id: moment.id!,
+              data: { image },
+            })
           )
         );
       }

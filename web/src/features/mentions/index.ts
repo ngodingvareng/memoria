@@ -2,7 +2,7 @@ export { AddMentionButton } from './components/add-mention-button';
 export { MentionAutocompletePopover } from './components/mention-autocomplete-popover';
 export { MentionBadge } from './components/mention-badge';
 export { MentionList } from './components/mention-list';
-export { showMentionShareOffers } from './components/mention-share-offer-toast';
+export { showMentionShareOffers } from './lib/show-mention-share-offers';
 export { useInlineMentionAutocomplete } from './hooks/use-inline-mention-autocomplete';
 export { extractMentionUsernames } from './lib/mention-text';
 export { renderTextWithMentions } from './lib/render-text-with-mentions';

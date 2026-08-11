@@ -108,9 +108,8 @@ export function EditThreadNameDialog({
           }}
         >
           <FieldGroup>
-            <form.Field
-              name="name"
-              children={(field) => {
+            <form.Field name="name">
+              {(field) => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
@@ -134,7 +133,7 @@ export function EditThreadNameDialog({
                   </Field>
                 );
               }}
-            />
+            </form.Field>
 
             {submitError && (
               <Alert variant="destructive">
@@ -149,7 +148,8 @@ export function EditThreadNameDialog({
           </DialogClose>
           <form.Subscribe
             selector={(state) => [state.isSubmitting, state.isDefaultValue]}
-            children={([isSubmitting, isDefaultValue]) => (
+          >
+            {([isSubmitting, isDefaultValue]) => (
               <Button
                 type="submit"
                 form="edit-thread-name-form"
@@ -158,7 +158,7 @@ export function EditThreadNameDialog({
                 Save
               </Button>
             )}
-          />
+          </form.Subscribe>
         </DialogFooter>
       </DialogContent>
     </Dialog>

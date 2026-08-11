@@ -81,9 +81,8 @@ export function SignupForm() {
       }}
     >
       <FieldGroup>
-        <form.Field
-          name="name"
-          children={(field) => {
+        <form.Field name="name">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -106,10 +105,10 @@ export function SignupForm() {
               </Field>
             );
           }}
-        />
-        <form.Field
-          name="email"
-          children={(field) => {
+        </form.Field>
+
+        <form.Field name="email">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -133,10 +132,10 @@ export function SignupForm() {
               </Field>
             );
           }}
-        />
-        <form.Field
-          name="password"
-          children={(field) => {
+        </form.Field>
+
+        <form.Field name="password">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -160,10 +159,10 @@ export function SignupForm() {
               </Field>
             );
           }}
-        />
-        <form.Field
-          name="confirmPassword"
-          children={(field) => {
+        </form.Field>
+
+        <form.Field name="confirmPassword">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -187,7 +186,7 @@ export function SignupForm() {
               </Field>
             );
           }}
-        />
+        </form.Field>
 
         {submitError && (
           <Alert variant="destructive">
@@ -196,14 +195,13 @@ export function SignupForm() {
         )}
 
         <Field>
-          <form.Subscribe
-            selector={(state) => state.isSubmitting}
-            children={(isSubmitting) => (
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
               <Button type="submit" form="signup-form" disabled={isSubmitting}>
                 Create Account
               </Button>
             )}
-          />
+          </form.Subscribe>
         </Field>
 
         <Field>

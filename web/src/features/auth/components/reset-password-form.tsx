@@ -57,9 +57,8 @@ export function ResetPasswordForm({ email, token }: ResetPasswordFormProps) {
       }}
     >
       <FieldGroup>
-        <form.Field
-          name="newPassword"
-          children={(field) => {
+        <form.Field name="newPassword">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -83,7 +82,7 @@ export function ResetPasswordForm({ email, token }: ResetPasswordFormProps) {
               </Field>
             );
           }}
-        />
+        </form.Field>
 
         {submitError && (
           <Alert variant="destructive">
@@ -92,9 +91,8 @@ export function ResetPasswordForm({ email, token }: ResetPasswordFormProps) {
         )}
 
         <Field>
-          <form.Subscribe
-            selector={(state) => state.isSubmitting}
-            children={(isSubmitting) => (
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
               <Button
                 type="submit"
                 form="reset-password-form"
@@ -103,7 +101,7 @@ export function ResetPasswordForm({ email, token }: ResetPasswordFormProps) {
                 Reset password
               </Button>
             )}
-          />
+          </form.Subscribe>
         </Field>
       </FieldGroup>
     </form>

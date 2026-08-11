@@ -86,13 +86,17 @@ export function SigninForm() {
               setSubmitError(null);
               try {
                 const data = await googleLoginMutation.mutateAsync({
-                  data: { id_token: credentialResponse.credential },
+                  data: {
+                    id_token: credentialResponse.credential,
+                  },
                 });
                 setSession(toSession(data));
                 // A new account created on the fly by Google login has
                 // no username yet, exactly like a fresh Register —
                 // route it through the same mandatory picker.
-                navigate({ to: data.user?.username ? '/' : '/welcome' });
+                navigate({
+                  to: data.user?.username ? '/' : '/welcome',
+                });
               } catch (err) {
                 setSubmitError(
                   err instanceof ApiError && err.status === 409
@@ -112,9 +116,8 @@ export function SigninForm() {
         <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
           Or continue with
         </FieldSeparator>
-        <form.Field
-          name="email"
-          children={(field) => {
+        <form.Field name="email">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -138,10 +141,10 @@ export function SigninForm() {
               </Field>
             );
           }}
-        />
-        <form.Field
-          name="password"
-          children={(field) => {
+        </form.Field>
+
+        <form.Field name="password">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -170,7 +173,7 @@ export function SigninForm() {
               </Field>
             );
           }}
-        />
+        </form.Field>
 
         {submitError && (
           <Alert variant="destructive">
@@ -179,14 +182,13 @@ export function SigninForm() {
         )}
 
         <Field>
-          <form.Subscribe
-            selector={(state) => state.isSubmitting}
-            children={(isSubmitting) => (
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
               <Button type="submit" form="signin-form" disabled={isSubmitting}>
                 Sign in
               </Button>
             )}
-          />
+          </form.Subscribe>
         </Field>
 
         <Field>

@@ -93,7 +93,10 @@ export function CreateMomentForm() {
         if (value.images.length > 0 && moment.id) {
           await Promise.all(
             value.images.map((image) =>
-              uploadImage.mutateAsync({ id: moment.id!, data: { image } })
+              uploadImage.mutateAsync({
+                id: moment.id!,
+                data: { image },
+              })
             )
           );
         }
@@ -124,9 +127,8 @@ export function CreateMomentForm() {
       }}
     >
       <FieldGroup>
-        <form.Field
-          name="threadId"
-          children={(field) => {
+        <form.Field name="threadId">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -145,11 +147,10 @@ export function CreateMomentForm() {
               </Field>
             );
           }}
-        />
+        </form.Field>
 
-        <form.Field
-          name="occurredAt"
-          children={(field) => {
+        <form.Field name="occurredAt">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -168,11 +169,10 @@ export function CreateMomentForm() {
               </Field>
             );
           }}
-        />
+        </form.Field>
 
-        <form.Field
-          name="note"
-          children={(field) => {
+        <form.Field name="note">
+          {(field) => {
             noteChangeRef.current = field.handleChange;
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
@@ -220,11 +220,10 @@ export function CreateMomentForm() {
               </Field>
             );
           }}
-        />
+        </form.Field>
 
-        <form.Field
-          name="colorHex"
-          children={(field) => (
+        <form.Field name="colorHex">
+          {(field) => (
             <Field>
               <FieldLabel>Color</FieldLabel>
               <ColorSwatchPicker
@@ -233,11 +232,10 @@ export function CreateMomentForm() {
               />
             </Field>
           )}
-        />
+        </form.Field>
 
-        <form.Field
-          name="images"
-          children={(field) => (
+        <form.Field name="images">
+          {(field) => (
             <Field>
               <FieldLabel>Images</FieldLabel>
               <div className="flex flex-col gap-2">
@@ -280,7 +278,7 @@ export function CreateMomentForm() {
               </div>
             </Field>
           )}
-        />
+        </form.Field>
 
         {submitError && (
           <Alert variant="destructive">
@@ -291,7 +289,8 @@ export function CreateMomentForm() {
         <Field orientation="horizontal" className="justify-end">
           <form.Subscribe
             selector={(state) => [state.isDefaultValue, state.isSubmitting]}
-            children={([isDefaultValue, isSubmitting]) => (
+          >
+            {([isDefaultValue, isSubmitting]) => (
               <Button
                 type="submit"
                 form="create-moment-form"
@@ -300,7 +299,7 @@ export function CreateMomentForm() {
                 Create
               </Button>
             )}
-          />
+          </form.Subscribe>
         </Field>
       </FieldGroup>
     </form>

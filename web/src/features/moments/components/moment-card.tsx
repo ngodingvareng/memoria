@@ -200,8 +200,12 @@ export function MomentCard({
     try {
       await leaveMention.mutateAsync({ id });
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: getGetMentionsQueryKey() }),
-        queryClient.invalidateQueries({ queryKey: getGetMomentsQueryKey() }),
+        queryClient.invalidateQueries({
+          queryKey: getGetMentionsQueryKey(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getGetMomentsQueryKey(),
+        }),
       ]);
       // Leaving removes this viewer's access — if they were looking at
       // its detail page, that page is no longer reachable for them.

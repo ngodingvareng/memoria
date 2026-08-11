@@ -96,10 +96,13 @@ export function WelcomeForm() {
               });
               return available
                 ? undefined
-                : { message: 'That username is already taken.' };
+                : {
+                    message: 'That username is already taken.',
+                  };
             },
           }}
-          children={(field) => {
+        >
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             const isChecking = field.state.meta.isValidating;
@@ -141,7 +144,7 @@ export function WelcomeForm() {
               </Field>
             );
           }}
-        />
+        </form.Field>
 
         {submitError && (
           <Alert variant="destructive">
@@ -157,12 +160,8 @@ export function WelcomeForm() {
               state.isFieldsValid,
               state.values.username,
             ]}
-            children={([
-              isSubmitting,
-              isValidating,
-              isFieldsValid,
-              username,
-            ]) => (
+          >
+            {([isSubmitting, isValidating, isFieldsValid, username]) => (
               <Button
                 type="submit"
                 form="welcome-form"
@@ -176,7 +175,7 @@ export function WelcomeForm() {
                 Use this username
               </Button>
             )}
-          />
+          </form.Subscribe>
         </Field>
       </FieldGroup>
     </form>

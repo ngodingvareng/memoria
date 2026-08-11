@@ -110,7 +110,12 @@ export default function AppSidebar({
                       <SidebarMenuButton
                         isActive={pathname === `/c/${circle.id}`}
                         render={
-                          <Link to="/c/$id" params={{ id: circle.id! }} />
+                          <Link
+                            to="/c/$id"
+                            params={{
+                              id: circle.id!,
+                            }}
+                          />
                         }
                       >
                         <CircleProfileImage circle={circle} size="sm" />
@@ -127,7 +132,9 @@ export default function AppSidebar({
             <SidebarGroupLabel>Recent Threads</SidebarGroupLabel>
             <SidebarMenu>
               {isThreadsPending
-                ? Array.from({ length: RECENT_THREADS_LIMIT }).map((_, i) => (
+                ? Array.from({
+                    length: RECENT_THREADS_LIMIT,
+                  }).map((_, i) => (
                     <SidebarMenuItem key={i}>
                       <Skeleton className="h-8 w-full" />
                     </SidebarMenuItem>
@@ -141,7 +148,12 @@ export default function AppSidebar({
                         className="min-w-0 flex-1"
                         isActive={pathname === `/thread/${thread.id}`}
                         render={
-                          <Link to="/thread/$id" params={{ id: thread.id! }} />
+                          <Link
+                            to="/thread/$id"
+                            params={{
+                              id: thread.id!,
+                            }}
+                          />
                         }
                       >
                         <span className="min-w-0 truncate">{thread.name}</span>

@@ -40,9 +40,15 @@ export function EditThreadHero({
     setError(null);
     try {
       if (heroImage?.id) {
-        await deleteImage.mutateAsync({ id: threadId, imageId: heroImage.id });
+        await deleteImage.mutateAsync({
+          id: threadId,
+          imageId: heroImage.id,
+        });
       }
-      await uploadImage.mutateAsync({ id: threadId, data: { image: file } });
+      await uploadImage.mutateAsync({
+        id: threadId,
+        data: { image: file },
+      });
       await queryClient.invalidateQueries({
         queryKey: getGetThreadsIdImagesQueryKey(threadId),
       });

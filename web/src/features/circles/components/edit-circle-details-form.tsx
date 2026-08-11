@@ -87,9 +87,8 @@ export function EditCircleDetailsForm({
       }}
     >
       <FieldGroup>
-        <form.Field
-          name="name"
-          children={(field) => {
+        <form.Field name="name">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -108,11 +107,10 @@ export function EditCircleDetailsForm({
               </Field>
             );
           }}
-        />
+        </form.Field>
 
-        <form.Field
-          name="description"
-          children={(field) => {
+        <form.Field name="description">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
@@ -132,25 +130,24 @@ export function EditCircleDetailsForm({
               </Field>
             );
           }}
-        />
+        </form.Field>
 
-        <form.Field
-          name="color_hex"
-          children={(field) => {
+        <form.Field name="color_hex">
+          {(field) => {
             const isInvalid =
               field.state.meta.isTouched && !field.state.meta.isValid;
             return (
               <Field data-invalid={isInvalid}>
                 <FieldLabel htmlFor={field.name}>Color</FieldLabel>
-                  <ColorSwatchPicker
-                    value={field.state.value}
-                    onChange={(hex) => field.handleChange(hex)}
-                  />
+                <ColorSwatchPicker
+                  value={field.state.value}
+                  onChange={(hex) => field.handleChange(hex)}
+                />
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>
             );
           }}
-        />
+        </form.Field>
 
         {submitError && (
           <Alert variant="destructive">
@@ -161,7 +158,8 @@ export function EditCircleDetailsForm({
         <Field orientation="horizontal" className="justify-end">
           <form.Subscribe
             selector={(state) => [state.isDefaultValue, state.isSubmitting]}
-            children={([isDefaultValue, isSubmitting]) => (
+          >
+            {([isDefaultValue, isSubmitting]) => (
               <Button
                 type="submit"
                 form="edit-circle-details-form"
@@ -170,7 +168,7 @@ export function EditCircleDetailsForm({
                 Save
               </Button>
             )}
-          />
+          </form.Subscribe>
         </Field>
       </FieldGroup>
     </form>

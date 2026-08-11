@@ -1252,7 +1252,9 @@ export const getPostUsersMeMutesMutationOptions = <
 }): UseMutationOptions<
   Awaited<ReturnType<typeof postUsersMeMutes>>,
   TError,
-  { data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest },
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest;
+  },
   TContext
 > => {
   const mutationKey = ['postUsersMeMutes'];
@@ -1307,7 +1309,9 @@ export const usePostUsersMeMutes = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof postUsersMeMutes>>,
   TError,
-  { data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest },
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoMuteUserRequest;
+  },
   TContext
 > => {
   return useMutation(getPostUsersMeMutesMutationOptions(options), queryClient);
@@ -1417,7 +1421,10 @@ export const putUsersMePrivacy = async (
     {
       ...options,
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoUpdatePrivacySettingsRequest
       ),
@@ -1521,7 +1528,10 @@ export const setUsername = async (
     {
       ...options,
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
       body: JSON.stringify(
         githubComNgodingvarengMemoriaInternalDeliveryRestDtoSetUsernameRequest
       ),

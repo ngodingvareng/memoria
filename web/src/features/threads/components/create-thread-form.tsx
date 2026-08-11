@@ -69,9 +69,8 @@ export function CreateThreadForm({ circleId }: CreateThreadFormProps = {}) {
         }}
       >
         <FieldGroup>
-          <form.Field
-            name="name"
-            children={(field) => {
+          <form.Field name="name">
+            {(field) => {
               const isInvalid =
                 field.state.meta.isTouched && !field.state.meta.isValid;
               return (
@@ -103,7 +102,7 @@ export function CreateThreadForm({ circleId }: CreateThreadFormProps = {}) {
                 </Field>
               );
             }}
-          />
+          </form.Field>
 
           {submitError && (
             <Alert variant="destructive">
@@ -114,7 +113,8 @@ export function CreateThreadForm({ circleId }: CreateThreadFormProps = {}) {
           <Field orientation="horizontal" className="justify-end">
             <form.Subscribe
               selector={(state) => [state.isDefaultValue, state.isSubmitting]}
-              children={([isDefaultValue, isSubmitting]) => (
+            >
+              {([isDefaultValue, isSubmitting]) => (
                 <Button
                   type="submit"
                   form="create-thread-form"
@@ -123,7 +123,7 @@ export function CreateThreadForm({ circleId }: CreateThreadFormProps = {}) {
                   Create
                 </Button>
               )}
-            />
+            </form.Subscribe>
           </Field>
         </FieldGroup>
       </form>

@@ -25,9 +25,8 @@ export function ToggleField({
   description,
 }: ToggleFieldProps) {
   return (
-    <form.Field
-      name={name}
-      children={(field: {
+    <form.Field name={name}>
+      {(field: {
         state: { value: boolean };
         handleChange: (value: boolean) => void;
         name: string;
@@ -43,6 +42,6 @@ export function ToggleField({
           />
         </Field>
       )}
-    />
+    </form.Field>
   );
 }

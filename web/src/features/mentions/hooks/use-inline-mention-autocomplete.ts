@@ -52,7 +52,11 @@ export function useInlineMentionAutocomplete({
     }
 
     const query = match[1];
-    setActiveToken({ start: cursor - query.length - 1, end: cursor, query });
+    setActiveToken({
+      start: cursor - query.length - 1,
+      end: cursor,
+      query,
+    });
     setActiveIndex(0);
   }, [textareaRef]);
 
