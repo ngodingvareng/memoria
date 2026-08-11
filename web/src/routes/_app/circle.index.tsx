@@ -53,17 +53,15 @@ function RouteComponent() {
                 <Item
                   key={circle.id}
                   variant="outline"
-                  render={
-                    <Link to="/c/$id" params={{ id: circle.id! }}>
-                      <ItemMedia variant="image">
-                        <CircleProfileImage circle={circle} size="xl" />
-                      </ItemMedia>
-                      <ItemContent className="flex gap-4">
-                        <ItemTitle className="text-lg">{circle.name}</ItemTitle>
-                      </ItemContent>
-                    </Link>
-                  }
-                />
+                  render={<Link to="/c/$id" params={{ id: circle.id! }} />}
+                >
+                  <ItemMedia variant="image">
+                    <CircleProfileImage circle={circle} size="xl" />
+                  </ItemMedia>
+                  <ItemContent className="flex gap-4">
+                    <ItemTitle className="text-lg">{circle.name}</ItemTitle>
+                  </ItemContent>
+                </Item>
               ))}
             </ItemGroup>
           )}

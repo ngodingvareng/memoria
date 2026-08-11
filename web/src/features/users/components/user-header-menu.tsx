@@ -91,19 +91,15 @@ export function UserHeaderMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Avatar size="lg">
-            <AvatarImage
-              src={userQuery.data?.image_path ?? undefined}
-              alt={session?.user.name}
-            />
-            <AvatarFallback>
-              {session?.user.name.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        }
-      />
+      <DropdownMenuTrigger render={<Avatar size="lg" />}>
+        <AvatarImage
+          src={userQuery.data?.image_path ?? undefined}
+          alt={session?.user.name}
+        />
+        <AvatarFallback>
+          {session?.user.name.slice(0, 2).toUpperCase()}
+        </AvatarFallback>
+      </DropdownMenuTrigger>
       <DropdownMenuContent className="w-72">
         <DropdownMenuGroup>
           <div className="flex items-center gap-3 px-3 py-1">

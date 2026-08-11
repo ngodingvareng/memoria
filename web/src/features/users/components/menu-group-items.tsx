@@ -58,14 +58,9 @@ export function MenuGroupItems({
             </DropdownMenuPortal>
           </DropdownMenuSub>
         ) : (
-          <DropdownMenuItem
-            key={item.title}
-            render={
-              <Link to={item.url!}>
-                <HugeiconsIcon icon={item.icon} strokeWidth={2} /> {item.title}
-              </Link>
-            }
-          />
+          <DropdownMenuItem key={item.title} render={<Link to={item.url!} />}>
+            <HugeiconsIcon icon={item.icon} strokeWidth={2} /> {item.title}
+          </DropdownMenuItem>
         )
       )}
     </>

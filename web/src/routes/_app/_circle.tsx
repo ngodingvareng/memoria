@@ -62,36 +62,28 @@ function RouteComponent() {
           <TabsList variant="line">
             <TabsTrigger
               value="overview"
-              render={
-                <Link to="/c/$id" params={{ id }}>
-                  Overview
-                </Link>
-              }
-            />
+              render={<Link to="/c/$id" params={{ id }} />}
+            >
+              Overview
+            </TabsTrigger>
             <TabsTrigger
               value="threads"
-              render={
-                <Link to="/c/$id/thread" params={{ id }}>
-                  Threads
-                </Link>
-              }
-            />
+              render={<Link to="/c/$id/thread" params={{ id }} />}
+            >
+              Threads
+            </TabsTrigger>
             <TabsTrigger
               value="members"
-              render={
-                <Link to="/c/$id/member" params={{ id }}>
-                  Members
-                </Link>
-              }
-            />
+              render={<Link to="/c/$id/member" params={{ id }} />}
+            >
+              Members
+            </TabsTrigger>
             <TabsTrigger
               value="settings"
-              render={
-                <Link to="/c/$id/settings" params={{ id }}>
-                  Settings
-                </Link>
-              }
-            />
+              render={<Link to="/c/$id/settings" params={{ id }} />}
+            >
+              Settings
+            </TabsTrigger>
           </TabsList>
         </Tabs>
         <Outlet />

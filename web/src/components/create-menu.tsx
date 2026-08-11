@@ -30,13 +30,9 @@ const data = {
 export function CreateMenu() {
   return (
     <ButtonGroup>
-      <Button
-        render={
-          <Link to="/moment/new">
-            <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} /> Capture
-          </Link>
-        }
-      />
+      <Button render={<Link to="/moment/new" />}>
+        <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} /> Capture
+      </Button>
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button />}>
           <HugeiconsIcon icon={MoreVerticalSquare01Icon} strokeWidth={2} />
@@ -44,10 +40,9 @@ export function CreateMenu() {
         <DropdownMenuContent>
           <DropdownMenuGroup>
             {data.menuItems.map((item, index) => (
-              <DropdownMenuItem
-                key={index}
-                render={<Link to={item.link}>{item.label}</Link>}
-              />
+              <DropdownMenuItem key={index} render={<Link to={item.link} />}>
+                {item.label}
+              </DropdownMenuItem>
             ))}
           </DropdownMenuGroup>
         </DropdownMenuContent>
