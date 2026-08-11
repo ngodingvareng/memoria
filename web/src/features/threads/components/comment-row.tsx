@@ -20,6 +20,7 @@ import {
   usePutMomentsIdCommentsCommentId,
 } from '@/lib/api/generated/comments/comments';
 import { useGetUserByID } from '@/lib/api/generated/users/users';
+import dayjs from '@/lib/dayjs';
 import { queryClient } from '@/lib/query-client';
 import { useSession } from '@/lib/session';
 import {
@@ -28,7 +29,6 @@ import {
   MoreVerticalIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 
 interface CommentRowProps {
@@ -105,7 +105,7 @@ export function CommentRow({
           )}
           {comment.created_at && (
             <span className="text-muted-foreground text-xs">
-              {formatDistanceToNow(comment.created_at, { addSuffix: true })}
+              {dayjs(comment.created_at).fromNow()}
             </span>
           )}
           {isOwn && (

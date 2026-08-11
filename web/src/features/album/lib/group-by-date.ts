@@ -1,5 +1,5 @@
-import { format, isSameDay, parseISO } from 'date-fns';
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoAlbumImageResponse as AlbumImage } from '@/lib/api/generated/models';
+import dayjs from '@/lib/dayjs';
 
 export interface AlbumDateBucket {
   date: string;
@@ -15,18 +15,14 @@ export function groupAlbumImagesByDate(
   const buckets: AlbumDateBucket[] = [];
   for (const image of images) {
     if (!image.occurred_at) continue;
-    const occurredAt = parseISO(image.occurred_at);
+    const occurredAt = dayjs(image.occurred_at);
     const last = buckets[buckets.length - 1];
     const lastOccurredAt = last?.images[0]?.occurred_at;
-    if (
-      last &&
-      lastOccurredAt &&
-      isSameDay(parseISO(lastOccurredAt), occurredAt)
-    ) {
+    if (last && lastOccurredAt && occurredAt.isSame(lastOccurredAt, 'day')) {
       last.images.push(image);
     } else {
       buckets.push({
-        date: format(occurredAt, 'MMMM d, yyyy'),
+        date: occurredAt.format('MMMM D, YYYY'),
         images: [image],
       });
     }

@@ -1,5 +1,5 @@
+import dayjs from '@/lib/dayjs';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
 import type { SearchSuggestionItem } from '../hooks/use-search-autocomplete';
 
 interface SearchSuggestionRowProps {
@@ -43,9 +43,7 @@ export function SearchSuggestionRow({
           </p>
           {item.data.occurred_at && (
             <p className="text-muted-foreground truncate text-xs">
-              {formatDistanceToNow(item.data.occurred_at, {
-                addSuffix: true,
-              })}
+              {dayjs(item.data.occurred_at).fromNow()}
             </p>
           )}
         </div>

@@ -36,6 +36,7 @@ import {
   getGetMomentsQueryKey,
   useGetMomentsIdImages,
 } from '@/lib/api/generated/moments/moments';
+import dayjs from '@/lib/dayjs';
 import { queryClient } from '@/lib/query-client';
 import {
   ArrowRight01Icon,
@@ -48,7 +49,6 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
-import { formatDistanceToNow } from 'date-fns';
 import React from 'react';
 import { ColorSwatchPicker } from './color-swatch-picker';
 import { MomentCardCover } from './moment-card-cover';
@@ -113,7 +113,7 @@ export function MomentCard({
   const images = (imagesQuery.data ?? [])
     .map((image) => image.url)
     .filter((url): url is string => !!url);
-  const coverImage = images[images.length - 1];
+  const coverImage = images[0];
 
   // Comment/Reaction only make sense once this Moment actually has an
   // audience: it lives in a Circle-owned thread, or it names a mention
@@ -239,7 +239,7 @@ export function MomentCard({
             capturedAt={capturedAt}
             coverImage={coverImage}
             onOpen={() => {
-              setLightboxIndex(images.length - 1);
+              setLightboxIndex(0);
               setIsLightboxOpen(true);
             }}
           />
@@ -258,7 +258,7 @@ export function MomentCard({
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-base">@{user.username}</p>
+                    <p className="text-base font-medium">@{user.username}</p>
                   </div>
                 </Link>
                 <HugeiconsIcon
@@ -271,7 +271,7 @@ export function MomentCard({
                     <Link
                       to="/thread/$id"
                       params={{ id: thread.id }}
-                      className="block truncate"
+                      className="block truncate text-base"
                     >
                       {thread.name}
                     </Link>
@@ -281,9 +281,7 @@ export function MomentCard({
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   <p className="text-muted-foreground font-medium">
-                    {formatDistanceToNow(createdAt, {
-                      addSuffix: true,
-                    })}
+                    {dayjs(createdAt).fromNow()}
                   </p>
                 </div>
               </ItemHeader>

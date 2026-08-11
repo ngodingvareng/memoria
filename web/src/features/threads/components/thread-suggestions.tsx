@@ -1,6 +1,6 @@
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse } from '@/lib/api/generated/models';
+import dayjs from '@/lib/dayjs';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
 import { ThreadCircleBadge } from './thread-circle-badge';
 
 type ThreadOption =
@@ -54,8 +54,7 @@ export function ThreadSuggestions({
             <p className="truncate text-sm font-medium">{thread.name}</p>
             {thread.updated_at && (
               <p className="text-muted-foreground truncate text-xs">
-                Updated{' '}
-                {formatDistanceToNow(thread.updated_at, { addSuffix: true })}
+                Updated {dayjs(thread.updated_at).fromNow()}
               </p>
             )}
           </div>

@@ -1,8 +1,8 @@
 import { Item, ItemContent, ItemTitle } from '@/components/ui/item';
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse } from '@/lib/api/generated/models';
 import { useGetThreadsIdImages } from '@/lib/api/generated/threads/threads';
+import dayjs from '@/lib/dayjs';
 import { Link } from '@tanstack/react-router';
-import { formatDistanceToNow } from 'date-fns';
 import { ThreadCircleBadge } from './thread-circle-badge';
 import { ThreadHero } from './thread-hero';
 
@@ -33,9 +33,7 @@ export function ThreadListItem({ thread }: ThreadListItemProps) {
           <div className="flex items-center gap-2">
             {thread.updated_at && (
               <p className="text-muted-foreground">
-                {formatDistanceToNow(thread.updated_at, {
-                  addSuffix: true,
-                })}
+                {dayjs(thread.updated_at).fromNow()}
               </p>
             )}
 
