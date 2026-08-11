@@ -4,7 +4,6 @@ export { MomentDetail } from './components/moment-detail';
 export { MomentFeedItem } from './components/moment-feed-item';
 export { MomentFeedList } from './components/moment-feed-list';
 export { MomentHeatmap } from './components/moment-heatmap';
-export { MomentImagesDialog } from './components/moment-images-dialog';
 export { MomentInput } from './components/moment-input';
 export type { MomentDraft } from './components/moment-input';
 export { toDatetimeLocalValue, toRFC3339WithOffset } from './lib/occurred-at';

@@ -20,6 +20,7 @@ import {
   ItemFooter,
   ItemHeader,
 } from '@/components/ui/item';
+import { Lightbox } from '@/components/ui/lightbox';
 import { renderTextWithMentions } from '@/features/mentions';
 import {
   CommentAuthorsAvatarGroup,
@@ -51,7 +52,6 @@ import { formatDistanceToNow } from 'date-fns';
 import React from 'react';
 import { ColorSwatchPicker } from './color-swatch-picker';
 import { MomentCardCover } from './moment-card-cover';
-import { MomentImagesDialog } from './moment-images-dialog';
 import { MomentNoteEditor } from './moment-note-editor';
 import { useMomentAudience } from '../lib/use-moment-audience';
 
@@ -99,7 +99,8 @@ export function MomentCard({
     select: (state) => state.location.pathname,
   });
   const navigate = useNavigate();
-  const [isImagesDialogOpen, setIsImagesDialogOpen] = React.useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = React.useState(false);
+  const [lightboxIndex, setLightboxIndex] = React.useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isEditingNote, setIsEditingNote] = React.useState(false);
   const [isLeavingMention, setIsLeavingMention] = React.useState(false);
@@ -237,11 +238,14 @@ export function MomentCard({
             colorHex={colorHex}
             capturedAt={capturedAt}
             coverImage={coverImage}
-            onOpen={() => setIsImagesDialogOpen(true)}
+            onOpen={() => {
+              setLightboxIndex(images.length - 1);
+              setIsLightboxOpen(true);
+            }}
           />
           <Item className="grow pt-1 pb-0">
             {showHeader && (
-              <ItemHeader className="-ml-1">
+              <ItemHeader className="-ml-1 gap-1">
                 <Link
                   to="/@{$username}"
                   params={{ username: user.username }}
@@ -254,19 +258,20 @@ export function MomentCard({
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-base">{user.username}</p>
+                    <p className="text-base">@{user.username}</p>
                   </div>
                 </Link>
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
-                  className="text-muted-foreground size-4 shrink-0 font-bold"
+                  className="text-muted-foreground size-5 shrink-0 font-bold"
+                  strokeWidth={2}
                 />
                 <div className="min-w-0 flex-1 font-medium">
                   {thread.id ? (
                     <Link
                       to="/thread/$id"
                       params={{ id: thread.id }}
-                      className="block truncate hover:underline"
+                      className="block truncate"
                     >
                       {thread.name}
                     </Link>
@@ -323,10 +328,13 @@ export function MomentCard({
         </div>
       </ItemContent>
       {images.length > 0 && (
-        <MomentImagesDialog
-          open={isImagesDialogOpen}
-          onOpenChange={setIsImagesDialogOpen}
-          images={images}
+        <Lightbox
+          images={images.map((src) => ({ src }))}
+          open={isLightboxOpen}
+          onOpenChange={setIsLightboxOpen}
+          index={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          loop
         />
       )}
       <ConfirmDestructiveDialog
