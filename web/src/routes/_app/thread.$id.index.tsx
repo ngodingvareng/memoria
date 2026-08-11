@@ -1,5 +1,4 @@
 import { DateTimeDialog } from '@/components/dialogs/datetime-dialog';
-import { ShareDialog } from '@/components/dialogs/share-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Wrapper from '@/components/wrapper';
 import {
@@ -45,7 +44,6 @@ function RouteComponent() {
   const updateMoment = usePutMomentsId();
   const deleteMoment = useDeleteMomentsId();
 
-  const [openShareDialog, setOpenShareDialog] = React.useState(false);
   const [openTimeDialog, setOpenTimeDialog] = React.useState(false);
   const [isReadMode, setIsReadMode] = React.useState(false);
   const [captureError, setCaptureError] = React.useState<string | null>(null);
@@ -173,7 +171,6 @@ function RouteComponent() {
             circleId={threadQuery.data?.circle_id}
             isReadMode={isReadMode}
             onToggleMode={() => setIsReadMode(!isReadMode)}
-            onShare={() => setOpenShareDialog(true)}
           />
         </Wrapper>
 
@@ -223,8 +220,6 @@ function RouteComponent() {
         onOpenChange={setOpenTimeDialog}
         onSave={() => setOpenTimeDialog(false)}
       />
-
-      <ShareDialog open={openShareDialog} onOpenChange={setOpenShareDialog} />
     </>
   );
 }
