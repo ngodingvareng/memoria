@@ -119,7 +119,7 @@ func TestThreadUsecase_CreateThread_DefaultColorHex(t *testing.T) {
 
 	assert.NoError(t, err)
 	if assert.NotNil(t, captured.ColorHex) {
-		assert.Equal(t, "#374151", *captured.ColorHex)
+		assert.Equal(t, "#6b7280", *captured.ColorHex)
 	}
 }
 
@@ -314,7 +314,7 @@ func TestThreadUsecase_UpdateThread_DefaultsAppliedLikeCreate(t *testing.T) {
 
 	assert.NoError(t, err)
 	if assert.NotNil(t, captured.ColorHex) {
-		assert.Equal(t, "#374151", *captured.ColorHex)
+		assert.Equal(t, "#6b7280", *captured.ColorHex)
 	}
 }
 
