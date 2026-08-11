@@ -94,3 +94,31 @@ When props extend another component's props with additions (e.g. wrapping
 'children'> { ... }` rather than a `type` intersection (`Omit<...> &
 {...}`) — `interface extends` works for any base that resolves to an
 object type.
+
+## 4. `render` prop composition: children go on the outer component
+
+When composing a Base UI (`@base-ui/react`) primitive via its `render` prop
+(e.g. rendering a `Button` as a `Link`, or a `DropdownMenuTrigger` as a
+`Button`), put the visible children on the **outer** component and leave the
+`render` element childless:
+
+```tsx
+<Button render={<Link to="/" />}>Link Text</Button>
+```
+
+not:
+
+```tsx
+<Button render={<Link to="/">Link Text</Link>} />
+```
+
+Both compile to the same DOM for a plain `Button`, so this isn't a
+performance rule — it's a correctness rule. Base UI merges props with
+`mergeProps(ownProps, render.props)` (`useRenderElement.mjs`), where
+`render.props` wins on any key present in both, including `children`. Some
+Base UI primitives (e.g. ones with a built-in indicator/icon) inject their
+own `children` into `ownProps`; if the `render` element also carries
+`children`, it silently overwrites whatever the primitive tried to render —
+no error, just missing content. Keeping children on the outer component
+avoids this entirely and stays consistent across every primitive, not just
+the ones that happen not to synthesize children today.
