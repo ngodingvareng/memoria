@@ -22,7 +22,7 @@ import { useTheme } from '@/components/theme-provider';
 import { useSession, setSession } from '@/lib/session';
 import { useLogout } from '@/lib/api/generated/auth/auth';
 import { useGetUserByID } from '@/lib/api/generated/users/users';
-import { MenuGroupItems, type MenuGroup } from './menu-group-items';
+import { MenuGroupItems, type MenuGroup } from '@/components/menu-group-items';
 
 export function UserHeaderMenu() {
   const { theme, setTheme } = useTheme();

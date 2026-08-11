@@ -17,7 +17,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
 import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import {
   getGetNotificationsPreferencesQueryKey,
@@ -26,6 +25,7 @@ import {
 } from '@/lib/api/generated/notifications/notifications';
 import { queryClient } from '@/lib/query-client';
 import { useForm } from '@tanstack/react-form';
+import { ToggleField } from './toggle-field';
 
 // HH:MM (native <input type="time">'s format) <-> HH:MM:SS (the API's
 // wall-clock format, see NotificationPreferencesResponse.quiet_hours_*).
@@ -266,41 +266,5 @@ export function NotificationPreferencesForm() {
         </Field>
       </FieldGroup>
     </form>
-  );
-}
-
-interface ToggleFieldProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  form: any;
-  name: string;
-  label: string;
-  description: string;
-}
-
-// Every preference below is a plain boolean toggle with the same
-// label+description+Switch layout — a small local helper avoids
-// repeating that layout eleven times without over-abstracting the
-// per-field TanStack Form binding itself.
-function ToggleField({ form, name, label, description }: ToggleFieldProps) {
-  return (
-    <form.Field
-      name={name}
-      children={(field: {
-        state: { value: boolean };
-        handleChange: (value: boolean) => void;
-        name: string;
-      }) => (
-        <Field orientation="horizontal">
-          <FieldContent>
-            <FieldTitle>{label}</FieldTitle>
-            <FieldDescription>{description}</FieldDescription>
-          </FieldContent>
-          <Switch
-            checked={field.state.value}
-            onCheckedChange={(checked) => field.handleChange(checked)}
-          />
-        </Field>
-      )}
-    />
   );
 }
