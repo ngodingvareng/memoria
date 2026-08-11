@@ -84,6 +84,8 @@ func (h *UserHandler) SetUsername(c fiber.Ctx) error {
 		return err
 	}
 
+	slog.InfoContext(c, "username set", "user_id", userID)
+
 	return c.JSON(dto.WebResponse[dto.UserResponse]{
 		Code:    fiber.StatusOK,
 		Message: "username set",
@@ -173,6 +175,8 @@ func (h *UserHandler) MarkUserKnown(c fiber.Ctx) error {
 	if err := h.usecase.MarkUserKnown(c, userID, username); err != nil {
 		return err
 	}
+
+	slog.InfoContext(c, "user marked known", "user_id", userID)
 
 	return c.SendStatus(fiber.StatusNoContent)
 }

@@ -56,12 +56,10 @@ export function ThreadHeader({
           </Button>
           <Button
             variant="outline"
-            render={
-              <Link to="/thread/$id/manage" params={{ id: threadId }}>
-                <HugeiconsIcon icon={Setting06Icon} /> Manage
-              </Link>
-            }
-          />
+            render={<Link to="/thread/$id/manage" params={{ id: threadId }} />}
+          >
+            <HugeiconsIcon icon={Setting06Icon} /> Manage
+          </Button>
         </ButtonGroup>
       </div>
     </div>

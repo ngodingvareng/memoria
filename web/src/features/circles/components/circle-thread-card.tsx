@@ -10,19 +10,17 @@ export function CircleThreadCard({ thread }: CircleThreadCardProps) {
   return (
     <Item
       variant="outline"
-      render={
-        <Link to="/thread/$id" params={{ id: thread.id! }}>
-          <ItemHeader>
-            <div
-              className="aspect-video w-full rounded-sm"
-              style={{ backgroundColor: thread.color_hex ?? '#374151' }}
-            />
-          </ItemHeader>
-          <ItemContent>
-            <ItemTitle>{thread.name}</ItemTitle>
-          </ItemContent>
-        </Link>
-      }
-    />
+      render={<Link to="/thread/$id" params={{ id: thread.id! }} />}
+    >
+      <ItemHeader>
+        <div
+          className="aspect-video w-full rounded-sm"
+          style={{ backgroundColor: thread.color_hex ?? '#374151' }}
+        />
+      </ItemHeader>
+      <ItemContent>
+        <ItemTitle>{thread.name}</ItemTitle>
+      </ItemContent>
+    </Item>
   );
 }

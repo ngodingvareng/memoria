@@ -53,6 +53,9 @@ func (r *refreshTokenRepository) GetByTokenHash(ctx context.Context, tokenHash s
 	return toEntityRefreshToken(row), nil
 }
 
+// Revoke implements [usecase.RefreshTokenRepository]. Silent no-op if id
+// doesn't match any row (:exec query, no rows-affected check) — callers
+// needing a real not-found must GetByTokenHash first.
 func (r *refreshTokenRepository) Revoke(ctx context.Context, id uuid.UUID) error {
 	if err := r.q.RevokeRefreshToken(ctx, id); err != nil {
 		return fmt.Errorf("revoke refresh token: %w", err)
@@ -74,6 +77,9 @@ func (r *refreshTokenRepository) Rotate(ctx context.Context, id, replacedByID uu
 	return nil
 }
 
+// RevokeFamily implements [usecase.RefreshTokenRepository]. Silent no-op
+// if familyID matches zero (already-revoked or nonexistent) rows (:exec
+// query, no rows-affected check).
 func (r *refreshTokenRepository) RevokeFamily(ctx context.Context, familyID uuid.UUID) error {
 	if err := r.q.RevokeRefreshTokenFamily(ctx, familyID); err != nil {
 		return fmt.Errorf("revoke refresh token family: %w", err)
@@ -81,6 +87,9 @@ func (r *refreshTokenRepository) RevokeFamily(ctx context.Context, familyID uuid
 	return nil
 }
 
+// RevokeAllByUserID implements [usecase.RefreshTokenRepository]. Silent
+// no-op if userID has zero active (unrevoked) tokens (:exec query, no
+// rows-affected check).
 func (r *refreshTokenRepository) RevokeAllByUserID(ctx context.Context, userID uuid.UUID) error {
 	if err := r.q.RevokeAllRefreshTokensByUserID(ctx, userID); err != nil {
 		return fmt.Errorf("revoke all refresh tokens: %w", err)

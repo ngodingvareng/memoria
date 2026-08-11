@@ -67,6 +67,8 @@ func (r *userAccountRepository) IncrementFailedLoginAttempts(ctx context.Context
 }
 
 // LockCredentialAccount implements [usecase.UserAccountRepository].
+// Silent no-op if userID has no credential account (:exec query, no
+// rows-affected check).
 func (r *userAccountRepository) LockCredentialAccount(ctx context.Context, userID uuid.UUID, until time.Time) error {
 	if err := r.q.LockCredentialUserAccount(ctx, db.LockCredentialUserAccountParams{
 		UserID:      userID,
@@ -78,6 +80,8 @@ func (r *userAccountRepository) LockCredentialAccount(ctx context.Context, userI
 }
 
 // ResetFailedLoginAttempts implements [usecase.UserAccountRepository].
+// Silent no-op if userID has no credential account (:exec query, no
+// rows-affected check).
 func (r *userAccountRepository) ResetFailedLoginAttempts(ctx context.Context, userID uuid.UUID) error {
 	if err := r.q.ResetFailedLoginAttempts(ctx, userID); err != nil {
 		return fmt.Errorf("reset failed login attempts: %w", err)
@@ -85,7 +89,9 @@ func (r *userAccountRepository) ResetFailedLoginAttempts(ctx context.Context, us
 	return nil
 }
 
-// UpdatePasswordHash implements [usecase.UserAccountRepository].
+// UpdatePasswordHash implements [usecase.UserAccountRepository]. Silent
+// no-op if userID has no credential account (:exec query, no
+// rows-affected check).
 func (r *userAccountRepository) UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error {
 	if err := r.q.UpdateUserAccountPasswordHash(ctx, db.UpdateUserAccountPasswordHashParams{
 		UserID:       userID,

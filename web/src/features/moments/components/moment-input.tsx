@@ -1,3 +1,4 @@
+import { ImagePreviewList } from '@/components/image-preview-list';
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
 import {
@@ -16,7 +17,6 @@ import { ArrowUp02Icon, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useRef, useState } from 'react';
 import { ColorSwatchPicker } from './color-swatch-picker';
-import { ImagePreviewList } from './image-preview-list';
 
 export interface MomentDraft {
   note: string;

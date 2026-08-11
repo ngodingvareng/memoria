@@ -49,9 +49,9 @@ export function UserSettingsSidebar({
             <SidebarMenu>
               {data.user.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    render={<Link to={item.url}>{item.title}</Link>}
-                  />
+                  <SidebarMenuButton render={<Link to={item.url} />}>
+                    {item.title}
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

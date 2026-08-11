@@ -238,6 +238,7 @@ func (h *AuthHandler) Logout(c fiber.Ctx) error {
 		if err := h.usecase.Logout(c, token); err != nil {
 			return err
 		}
+		slog.InfoContext(c, "user logged out")
 	}
 	h.clearRefreshCookie(c)
 	return c.SendStatus(fiber.StatusNoContent)
@@ -266,6 +267,8 @@ func (h *AuthHandler) ForgotPassword(c fiber.Ctx) error {
 	if err := h.usecase.ForgotPassword(c, req.Email); err != nil {
 		return err
 	}
+
+	slog.InfoContext(c, "password reset requested", "email", req.Email)
 
 	return c.JSON(dto.WebResponse[any]{
 		Code:    fiber.StatusOK,

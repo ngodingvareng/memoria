@@ -1,3 +1,4 @@
+import { ImagePreviewList } from '@/components/image-preview-list';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,7 +37,6 @@ import { useNavigate } from '@tanstack/react-router';
 import { useRef, useState } from 'react';
 import * as z from 'zod';
 import { ColorSwatchPicker } from './color-swatch-picker';
-import { ImagePreviewList } from './image-preview-list';
 import { toDatetimeLocalValue, toRFC3339WithOffset } from '../lib/occurred-at';
 
 const formSchema = z.object({

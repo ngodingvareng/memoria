@@ -85,13 +85,11 @@ export default function AppSidebar({
                   size="lg"
                   className="text-lg font-medium [&_svg]:size-6"
                   isActive={pathname === item.url}
-                  render={
-                    <Link to={item.url}>
-                      <HugeiconsIcon icon={item.icon} strokeWidth={2} />
-                      {item.title}
-                    </Link>
-                  }
-                />
+                  render={<Link to={item.url} />}
+                >
+                  <HugeiconsIcon icon={item.icon} strokeWidth={2} />
+                  {item.title}
+                </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -112,14 +110,12 @@ export default function AppSidebar({
                       <SidebarMenuButton
                         isActive={pathname === `/c/${circle.id}`}
                         render={
-                          <Link to="/c/$id" params={{ id: circle.id! }}>
-                            <CircleProfileImage circle={circle} size="sm" />
-                            <span className="min-w-0 truncate">
-                              {circle.name}
-                            </span>
-                          </Link>
+                          <Link to="/c/$id" params={{ id: circle.id! }} />
                         }
-                      />
+                      >
+                        <CircleProfileImage circle={circle} size="sm" />
+                        <span className="min-w-0 truncate">{circle.name}</span>
+                      </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
             </SidebarMenu>
@@ -145,13 +141,11 @@ export default function AppSidebar({
                         className="min-w-0 flex-1"
                         isActive={pathname === `/thread/${thread.id}`}
                         render={
-                          <Link to="/thread/$id" params={{ id: thread.id! }}>
-                            <span className="min-w-0 truncate">
-                              {thread.name}
-                            </span>
-                          </Link>
+                          <Link to="/thread/$id" params={{ id: thread.id! }} />
                         }
-                      />
+                      >
+                        <span className="min-w-0 truncate">{thread.name}</span>
+                      </SidebarMenuButton>
                       {thread.circle_id && (
                         <ThreadCircleBadge
                           circleId={thread.circle_id}

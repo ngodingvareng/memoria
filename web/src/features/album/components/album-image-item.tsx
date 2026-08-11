@@ -5,10 +5,6 @@ interface AlbumImageItemProps {
   onClick?: () => void;
 }
 
-// A plain <img>, not CambioImage: CambioImage's trigger is itself a
-// button with its own built-in zoom popup, which would fight (and win
-// against, being the innermost element) a wrapping onClick meant to
-// open the cross-image Lightbox instead.
 export function AlbumImageItem({ image, onClick }: AlbumImageItemProps) {
   return (
     <button

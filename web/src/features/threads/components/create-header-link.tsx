@@ -6,14 +6,9 @@ import { Link } from '@tanstack/react-router';
 export function CreateHeaderLink() {
   return (
     <div className="flex gap-2">
-      <Button
-        size="lg"
-        render={
-          <Link to="/thread/new">
-            <HugeiconsIcon icon={PlusSignIcon} /> New
-          </Link>
-        }
-      />
+      <Button size="lg" render={<Link to="/thread/new" />}>
+        <HugeiconsIcon icon={PlusSignIcon} /> New
+      </Button>
     </div>
   );
 }
