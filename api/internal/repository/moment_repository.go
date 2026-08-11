@@ -82,6 +82,14 @@ func (r *momentRepository) SoftDelete(ctx context.Context, id, userID uuid.UUID)
 	return nil
 }
 
+// SoftDeleteAllByUserID implements [usecase.MomentRepository].
+func (r *momentRepository) SoftDeleteAllByUserID(ctx context.Context, userID uuid.UUID) error {
+	if err := r.q.SoftDeleteMomentsByUserID(ctx, userID); err != nil {
+		return fmt.Errorf("soft delete moments by user id: %w", err)
+	}
+	return nil
+}
+
 // GetByID implements [usecase.MomentRepository] and
 // [usecase.MomentAccessChecker] — both interfaces declare this method
 // with an identical name and signature, so this single implementation

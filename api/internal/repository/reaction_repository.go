@@ -63,3 +63,11 @@ func (r *reactionRepository) ListForMoment(ctx context.Context, momentID, viewer
 	}
 	return toEntityReactions(rows), nil
 }
+
+// AnonymizeByUserID implements [usecase.ReactionRepository].
+func (r *reactionRepository) AnonymizeByUserID(ctx context.Context, userID uuid.UUID) error {
+	if err := r.q.AnonymizeReactionsByUserID(ctx, ptrToPgUUID(&userID)); err != nil {
+		return fmt.Errorf("anonymize reactions by user id: %w", err)
+	}
+	return nil
+}

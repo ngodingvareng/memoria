@@ -218,9 +218,10 @@ func setupTestApp(t *testing.T) *testApp {
 	authHandler := handler.NewAuthHandler(authUsecase, false)
 
 	userPrivacyRepo := repository.NewUserPrivacyRepository(pool)
+	accountDeletionUoW := repository.NewAccountDeletionUnitOfWork(pool)
 
-	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, userPrivacyRepo, userPrivacyRepo, storage)
-	userHandler := handler.NewUserHandler(userUsecase)
+	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, userPrivacyRepo, userPrivacyRepo, storage, accountDeletionUoW)
+	userHandler := handler.NewUserHandler(userUsecase, false)
 
 	circleRepo := repository.NewCircleRepository(pool)
 

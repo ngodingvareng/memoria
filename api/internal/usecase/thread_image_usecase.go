@@ -18,6 +18,11 @@ type ThreadImageRepository interface {
 	// an existing row) so the caller can remove the matching storage
 	// object.
 	Delete(ctx context.Context, threadID, imageID uuid.UUID) (*entity.ThreadImage, error)
+	// ListImagePathsByOwnerID is account deletion's storage-cleanup
+	// gather step — every image path belonging to a Thread ownerUserID
+	// owns, resolved before those Threads are soft-deleted (see
+	// UserUsecase.DeleteAccount).
+	ListImagePathsByOwnerID(ctx context.Context, ownerUserID uuid.UUID) ([]string, error)
 }
 
 // ThreadAccessChecker is the minimal capability this usecase needs

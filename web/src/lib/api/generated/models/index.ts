@@ -36,6 +36,7 @@ export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateMomen
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateMomentRequestOrigin';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateOrRotateInviteLinkRequest';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoCreateThreadRequest';
+export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoFollowInviteLinkRequest';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoFollowInviteLinkResponse';
 export * from './githubComNgodingvarengMemoriaInternalDeliveryRestDtoForgotPasswordRequest';

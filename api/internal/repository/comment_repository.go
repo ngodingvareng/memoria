@@ -83,3 +83,11 @@ func (r *commentRepository) SoftDelete(ctx context.Context, id, userID uuid.UUID
 	}
 	return nil
 }
+
+// AnonymizeByUserID implements [usecase.CommentRepository].
+func (r *commentRepository) AnonymizeByUserID(ctx context.Context, userID uuid.UUID) error {
+	if err := r.q.AnonymizeCommentsByUserID(ctx, ptrToPgUUID(&userID)); err != nil {
+		return fmt.Errorf("anonymize comments by user id: %w", err)
+	}
+	return nil
+}

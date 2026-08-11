@@ -102,18 +102,28 @@ type UserUsecase interface {
 	MuteUser(ctx context.Context, muterUserID uuid.UUID, username string) error
 	UnmuteUser(ctx context.Context, muterUserID uuid.UUID, username string) error
 	ListMutedUsers(ctx context.Context, muterUserID uuid.UUID) ([]*entity.User, error)
+
+	// DeleteAccount implements FEATURES.md's Lifecycle & Deletion entry
+	// for account deletion: the user's own Moments, Threads, and photos
+	// are deleted; their comments/reactions on other people's Moments
+	// are anonymized, not deleted; Circles where they were the sole
+	// admin get a promoted successor (or are dissolved if they were the
+	// only member left); every session is revoked. Synchronous — there
+	// is no grace period or purge job (see account_deletion.go).
+	DeleteAccount(ctx context.Context, userID uuid.UUID) error
 }
 
 type userUsecase struct {
-	users   UserRepository
-	knowns  UserKnownRepository
-	blocks  UserBlockRepository
-	mutes   UserMuteRepository
-	storage ProfileImageStorage
+	users           UserRepository
+	knowns          UserKnownRepository
+	blocks          UserBlockRepository
+	mutes           UserMuteRepository
+	storage         ProfileImageStorage
+	accountDeletion AccountDeletionUnitOfWork
 }
 
-func NewUserUsecase(users UserRepository, knowns UserKnownRepository, blocks UserBlockRepository, mutes UserMuteRepository, storage ProfileImageStorage) UserUsecase {
-	return &userUsecase{users: users, knowns: knowns, blocks: blocks, mutes: mutes, storage: storage}
+func NewUserUsecase(users UserRepository, knowns UserKnownRepository, blocks UserBlockRepository, mutes UserMuteRepository, storage ProfileImageStorage, accountDeletion AccountDeletionUnitOfWork) UserUsecase {
+	return &userUsecase{users: users, knowns: knowns, blocks: blocks, mutes: mutes, storage: storage, accountDeletion: accountDeletion}
 }
 
 // resolveUsers looks up each id's profile, silently skipping any that no

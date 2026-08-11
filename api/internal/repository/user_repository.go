@@ -181,3 +181,11 @@ func translateUserUniqueViolation(err error) (error, bool) {
 	}
 	return errs.ErrEmailAlreadyExists, true
 }
+
+// SoftDelete implements [usecase.UserRepository].
+func (r *userRepository) SoftDelete(ctx context.Context, id uuid.UUID) error {
+	if err := r.q.SoftDeleteUser(ctx, id); err != nil {
+		return fmt.Errorf("soft delete user: %w", err)
+	}
+	return nil
+}

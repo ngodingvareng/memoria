@@ -334,6 +334,39 @@ func (q *Queries) ListCircleAlbumImages(ctx context.Context, arg ListCircleAlbum
 	return items, nil
 }
 
+const listMomentImagePathsByOwnerID = `-- name: ListMomentImagePathsByOwnerID :many
+SELECT moment_images.image_path
+FROM moment_images
+    JOIN moments ON moments.id = moment_images.moment_id
+WHERE moments.user_id = $1
+    AND moments.deleted_at IS NULL
+`
+
+// Storage cleanup targets for account deletion — every image path
+// belonging to a Moment this user owns, gathered before
+// SoftDeleteMomentsByUserID runs so the caller can still resolve them
+// (see UserUsecase.DeleteAccount). Storage deletion itself happens
+// outside the DB transaction, best-effort.
+func (q *Queries) ListMomentImagePathsByOwnerID(ctx context.Context, ownerUserID uuid.UUID) ([]string, error) {
+	rows, err := q.db.Query(ctx, listMomentImagePathsByOwnerID, ownerUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var image_path string
+		if err := rows.Scan(&image_path); err != nil {
+			return nil, err
+		}
+		items = append(items, image_path)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMomentImagesByMomentID = `-- name: ListMomentImagesByMomentID :many
 SELECT id, moment_id, image_path, image_alt, content_type, byte_size, width, height, metadata_stripped, sort_order, created_at
 FROM moment_images

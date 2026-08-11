@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import Wrapper from '@/components/wrapper';
-import { ProfileImageUploader } from '@/features/users';
+import { DeleteAccountDialog, ProfileImageUploader } from '@/features/users';
 import { useGetUserByID } from '@/lib/api/generated/users/users';
 import { useSession } from '@/lib/session';
 import { createFileRoute } from '@tanstack/react-router';
@@ -38,6 +38,17 @@ function RouteComponent() {
           {session?.user.username && (
             <p className="text-muted-foreground">@{session.user.username}</p>
           )}
+        </div>
+
+        <div className="border-destructive/30 flex flex-col gap-2 rounded-2xl border p-4">
+          <h2 className="font-heading text-lg font-semibold tracking-tight">
+            Danger zone
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Deleting your account removes your Moments, Threads, and photos.
+            This can't be undone.
+          </p>
+          <DeleteAccountDialog />
         </div>
       </div>
     </Wrapper>

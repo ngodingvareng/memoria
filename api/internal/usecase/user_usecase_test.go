@@ -31,7 +31,10 @@ func newUserUsecaseWithPrivacy(t *testing.T) (usecase.UserUsecase, *mocks.MockUs
 	blocks := mocks.NewMockUserBlockRepository(t)
 	mutes := mocks.NewMockUserMuteRepository(t)
 	storage := mocks.NewMockProfileImageStorage(t)
-	return usecase.NewUserUsecase(users, knowns, blocks, mutes, storage), users, knowns, blocks, mutes, storage
+	// accountDeletion is nil — none of these tests exercise DeleteAccount
+	// (see user_usecase_delete_account_test.go for those, which build
+	// their own usecase with a real mock unit of work).
+	return usecase.NewUserUsecase(users, knowns, blocks, mutes, storage, nil), users, knowns, blocks, mutes, storage
 }
 
 func TestUserUsecase_CheckUsernameAvailability_Available(t *testing.T) {

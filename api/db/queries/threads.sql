@@ -197,6 +197,16 @@ WHERE id = sqlc.arg(id)
     AND user_id = sqlc.arg(user_id)
     AND deleted_at IS NULL;
 
+-- name: SoftDeleteThreadsByUserID :exec
+-- Account deletion's bulk counterpart to SoftDeleteThread — see
+-- UserUsecase.DeleteAccount. Moments captured by other Circle members
+-- into one of these Threads are untouched; only the Thread itself and
+-- this user's own Moments/photos are in scope for account deletion.
+UPDATE threads
+SET deleted_at = NOW()
+WHERE user_id = sqlc.arg(user_id)
+    AND deleted_at IS NULL;
+
 -- name: RestoreThread :exec
 UPDATE threads
 SET deleted_at = NULL

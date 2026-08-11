@@ -90,9 +90,10 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	// UserUsecase needs it as a UserKnownRepository for the profile
 	// page's "I know this person" action.
 	userPrivacyRepo := repository.NewUserPrivacyRepository(conn)
+	accountDeletionUoW := repository.NewAccountDeletionUnitOfWork(conn)
 
-	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, userPrivacyRepo, userPrivacyRepo, objectStorage)
-	userHandler := handler.NewUserHandler(userUsecase)
+	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, userPrivacyRepo, userPrivacyRepo, objectStorage, accountDeletionUoW)
+	userHandler := handler.NewUserHandler(userUsecase, cfg.SecureCookies)
 
 	// 3b. Threads. circleRepo is constructed here (ahead of the rest of
 	// 3d below) because ThreadUsecase needs it as a CircleAccessChecker

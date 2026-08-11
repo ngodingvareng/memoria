@@ -16,6 +16,16 @@ WHERE moment_id = sqlc.arg(moment_id)
     AND user_id = sqlc.arg(user_id)
     AND circle_id IS NOT DISTINCT FROM sqlc.narg(circle_id);
 
+-- name: AnonymizeReactionsByUserID :exec
+-- Account deletion counterpart to comments.AnonymizeCommentsByUserID —
+-- same reasoning (FEATURES.md, Lifecycle & Deletion). Safe against
+-- uq_reactions_moment_user_circle: that unique index only applies WHERE
+-- user_id IS NOT NULL, so setting multiple rows to NULL here never
+-- collides with it.
+UPDATE reactions
+SET user_id = NULL
+WHERE user_id = sqlc.arg(user_id);
+
 -- name: ListReactionsForMoment :many
 -- Who reacted, never how many — FEATURES.md: "Reaction counts are never
 -- displayed as a number." Same visibility/mute shape as

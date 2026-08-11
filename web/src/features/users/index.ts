@@ -1,4 +1,5 @@
 export { BlockedMutedUsersList } from './components/blocked-muted-users-list';
+export { DeleteAccountDialog } from './components/delete-account-dialog';
 export { KnownPeopleList } from './components/known-people-list';
 export { PrivacySettingsForm } from './components/privacy-settings-form';
 export { ProfileImageUploader } from './components/profile-image-uploader';

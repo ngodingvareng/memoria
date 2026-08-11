@@ -113,9 +113,9 @@ export function MomentCard({
   const [colorChangeError, setColorChangeError] = React.useState<string | null>(
     null
   );
-  const [restrictionError, setRestrictionError] = React.useState<
-    string | null
-  >(null);
+  const [restrictionError, setRestrictionError] = React.useState<string | null>(
+    null
+  );
   const relationship = useUserRelationship(user.username);
   const imagesQuery = useGetMomentsIdImages(id ?? '', {
     query: { enabled: !!id },
@@ -163,7 +163,10 @@ export function MomentCard({
       await relationship.toggleBlock();
     } catch (err) {
       setRestrictionError(
-        getApiErrorMessage(err, 'Failed to unblock this user. Please try again.')
+        getApiErrorMessage(
+          err,
+          'Failed to unblock this user. Please try again.'
+        )
       );
     }
   };
@@ -174,7 +177,10 @@ export function MomentCard({
       await relationship.toggleMute();
     } catch (err) {
       setRestrictionError(
-        getApiErrorMessage(err, 'Failed to update mute status. Please try again.')
+        getApiErrorMessage(
+          err,
+          'Failed to update mute status. Please try again.'
+        )
       );
     }
   };

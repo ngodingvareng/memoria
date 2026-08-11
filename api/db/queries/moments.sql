@@ -230,6 +230,16 @@ WHERE id = sqlc.arg(id)
     AND user_id = sqlc.arg(user_id)
     AND deleted_at IS NULL;
 
+-- name: SoftDeleteMomentsByUserID :exec
+-- Account deletion's bulk counterpart to SoftDeleteMoment — every
+-- Moment this user owns disappears from every surface at once (image
+-- cleanup and comment/reaction anonymization are separate steps the
+-- caller runs in the same transaction; see UserUsecase.DeleteAccount).
+UPDATE moments
+SET deleted_at = NOW()
+WHERE user_id = sqlc.arg(user_id)
+    AND deleted_at IS NULL;
+
 -- name: RestoreMoment :exec
 UPDATE moments
 SET deleted_at = NULL

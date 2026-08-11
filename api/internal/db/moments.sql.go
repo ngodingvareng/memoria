@@ -946,6 +946,22 @@ func (q *Queries) SoftDeleteMoment(ctx context.Context, arg SoftDeleteMomentPara
 	return err
 }
 
+const softDeleteMomentsByUserID = `-- name: SoftDeleteMomentsByUserID :exec
+UPDATE moments
+SET deleted_at = NOW()
+WHERE user_id = $1
+    AND deleted_at IS NULL
+`
+
+// Account deletion's bulk counterpart to SoftDeleteMoment — every
+// Moment this user owns disappears from every surface at once (image
+// cleanup and comment/reaction anonymization are separate steps the
+// caller runs in the same transaction; see UserUsecase.DeleteAccount).
+func (q *Queries) SoftDeleteMomentsByUserID(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, softDeleteMomentsByUserID, userID)
+	return err
+}
+
 const touchMomentLastViewed = `-- name: TouchMomentLastViewed :exec
 UPDATE moments
 SET last_viewed_at = NOW()

@@ -248,3 +248,71 @@ func (_c *MockMomentImageRepository_ListByMomentID_Call) RunAndReturn(run func(c
 	_c.Call.Return(run)
 	return _c
 }
+
+// ListImagePathsByOwnerID provides a mock function for the type MockMomentImageRepository
+func (_mock *MockMomentImageRepository) ListImagePathsByOwnerID(ctx context.Context, ownerUserID uuid.UUID) ([]string, error) {
+	ret := _mock.Called(ctx, ownerUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListImagePathsByOwnerID")
+	}
+
+	var r0 []string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) ([]string, error)); ok {
+		return returnFunc(ctx, ownerUserID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) []string); ok {
+		r0 = returnFunc(ctx, ownerUserID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, ownerUserID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockMomentImageRepository_ListImagePathsByOwnerID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListImagePathsByOwnerID'
+type MockMomentImageRepository_ListImagePathsByOwnerID_Call struct {
+	*mock.Call
+}
+
+// ListImagePathsByOwnerID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - ownerUserID uuid.UUID
+func (_e *MockMomentImageRepository_Expecter) ListImagePathsByOwnerID(ctx any, ownerUserID any) *MockMomentImageRepository_ListImagePathsByOwnerID_Call {
+	return &MockMomentImageRepository_ListImagePathsByOwnerID_Call{Call: _e.mock.On("ListImagePathsByOwnerID", ctx, ownerUserID)}
+}
+
+func (_c *MockMomentImageRepository_ListImagePathsByOwnerID_Call) Run(run func(ctx context.Context, ownerUserID uuid.UUID)) *MockMomentImageRepository_ListImagePathsByOwnerID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockMomentImageRepository_ListImagePathsByOwnerID_Call) Return(strings []string, err error) *MockMomentImageRepository_ListImagePathsByOwnerID_Call {
+	_c.Call.Return(strings, err)
+	return _c
+}
+
+func (_c *MockMomentImageRepository_ListImagePathsByOwnerID_Call) RunAndReturn(run func(ctx context.Context, ownerUserID uuid.UUID) ([]string, error)) *MockMomentImageRepository_ListImagePathsByOwnerID_Call {
+	_c.Call.Return(run)
+	return _c
+}

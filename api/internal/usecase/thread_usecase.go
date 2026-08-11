@@ -42,6 +42,11 @@ type ThreadRepository interface {
 	// rows (wrong owner/id, or already deleted) is a silent no-op here
 	// rather than surfacing errs.ErrNotFound.
 	SoftDelete(ctx context.Context, id, userID uuid.UUID) error
+	// SoftDeleteAllByUserID is account deletion's bulk counterpart to
+	// SoftDelete — every Thread this user owns (see
+	// UserUsecase.DeleteAccount). Moments other Circle members captured
+	// into one of these Threads are untouched.
+	SoftDeleteAllByUserID(ctx context.Context, userID uuid.UUID) error
 	Search(ctx context.Context, params SearchThreadsParams) ([]*entity.Thread, int64, error)
 	// SearchSuggestions returns up to limit reachable Threads matching
 	// query, for the live-typing search popover (GET /search/suggestions).

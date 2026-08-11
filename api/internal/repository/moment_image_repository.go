@@ -79,6 +79,15 @@ func (r *momentImageRepository) ListPersonalImages(ctx context.Context, userID u
 	return toEntityAlbumImages(rows), nil
 }
 
+// ListImagePathsByOwnerID implements [usecase.MomentImageRepository].
+func (r *momentImageRepository) ListImagePathsByOwnerID(ctx context.Context, ownerUserID uuid.UUID) ([]string, error) {
+	paths, err := r.q.ListMomentImagePathsByOwnerID(ctx, ownerUserID)
+	if err != nil {
+		return nil, fmt.Errorf("list moment image paths by owner id: %w", err)
+	}
+	return paths, nil
+}
+
 // ListCircleImages implements [usecase.AlbumRepository]. No membership
 // filter at the query level — access is checked upstream by
 // AlbumUsecase via CircleAccessChecker, same pattern as

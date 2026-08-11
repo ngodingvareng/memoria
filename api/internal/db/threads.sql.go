@@ -498,6 +498,22 @@ func (q *Queries) SoftDeleteThread(ctx context.Context, arg SoftDeleteThreadPara
 	return err
 }
 
+const softDeleteThreadsByUserID = `-- name: SoftDeleteThreadsByUserID :exec
+UPDATE threads
+SET deleted_at = NOW()
+WHERE user_id = $1
+    AND deleted_at IS NULL
+`
+
+// Account deletion's bulk counterpart to SoftDeleteThread — see
+// UserUsecase.DeleteAccount. Moments captured by other Circle members
+// into one of these Threads are untouched; only the Thread itself and
+// this user's own Moments/photos are in scope for account deletion.
+func (q *Queries) SoftDeleteThreadsByUserID(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, softDeleteThreadsByUserID, userID)
+	return err
+}
+
 const unarchiveThread = `-- name: UnarchiveThread :exec
 UPDATE threads
 SET archived_at = NULL,

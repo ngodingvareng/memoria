@@ -30,7 +30,9 @@ function RouteComponent() {
     try {
       await relationship.toggleKnown();
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
+      setError(
+        getApiErrorMessage(err, 'Something went wrong. Please try again.')
+      );
     }
   };
 
@@ -39,7 +41,9 @@ function RouteComponent() {
     try {
       await relationship.toggleMute();
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
+      setError(
+        getApiErrorMessage(err, 'Something went wrong. Please try again.')
+      );
     }
   };
 
@@ -48,7 +52,9 @@ function RouteComponent() {
     try {
       await relationship.toggleBlock();
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Something went wrong. Please try again.'));
+      setError(
+        getApiErrorMessage(err, 'Something went wrong. Please try again.')
+      );
     }
   };
 

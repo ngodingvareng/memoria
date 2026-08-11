@@ -24,6 +24,7 @@ import type {
   CheckUsernameAvailabilityParams,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoBlockUserRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoCheckUsernameAvailabilityResponse,
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListBlockedUsersResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListKnownUsersResponse,
   GithubComNgodingvarengMemoriaInternalDeliveryRestDtoListMutedUsersResponse,
@@ -192,6 +193,107 @@ export function useGetUsersMe<
   return withQueryKey(query, queryOptions.queryKey);
 }
 
+export const getDeleteUsersMeUrl = () => {
+  return `/users/me`;
+};
+
+/**
+ * Own Moments/Threads/photos are deleted; comments/reactions on other people's Moments are anonymized (FEATURES.md, Lifecycle & Deletion). Irreversible.
+ * @summary Delete the caller's own account
+ */
+export const deleteUsersMe = async (
+  githubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest,
+  options?: RequestInit
+): Promise<void> => {
+  return apiMutator<void>(getDeleteUsersMeUrl(), {
+    ...options,
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      githubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest
+    ),
+  });
+};
+
+export const getDeleteUsersMeMutationOptions = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteUsersMe>>,
+    TError,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest;
+    },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteUsersMe>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest;
+  },
+  TContext
+> => {
+  const mutationKey = ['deleteUsersMe'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteUsersMe>>,
+    {
+      data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest;
+    }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return deleteUsersMe(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteUsersMeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteUsersMe>>
+>;
+export type DeleteUsersMeMutationBody =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest;
+export type DeleteUsersMeMutationError =
+  GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny;
+
+/**
+ * @summary Delete the caller's own account
+ */
+export const useDeleteUsersMe = <
+  TError = GithubComNgodingvarengMemoriaInternalDeliveryRestDtoWebResponseAny,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteUsersMe>>,
+      TError,
+      {
+        data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest;
+      },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteUsersMe>>,
+  TError,
+  {
+    data: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoDeleteAccountRequest;
+  },
+  TContext
+> => {
+  return useMutation(getDeleteUsersMeMutationOptions(options), queryClient);
+};
 export const getGetUsersMeBlocksUrl = () => {
   return `/users/me/blocks`;
 };

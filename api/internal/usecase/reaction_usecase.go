@@ -19,6 +19,10 @@ type ReactionRepository interface {
 	// ListForMoment returns the rows (who reacted + kind); counts are
 	// never materialized (FEATURES.md, Response).
 	ListForMoment(ctx context.Context, momentID, viewerID uuid.UUID, mentionAllowed bool, visibleCircleIDs []uuid.UUID) ([]*entity.Reaction, error)
+	// AnonymizeByUserID is account deletion's counterpart to
+	// CommentRepository.AnonymizeByUserID — same reasoning (FEATURES.md,
+	// Lifecycle & Deletion).
+	AnonymizeByUserID(ctx context.Context, userID uuid.UUID) error
 }
 
 // --- Inputs / outputs ---

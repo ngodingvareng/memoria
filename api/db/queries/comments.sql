@@ -52,3 +52,15 @@ SET deleted_at = NOW()
 WHERE id = sqlc.arg(id)
     AND user_id = sqlc.arg(user_id)
     AND deleted_at IS NULL;
+
+-- name: AnonymizeCommentsByUserID :exec
+-- Account deletion (FEATURES.md, Lifecycle & Deletion: "Their comments
+-- and reactions on other people's Moments are anonymized, not
+-- deleted"). Same effect user_id's ON DELETE SET NULL FK already gives
+-- on a hard delete — triggered eagerly here since there is no purge job
+-- yet (see UserUsecase.DeleteAccount). Comments on the user's own
+-- Moments are anonymized too, harmlessly, since those Moments are
+-- soft-deleted in the same transaction and become unreachable anyway.
+UPDATE comments
+SET user_id = NULL
+WHERE user_id = sqlc.arg(user_id);

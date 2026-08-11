@@ -77,6 +77,14 @@ func (r *threadRepository) SoftDelete(ctx context.Context, id, userID uuid.UUID)
 	return nil
 }
 
+// SoftDeleteAllByUserID implements [usecase.ThreadRepository].
+func (r *threadRepository) SoftDeleteAllByUserID(ctx context.Context, userID uuid.UUID) error {
+	if err := r.q.SoftDeleteThreadsByUserID(ctx, userID); err != nil {
+		return fmt.Errorf("soft delete threads by user id: %w", err)
+	}
+	return nil
+}
+
 // GetByID implements [usecase.ThreadRepository] and [usecase.ThreadAccessChecker] —
 // both interfaces declare this method with an identical name and signature,
 // so this single implementation satisfies both without a second method.

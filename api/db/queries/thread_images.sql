@@ -9,6 +9,16 @@ FROM thread_images
 WHERE thread_id = sqlc.arg(thread_id)
 ORDER BY sort_order, created_at;
 
+-- name: ListThreadImagePathsByOwnerID :many
+-- Storage cleanup targets for account deletion — every image path
+-- belonging to a Thread this user owns, gathered before
+-- SoftDeleteThreadsByUserID runs (see UserUsecase.DeleteAccount).
+SELECT thread_images.image_path
+FROM thread_images
+    JOIN threads ON threads.id = thread_images.thread_id
+WHERE threads.user_id = sqlc.arg(owner_user_id)
+    AND threads.deleted_at IS NULL;
+
 -- name: DeleteThreadImage :one
 -- Returns the deleted row (specifically image_path) so the caller can
 -- remove the matching storage object after the DB record is gone — see

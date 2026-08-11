@@ -2,6 +2,7 @@ package handler
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -15,15 +16,16 @@ import (
 )
 
 type UserHandler struct {
-	usecase  usecase.UserUsecase
-	validate *validator.Validate
+	usecase       usecase.UserUsecase
+	validate      *validator.Validate
+	secureCookies bool
 }
 
-func NewUserHandler(uc usecase.UserUsecase) *UserHandler {
+func NewUserHandler(uc usecase.UserUsecase, secureCookies bool) *UserHandler {
 	v := validator.New()
 	validate.RegisterUsernameValidator(v)
 
-	return &UserHandler{usecase: uc, validate: v}
+	return &UserHandler{usecase: uc, validate: v, secureCookies: secureCookies}
 }
 
 // CheckUsernameAvailability godoc
@@ -524,5 +526,53 @@ func (h *UserHandler) UploadProfileImage(c fiber.Ctx) error {
 		Code:    fiber.StatusOK,
 		Message: "profile image uploaded",
 		Data:    dto.NewPublicUserResponse(user),
+	})
+}
+
+// DeleteAccount godoc
+// @Summary      Delete the caller's own account
+// @Description  Own Moments/Threads/photos are deleted; comments/reactions on other people's Moments are anonymized (FEATURES.md, Lifecycle & Deletion). Irreversible.
+// @Tags         users
+// @Accept       json
+// @Param        request body dto.DeleteAccountRequest true "Confirmation"
+// @Success      204
+// @Failure      400 {object} dto.WebResponse[any]
+// @Router       /users/me [delete]
+func (h *UserHandler) DeleteAccount(c fiber.Ctx) error {
+	userID, ok := middleware.UserIDFromContext(c)
+	if !ok {
+		return errs.ErrUnauthorized
+	}
+
+	var req dto.DeleteAccountRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return errs.ErrInvalidInput
+	}
+	if err := h.validate.Struct(req); err != nil {
+		return &errs.ValidationError{Errors: validate.FormatValidationErrors(err)}
+	}
+
+	if err := h.usecase.DeleteAccount(c, userID); err != nil {
+		return err
+	}
+
+	slog.InfoContext(c, "account deleted", "user_id", userID)
+
+	h.clearRefreshCookie(c)
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// clearRefreshCookie mirrors AuthHandler's own — the refresh token
+// itself is already revoked server-side by DeleteAccount, this just
+// stops the browser from holding onto a now-dead cookie.
+func (h *UserHandler) clearRefreshCookie(c fiber.Ctx) {
+	c.Cookie(&fiber.Cookie{
+		Name:     middleware.RefreshCookieName,
+		Value:    "",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		HTTPOnly: true,
+		Secure:   h.secureCookies,
+		SameSite: "Lax",
+		Path:     "/auth",
 	})
 }

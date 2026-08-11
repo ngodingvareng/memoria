@@ -24,6 +24,10 @@ type MomentRepository interface {
 	// clause matching zero rows is a silent no-op here rather than
 	// surfacing errs.ErrNotFound.
 	SoftDelete(ctx context.Context, id, userID uuid.UUID) error
+	// SoftDeleteAllByUserID is account deletion's bulk counterpart to
+	// SoftDelete — every Moment this user owns, in one statement (see
+	// UserUsecase.DeleteAccount).
+	SoftDeleteAllByUserID(ctx context.Context, userID uuid.UUID) error
 	// GetByID returns errs.ErrNotFound if id/userID don't match any row.
 	// Deliberately owner-only — used where that strictness is required
 	// (e.g. MomentImageUsecase via MomentAccessChecker, same method).

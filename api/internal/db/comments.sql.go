@@ -12,6 +12,24 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const anonymizeCommentsByUserID = `-- name: AnonymizeCommentsByUserID :exec
+UPDATE comments
+SET user_id = NULL
+WHERE user_id = $1
+`
+
+// Account deletion (FEATURES.md, Lifecycle & Deletion: "Their comments
+// and reactions on other people's Moments are anonymized, not
+// deleted"). Same effect user_id's ON DELETE SET NULL FK already gives
+// on a hard delete — triggered eagerly here since there is no purge job
+// yet (see UserUsecase.DeleteAccount). Comments on the user's own
+// Moments are anonymized too, harmlessly, since those Moments are
+// soft-deleted in the same transaction and become unreachable anyway.
+func (q *Queries) AnonymizeCommentsByUserID(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, anonymizeCommentsByUserID, userID)
+	return err
+}
+
 const createComment = `-- name: CreateComment :one
 INSERT INTO comments(moment_id, user_id, circle_id, body)
 VALUES ($1, $2, $3, $4)

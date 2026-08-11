@@ -70,6 +70,37 @@ func (q *Queries) DeleteThreadImage(ctx context.Context, arg DeleteThreadImagePa
 	return i, err
 }
 
+const listThreadImagePathsByOwnerID = `-- name: ListThreadImagePathsByOwnerID :many
+SELECT thread_images.image_path
+FROM thread_images
+    JOIN threads ON threads.id = thread_images.thread_id
+WHERE threads.user_id = $1
+    AND threads.deleted_at IS NULL
+`
+
+// Storage cleanup targets for account deletion — every image path
+// belonging to a Thread this user owns, gathered before
+// SoftDeleteThreadsByUserID runs (see UserUsecase.DeleteAccount).
+func (q *Queries) ListThreadImagePathsByOwnerID(ctx context.Context, ownerUserID uuid.UUID) ([]string, error) {
+	rows, err := q.db.Query(ctx, listThreadImagePathsByOwnerID, ownerUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var image_path string
+		if err := rows.Scan(&image_path); err != nil {
+			return nil, err
+		}
+		items = append(items, image_path)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listThreadImagesByThreadID = `-- name: ListThreadImagesByThreadID :many
 SELECT id, thread_id, image_path, image_alt, sort_order, created_at
 FROM thread_images

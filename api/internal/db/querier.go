@@ -45,6 +45,20 @@ type Querier interface {
 	AddCircleMembers(ctx context.Context, arg AddCircleMembersParams) ([]CircleMember, error)
 	AddMomentImage(ctx context.Context, arg AddMomentImageParams) (MomentImage, error)
 	AddThreadImage(ctx context.Context, arg AddThreadImageParams) (ThreadImage, error)
+	// Account deletion (FEATURES.md, Lifecycle & Deletion: "Their comments
+	// and reactions on other people's Moments are anonymized, not
+	// deleted"). Same effect user_id's ON DELETE SET NULL FK already gives
+	// on a hard delete — triggered eagerly here since there is no purge job
+	// yet (see UserUsecase.DeleteAccount). Comments on the user's own
+	// Moments are anonymized too, harmlessly, since those Moments are
+	// soft-deleted in the same transaction and become unreachable anyway.
+	AnonymizeCommentsByUserID(ctx context.Context, userID pgtype.UUID) error
+	// Account deletion counterpart to comments.AnonymizeCommentsByUserID —
+	// same reasoning (FEATURES.md, Lifecycle & Deletion). Safe against
+	// uq_reactions_moment_user_circle: that unique index only applies WHERE
+	// user_id IS NOT NULL, so setting multiple rows to NULL here never
+	// collides with it.
+	AnonymizeReactionsByUserID(ctx context.Context, userID pgtype.UUID) error
 	// Returns no row if someone else already decided this request, which is
 	// how two approvers acting at once resolve to one decision. Membership
 	// is a separate AddCircleMembers call in the same transaction, and the
@@ -442,6 +456,12 @@ type Querier interface {
 	// "Mentioned Moments" (FEATURES.md, Looking Back): every Moment the
 	// user has ever been mentioned in, newest occurrence first.
 	ListMentionedMomentsByUserID(ctx context.Context, arg ListMentionedMomentsByUserIDParams) ([]Moment, error)
+	// Storage cleanup targets for account deletion — every image path
+	// belonging to a Moment this user owns, gathered before
+	// SoftDeleteMomentsByUserID runs so the caller can still resolve them
+	// (see UserUsecase.DeleteAccount). Storage deletion itself happens
+	// outside the DB transaction, best-effort.
+	ListMomentImagePathsByOwnerID(ctx context.Context, ownerUserID uuid.UUID) ([]string, error)
 	ListMomentImagesByMomentID(ctx context.Context, momentID uuid.UUID) ([]MomentImage, error)
 	ListMomentMentionsByMomentID(ctx context.Context, momentID uuid.UUID) ([]MomentMention, error)
 	// Which Circle audiences sqlc.arg(user_id) actually shares with this
@@ -491,6 +511,10 @@ type Querier interface {
 	// displayed as a number." Same visibility/mute shape as
 	// ListCommentsForMoment.
 	ListReactionsForMoment(ctx context.Context, arg ListReactionsForMomentParams) ([]Reaction, error)
+	// Storage cleanup targets for account deletion — every image path
+	// belonging to a Thread this user owns, gathered before
+	// SoftDeleteThreadsByUserID runs (see UserUsecase.DeleteAccount).
+	ListThreadImagePathsByOwnerID(ctx context.Context, ownerUserID uuid.UUID) ([]string, error)
 	ListThreadImagesByThreadID(ctx context.Context, threadID uuid.UUID) ([]ThreadImage, error)
 	// A Circle's collaborative Threads.
 	ListThreadsByCircleID(ctx context.Context, circleID pgtype.UUID) ([]Thread, error)
@@ -610,7 +634,17 @@ type Querier interface {
 	// transaction — deleting a Moment removes it everywhere, not just from
 	// the owner's own archive.
 	SoftDeleteMoment(ctx context.Context, arg SoftDeleteMomentParams) error
+	// Account deletion's bulk counterpart to SoftDeleteMoment — every
+	// Moment this user owns disappears from every surface at once (image
+	// cleanup and comment/reaction anonymization are separate steps the
+	// caller runs in the same transaction; see UserUsecase.DeleteAccount).
+	SoftDeleteMomentsByUserID(ctx context.Context, userID uuid.UUID) error
 	SoftDeleteThread(ctx context.Context, arg SoftDeleteThreadParams) error
+	// Account deletion's bulk counterpart to SoftDeleteThread — see
+	// UserUsecase.DeleteAccount. Moments captured by other Circle members
+	// into one of these Threads are untouched; only the Thread itself and
+	// this user's own Moments/photos are in scope for account deletion.
+	SoftDeleteThreadsByUserID(ctx context.Context, userID uuid.UUID) error
 	// Starts the recovery grace period. Caller should also revoke all
 	// refresh tokens (see refresh_tokens.RevokeAllRefreshTokensByUserID) in
 	// the same transaction.

@@ -62,3 +62,12 @@ func (r *threadImageRepository) Delete(ctx context.Context, threadID uuid.UUID, 
 	}
 	return toEntityThreadImage(row), nil
 }
+
+// ListImagePathsByOwnerID implements [usecase.ThreadImageRepository].
+func (r *threadImageRepository) ListImagePathsByOwnerID(ctx context.Context, ownerUserID uuid.UUID) ([]string, error) {
+	paths, err := r.q.ListThreadImagePathsByOwnerID(ctx, ownerUserID)
+	if err != nil {
+		return nil, fmt.Errorf("list thread image paths by owner id: %w", err)
+	}
+	return paths, nil
+}

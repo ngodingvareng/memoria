@@ -21,6 +21,11 @@ type CommentRepository interface {
 	// see comment_repository.go for the exact split.
 	Update(ctx context.Context, id, userID uuid.UUID, body string) (*entity.Comment, error)
 	SoftDelete(ctx context.Context, id, userID uuid.UUID) error
+	// AnonymizeByUserID implements account deletion's "comments on
+	// other people's Moments are anonymized, not deleted" (FEATURES.md,
+	// Lifecycle & Deletion) — sets user_id to NULL on every comment
+	// this user authored (see UserUsecase.DeleteAccount).
+	AnonymizeByUserID(ctx context.Context, userID uuid.UUID) error
 }
 
 // ResponseEventRepository writes to the batched daily digest queue

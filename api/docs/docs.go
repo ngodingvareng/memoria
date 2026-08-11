@@ -2955,6 +2955,38 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "description": "Own Moments/Threads/photos are deleted; comments/reactions on other people's Moments are anonymized (FEATURES.md, Lifecycle \u0026 Deletion). Irreversible.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete the caller's own account",
+                "parameters": [
+                    {
+                        "description": "Confirmation",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.DeleteAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any"
+                        }
+                    }
+                }
             }
         },
         "/users/me/blocks": {
@@ -3848,6 +3880,18 @@ const docTemplate = `{
                     "maxLength": 255,
                     "minLength": 1,
                     "example": "Morning workout"
+                }
+            }
+        },
+        "github_com_ngodingvareng_memoria_internal_delivery_rest_dto.DeleteAccountRequest": {
+            "type": "object",
+            "required": [
+                "confirmation"
+            ],
+            "properties": {
+                "confirmation": {
+                    "type": "string",
+                    "example": "DELETE"
                 }
             }
         },

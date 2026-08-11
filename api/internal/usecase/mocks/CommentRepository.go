@@ -39,6 +39,63 @@ func (_m *MockCommentRepository) EXPECT() *MockCommentRepository_Expecter {
 	return &MockCommentRepository_Expecter{mock: &_m.Mock}
 }
 
+// AnonymizeByUserID provides a mock function for the type MockCommentRepository
+func (_mock *MockCommentRepository) AnonymizeByUserID(ctx context.Context, userID uuid.UUID) error {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AnonymizeByUserID")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) error); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockCommentRepository_AnonymizeByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AnonymizeByUserID'
+type MockCommentRepository_AnonymizeByUserID_Call struct {
+	*mock.Call
+}
+
+// AnonymizeByUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uuid.UUID
+func (_e *MockCommentRepository_Expecter) AnonymizeByUserID(ctx any, userID any) *MockCommentRepository_AnonymizeByUserID_Call {
+	return &MockCommentRepository_AnonymizeByUserID_Call{Call: _e.mock.On("AnonymizeByUserID", ctx, userID)}
+}
+
+func (_c *MockCommentRepository_AnonymizeByUserID_Call) Run(run func(ctx context.Context, userID uuid.UUID)) *MockCommentRepository_AnonymizeByUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockCommentRepository_AnonymizeByUserID_Call) Return(err error) *MockCommentRepository_AnonymizeByUserID_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockCommentRepository_AnonymizeByUserID_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID) error) *MockCommentRepository_AnonymizeByUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function for the type MockCommentRepository
 func (_mock *MockCommentRepository) Create(ctx context.Context, momentID uuid.UUID, userID uuid.UUID, circleID *uuid.UUID, body string) (*entity.Comment, error) {
 	ret := _mock.Called(ctx, momentID, userID, circleID, body)

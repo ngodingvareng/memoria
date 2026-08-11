@@ -69,6 +69,14 @@ type MarkUserKnownRequest struct {
 	Username string `json:"username" validate:"required,username" example:"budisantoso"`
 }
 
+// DeleteAccountRequest requires the caller to type the literal word
+// "DELETE" — a lightweight, auth-method-agnostic confirmation that
+// works identically whether the account has a password or is
+// Google-OAuth-only (FEATURES.md, Data Controls: "Delete account").
+type DeleteAccountRequest struct {
+	Confirmation string `json:"confirmation" validate:"required,eq=DELETE" example:"DELETE"`
+}
+
 type ListBlockedUsersResponse struct {
 	Users []PublicUserResponse `json:"users"`
 }

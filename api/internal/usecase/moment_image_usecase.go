@@ -17,6 +17,11 @@ type MomentImageRepository interface {
 	// an existing row) so the caller can remove the matching storage
 	// object.
 	Delete(ctx context.Context, momentID, imageID uuid.UUID) (*entity.MomentImage, error)
+	// ListImagePathsByOwnerID is account deletion's storage-cleanup
+	// gather step — every image path belonging to a Moment ownerUserID
+	// owns, resolved before those Moments are soft-deleted (see
+	// UserUsecase.DeleteAccount).
+	ListImagePathsByOwnerID(ctx context.Context, ownerUserID uuid.UUID) ([]string, error)
 }
 
 type UploadMomentImageInput struct {

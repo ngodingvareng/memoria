@@ -27,6 +27,18 @@ WHERE id = sqlc.arg(id)
     AND moment_id = sqlc.arg(moment_id)
 RETURNING *;
 
+-- name: ListMomentImagePathsByOwnerID :many
+-- Storage cleanup targets for account deletion — every image path
+-- belonging to a Moment this user owns, gathered before
+-- SoftDeleteMomentsByUserID runs so the caller can still resolve them
+-- (see UserUsecase.DeleteAccount). Storage deletion itself happens
+-- outside the DB transaction, best-effort.
+SELECT moment_images.image_path
+FROM moment_images
+    JOIN moments ON moments.id = moment_images.moment_id
+WHERE moments.user_id = sqlc.arg(owner_user_id)
+    AND moments.deleted_at IS NULL;
+
 -- name: ListAlbumImages :many
 -- The Personal Album (FEATURES.md, Looking Back): every photo
 -- attachment from every Moment this user owns, newest occurrence

@@ -12,6 +12,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const anonymizeReactionsByUserID = `-- name: AnonymizeReactionsByUserID :exec
+UPDATE reactions
+SET user_id = NULL
+WHERE user_id = $1
+`
+
+// Account deletion counterpart to comments.AnonymizeCommentsByUserID —
+// same reasoning (FEATURES.md, Lifecycle & Deletion). Safe against
+// uq_reactions_moment_user_circle: that unique index only applies WHERE
+// user_id IS NOT NULL, so setting multiple rows to NULL here never
+// collides with it.
+func (q *Queries) AnonymizeReactionsByUserID(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, anonymizeReactionsByUserID, userID)
+	return err
+}
+
 const deleteReaction = `-- name: DeleteReaction :exec
 DELETE FROM reactions
 WHERE moment_id = $1

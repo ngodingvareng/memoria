@@ -309,6 +309,14 @@ definitions:
     required:
     - name
     type: object
+  github_com_ngodingvareng_memoria_internal_delivery_rest_dto.DeleteAccountRequest:
+    properties:
+      confirmation:
+        example: DELETE
+        type: string
+    required:
+    - confirmation
+    type: object
   github_com_ngodingvareng_memoria_internal_delivery_rest_dto.FollowInviteLinkRequest:
     properties:
       token:
@@ -3673,6 +3681,28 @@ paths:
       tags:
       - users
   /users/me:
+    delete:
+      consumes:
+      - application/json
+      description: Own Moments/Threads/photos are deleted; comments/reactions on other
+        people's Moments are anonymized (FEATURES.md, Lifecycle & Deletion). Irreversible.
+      parameters:
+      - description: Confirmation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.DeleteAccountRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.WebResponse-any'
+      summary: Delete the caller's own account
+      tags:
+      - users
     get:
       description: Includes the privacy fields GetUserByID/GetUserByUsername deliberately
         omit

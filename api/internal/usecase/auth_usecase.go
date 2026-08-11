@@ -35,6 +35,11 @@ type UserRepository interface {
 	// Control), separate from profile content so a settings screen can
 	// save them independently. Other fields on user are ignored.
 	UpdatePrivacySettings(ctx context.Context, user *entity.User) (*entity.User, error)
+	// SoftDelete starts the recovery grace period (see SoftDeleteUser's
+	// query comment) — idempotent, a WHERE clause matching zero rows
+	// (already deleted) is a silent no-op. Used by
+	// UserUsecase.DeleteAccount.
+	SoftDelete(ctx context.Context, id uuid.UUID) error
 }
 
 type UserAccountRepository interface {
