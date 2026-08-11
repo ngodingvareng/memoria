@@ -130,7 +130,7 @@ export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
                   <ColorSwatchPicker
                     value={colorHex}
                     onChange={setColorHex}
-                    className="p-2"
+                    className="p-2 grid! grid-cols-5!"
                   />
                 </DropdownMenuContent>
               </DropdownMenu>

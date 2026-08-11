@@ -5,6 +5,7 @@ export const MOMENT_COLOR_PRESETS = [
   { name: 'Emerald', hex: '#10b981' },
   { name: 'Sky', hex: '#0ea5e9' },
   { name: 'Violet', hex: '#8b5cf6' },
+  { name: 'Lime', hex: '#84cc16' },
   { name: 'Orange', hex: '#f97316' },
   { name: 'Pink', hex: '#ec4899' },
   { name: 'Teal', hex: '#14b8a6' },

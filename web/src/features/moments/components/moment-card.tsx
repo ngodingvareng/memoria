@@ -248,7 +248,7 @@ export function MomentCard({
                               <ColorSwatchPicker
                                 value={colorHex ?? ''}
                                 onChange={handleColorChange}
-                                className="p-2"
+                                className="grid! grid-cols-5! p-2"
                               />
                             </DropdownMenuSubContent>
                           </DropdownMenuPortal>
