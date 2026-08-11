@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:18-alpine
     container_name: memoria-postgres-dev
-    restart: unless-stopped
+    restart: no
     ports:
       - "${DATABASE_PORT}:5432"
     environment:
@@ -34,7 +34,7 @@ services:
   rustfs:
     image: rustfs/rustfs:1.0.0-beta.12
     container_name: memoria-rustfs-dev
-    restart: unless-stopped
+    restart: no
     ports:
       - "9000:9000"
       - "9001:9001"
