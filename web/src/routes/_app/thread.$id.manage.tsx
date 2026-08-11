@@ -1,15 +1,7 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import Wrapper from '@/components/wrapper';
-import { MomentHeatmap } from '@/features/moments';
 import {
   DeleteThreadDialog,
   EditThreadDetailsSection,
@@ -20,7 +12,7 @@ import {
   useGetThreadsId,
   useGetThreadsIdImages,
 } from '@/lib/api/generated/threads/threads';
-import { ArrowDown01Icon, ArrowLeft02Icon } from '@hugeicons/core-free-icons';
+import { ArrowLeft02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 
