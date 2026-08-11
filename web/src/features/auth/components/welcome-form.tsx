@@ -138,7 +138,11 @@ export function WelcomeForm() {
                 ) : (
                   <FieldDescription>
                     {isChecking && 'Checking availability…'}
-                    {isAvailable && 'This username is available.'}
+                    {isAvailable && (
+                      <span className="text-green-500">
+                        This username is available.
+                      </span>
+                    )}
                   </FieldDescription>
                 )}
               </Field>

@@ -26,7 +26,7 @@ export default function SearchAnythingInput() {
   } = useSearchAutocomplete();
 
   return (
-    <div ref={groupRef} className="w-full max-w-2xl">
+    <div ref={groupRef} className="hidden w-full max-w-2xl sm:block">
       <InputGroup className="h-10 w-full [&_svg]:size-5!">
         <InputGroupInput
           ref={inputRef}

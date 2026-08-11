@@ -10,7 +10,7 @@ export const Route = createFileRoute('/_auth')({
 function RouteComponent() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
+      <div className="bg-muted flex min-h-dvh flex-col items-center justify-center gap-6 px-2 py-8 sm:p-10">
         <div className="flex w-full max-w-lg flex-col gap-6">
           <div className="flex justify-center">
             <Brand />

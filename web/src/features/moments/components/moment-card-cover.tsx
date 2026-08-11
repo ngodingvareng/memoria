@@ -54,7 +54,7 @@ export function MomentCardCover({
         backgroundColor: colorHex ? hexToRgba(colorHex, 1) : undefined,
       }}
       className={cn(
-        'focus-visible:ring-ring/50 relative isolate flex w-full max-w-2xs flex-none flex-col overflow-hidden rounded-xl text-left outline-none focus-visible:ring-[3px]',
+        'focus-visible:ring-ring/50 relative isolate flex w-full flex-none flex-col overflow-hidden rounded-xl text-left outline-none focus-visible:ring-[3px] sm:max-w-2xs',
         !colorHex && 'bg-gray-500',
         coverImage && 'cursor-pointer'
       )}

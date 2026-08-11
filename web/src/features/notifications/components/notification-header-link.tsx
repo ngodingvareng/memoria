@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useGetNotifications } from '@/lib/api/generated/notifications/notifications';
 import { Notification01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -9,9 +10,11 @@ export function NotificationHeaderLink() {
   const unreadCount = notificationsQuery.data?.unread_count ?? 0;
 
   return (
-    <Link
-      to="/notifications"
-      className="bg-primary/10 relative flex size-10 items-center justify-center rounded-full"
+    <Button
+      variant="secondary"
+      size="icon-lg"
+      render={<Link to="/notifications" />}
+      className="relative"
     >
       <HugeiconsIcon icon={Notification01Icon} strokeWidth={2} />
       {unreadCount > 0 && (
@@ -19,6 +22,6 @@ export function NotificationHeaderLink() {
           {unreadCount > 99 ? '99+' : unreadCount}
         </Badge>
       )}
-    </Link>
+    </Button>
   );
 }

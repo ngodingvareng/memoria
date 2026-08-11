@@ -218,11 +218,11 @@ export function MomentCard({
   };
 
   return (
-    <Item size="xs">
+    <Item size="xs" className="px-0 sm:px-3">
       <ItemContent className="flex flex-col gap-4">
-        <div className="group selection:bg-primary selection:text-primary-foreground relative flex gap-4 select-text hover:cursor-default">
+        <div className="group selection:bg-primary selection:text-primary-foreground relative flex flex-col gap-2 select-text hover:cursor-default sm:flex-row sm:gap-4">
           {showMenu && (
-            <div className="absolute top-0 -right-6 z-20">
+            <div className="absolute top-20.5 -right-3 z-20 sm:top-0.5 sm:-right-6">
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={<Button variant="ghost" size="icon" />}
@@ -336,7 +336,7 @@ export function MomentCard({
               setIsLightboxOpen(true);
             }}
           />
-          <Item className="grow pt-1 pb-0">
+          <Item className="grow px-1 pt-1 pb-0 sm:px-4">
             {showHeader && (
               <ItemHeader className="-ml-1 gap-1">
                 <Link
@@ -372,7 +372,7 @@ export function MomentCard({
                     <p className="truncate">{thread.name}</p>
                   )}
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="mr-4 flex shrink-0 items-center gap-1 sm:mr-0">
                   <p className="text-muted-foreground font-medium">
                     {dayjs(createdAt).fromNow()}
                   </p>

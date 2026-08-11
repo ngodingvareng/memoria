@@ -20,7 +20,7 @@ export function ThreadHero({
   return (
     <div
       className={cn(
-        'relative aspect-7/1 overflow-hidden rounded-4xl',
+        'relative aspect-7/1 overflow-hidden rounded-xl sm:rounded-4xl',
         className
       )}
     >

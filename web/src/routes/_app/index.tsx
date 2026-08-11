@@ -38,7 +38,7 @@ function Index() {
 
   return (
     <Wrapper>
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-6 sm:gap-12">
         <div className="flex items-center">
           <div className="flex items-center gap-2">
             <Avatar size="xl">
@@ -51,9 +51,11 @@ function Index() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-2xl/5 font-medium">{session?.user.name}</p>
+              <p className="text-xl/4 font-medium sm:text-2xl/5">
+                {session?.user.name}
+              </p>
               {session?.user.username && (
-                <p className="text-muted-foreground text-lg/5">
+                <p className="text-muted-foreground text-base/4 sm:text-lg/5">
                   @{session.user.username}
                 </p>
               )}

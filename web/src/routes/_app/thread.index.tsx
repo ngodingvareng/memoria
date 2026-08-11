@@ -52,7 +52,12 @@ function RouteComponent() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button render={<Link to="/thread/new" />}>New Thread</Button>
+            <Button
+              render={<Link to="/thread/new" />}
+              className="hidden sm:block"
+            >
+              New Thread
+            </Button>
           </div>
         </div>
 

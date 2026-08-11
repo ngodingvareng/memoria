@@ -55,10 +55,10 @@ export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
   };
 
   return (
-    <div className="from-background sticky bottom-0 z-30 w-full bg-linear-to-t from-60% to-transparent pt-20 pb-6">
+    <div className="from-background sticky bottom-0 z-30 w-full bg-linear-to-t from-60% to-transparent px-2 pt-20 pb-6">
       <Item
         variant="outline"
-        className="bg-card mx-auto max-w-5xl rounded-4xl shadow-sm"
+        className="bg-card max-w-5xl rounded-4xl px-2.5 pt-2 pb-3 shadow-sm sm:mx-auto sm:px-4 sm:py-3.5"
       >
         <ItemContent className="flex max-h-[calc(100vh-10rem)] min-h-20 flex-col">
           <div className="flex grow flex-col gap-2 overflow-y-auto">
@@ -99,7 +99,7 @@ export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <HugeiconsIcon strokeWidth={2.5} icon={PlusSignIcon} />
-                Add photos
+                <span className="hidden sm:inline">Add photos</span>
               </Button>
               <input
                 ref={fileInputRef}
@@ -126,7 +126,7 @@ export function MomentInput({ onOpenTimeDialog, onCapture }: MomentInputProps) {
                       backgroundColor: colorHex || undefined,
                     }}
                   />
-                  <span>Color</span>
+                  <span className="hidden sm:inline">Color</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <ColorSwatchPicker

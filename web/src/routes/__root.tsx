@@ -8,8 +8,8 @@ const RootLayout = () => (
   <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
     <Outlet />
     <Toaster />
-    <TanStackRouterDevtools position="bottom-right" />
-    <ReactQueryDevtools buttonPosition="bottom-left" />
+    {/* <TanStackRouterDevtools position="bottom-right" /> */}
+    {/* <ReactQueryDevtools buttonPosition="bottom-left" /> */}
   </ThemeProvider>
 );
 
