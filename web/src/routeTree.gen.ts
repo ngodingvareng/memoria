@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as UserRouteImport } from './routes/_user'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -60,11 +59,6 @@ const AuthRoute = AuthRouteImport.update({
 } as any)
 const UserRoute = UserRouteImport.update({
   id: '/_user',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -250,7 +244,6 @@ const AppCircleCIdJoinCodeRoute = AppCircleCIdJoinCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/about': typeof AboutRoute
   '/help': typeof HelpRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -288,7 +281,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
-  '/about': typeof AboutRoute
   '/help': typeof HelpRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -329,7 +321,6 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
   '/_user': typeof UserRouteWithChildren
-  '/about': typeof AboutRoute
   '/help': typeof HelpRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -371,7 +362,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
     | '/help'
     | '/privacy'
     | '/terms'
@@ -409,7 +399,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
     | '/help'
     | '/privacy'
     | '/terms'
@@ -449,7 +438,6 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/_user'
-    | '/about'
     | '/help'
     | '/privacy'
     | '/terms'
@@ -492,7 +480,6 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   UserRoute: typeof UserRouteWithChildren
-  AboutRoute: typeof AboutRoute
   HelpRoute: typeof HelpRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
@@ -519,13 +506,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof UserRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -887,7 +867,6 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   UserRoute: UserRouteWithChildren,
-  AboutRoute: AboutRoute,
   HelpRoute: HelpRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,

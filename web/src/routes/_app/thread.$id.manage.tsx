@@ -77,7 +77,7 @@ function RouteComponent() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          {/* <div className="flex flex-col gap-4">
             <div className="flex items-center">
               <h2 className="text-xl font-semibold">
                 336k moments over the last year
@@ -104,7 +104,7 @@ function RouteComponent() {
             </div>
 
             <MomentHeatmap />
-          </div>
+          </div> */}
 
           <EditThreadDetailsSection threadId={id} thread={thread} />
 

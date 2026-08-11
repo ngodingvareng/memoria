@@ -1,15 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { ButtonGroup } from '@/components/ui/button-group';
-import { ThreadCircleBadge } from './thread-circle-badge';
-import {
-  Edit04Icon,
-  EyeIcon,
-  Search01Icon,
-  Setting06Icon,
-  Share01Icon,
-} from '@hugeicons/core-free-icons';
+import { Edit04Icon, EyeIcon, Setting06Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Link } from '@tanstack/react-router';
+import { ThreadCircleBadge } from './thread-circle-badge';
 
 interface ThreadHeaderProps {
   threadId: string;
@@ -17,7 +11,6 @@ interface ThreadHeaderProps {
   circleId?: string;
   isReadMode: boolean;
   onToggleMode: () => void;
-  onShare: () => void;
 }
 
 export function ThreadHeader({
@@ -26,7 +19,6 @@ export function ThreadHeader({
   circleId,
   isReadMode,
   onToggleMode,
-  onShare,
 }: ThreadHeaderProps) {
   return (
     <div className="mt-4 flex flex-col gap-2">
@@ -37,12 +29,6 @@ export function ThreadHeader({
         </div>
 
         <ButtonGroup>
-          <Button variant="outline">
-            <HugeiconsIcon icon={Search01Icon} />
-          </Button>
-          <Button variant="outline" onClick={onShare}>
-            <HugeiconsIcon icon={Share01Icon} />
-          </Button>
           <Button variant="outline" onClick={onToggleMode}>
             {isReadMode ? (
               <>

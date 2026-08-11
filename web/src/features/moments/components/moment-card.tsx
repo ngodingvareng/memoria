@@ -356,7 +356,7 @@ export function MomentCard({
                 </Link>
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
-                  className="text-muted-foreground size-5 shrink-0 font-bold"
+                  className="text-muted-foreground mt-0.5 size-5 shrink-0 font-bold"
                   strokeWidth={2}
                 />
                 <div className="min-w-0 flex-1 font-medium">
@@ -406,18 +406,23 @@ export function MomentCard({
               )}
             </ItemContent>
             {id && hasAudience && (
-              <ItemFooter className="-ml-3 flex items-center justify-start gap-2">
-                <ReactionPicker momentId={id} />
-                <ReactionSummary momentId={id} />
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="[&_svg]:size-5!"
-                  render={<Link to="/moment/$id" params={{ id }} />}
-                >
-                  <HugeiconsIcon strokeWidth={2} icon={Comment02Icon} />
-                </Button>
-                <CommentAuthorsAvatarGroup momentId={id} />
+              <ItemFooter className="-ml-3 flex items-center justify-start gap-3">
+                <div className="flex items-center gap-0.5">
+                  <ReactionPicker momentId={id} />
+                  <ReactionSummary momentId={id} />
+                </div>
+
+                <div className="flex items-center gap-0.5">
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    className="[&_svg]:size-5!"
+                    render={<Link to="/moment/$id" params={{ id }} />}
+                  >
+                    <HugeiconsIcon strokeWidth={2} icon={Comment02Icon} />
+                  </Button>
+                  <CommentAuthorsAvatarGroup momentId={id} />
+                </div>
               </ItemFooter>
             )}
           </Item>

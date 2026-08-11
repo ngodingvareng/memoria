@@ -1,12 +1,5 @@
-import { Fragment } from 'react';
-import {
-  HelpCircleIcon,
-  LanguageSquareIcon,
-  Logout01Icon,
-  Settings02Icon,
-  Sun01Icon,
-  UserCircleIcon,
-} from '@hugeicons/core-free-icons';
+import { MenuGroupItems, type MenuGroup } from '@/components/menu-group-items';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,14 +8,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { HugeiconsIcon } from '@hugeicons/react';
-import { useNavigate } from '@tanstack/react-router';
-import { useTheme } from '@/components/theme-provider';
-import { useSession, setSession } from '@/lib/session';
+import { useTheme } from '@/hooks/use-theme';
 import { useLogout } from '@/lib/api/generated/auth/auth';
 import { useGetUserByID } from '@/lib/api/generated/users/users';
-import { MenuGroupItems, type MenuGroup } from '@/components/menu-group-items';
+import { setSession, useSession } from '@/lib/session';
+import {
+  HelpCircleIcon,
+  LanguageSquareIcon,
+  Logout01Icon,
+  Settings02Icon,
+  Sun01Icon,
+  UserCircleIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { useNavigate } from '@tanstack/react-router';
+import { Fragment } from 'react';
 
 export function UserHeaderMenu() {
   const { theme, setTheme } = useTheme();

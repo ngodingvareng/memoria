@@ -1,3 +1,4 @@
+import { ColorSwatchPicker } from '@/components/color-swatch-picker';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,7 +8,6 @@ import {
   FieldLabel,
 } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
-import { ColorSwatchPicker } from '@/components/color-swatch-picker';
 import { useFormSubmitError } from '@/hooks/use-form-submit-error';
 import type { GithubComNgodingvarengMemoriaInternalDeliveryRestDtoThreadResponse } from '@/lib/api/generated/models';
 import {
@@ -74,7 +74,7 @@ export function EditThreadDetailsSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold">Description & color</h2>
+      {/* <h2 className="text-xl font-semibold">Description & color</h2> */}
 
       <form
         id="edit-thread-details-form"

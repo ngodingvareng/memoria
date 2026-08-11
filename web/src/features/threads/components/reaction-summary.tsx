@@ -28,7 +28,7 @@ export function ReactionSummary({ momentId }: ReactionSummaryProps) {
     <div className="flex items-center gap-3">
       {groups.map(({ kind, reactorIds }) => (
         <div key={kind} className="flex items-center gap-1">
-          <span className="text-sm">{REACTION_EMOJI[kind]}</span>
+          <span className="mt-0.5 text-xl">{REACTION_EMOJI[kind]}</span>
           <div className="flex -space-x-2">
             {reactorIds.slice(0, 4).map((userId) => (
               <ReactorAvatar key={userId} userId={userId} />

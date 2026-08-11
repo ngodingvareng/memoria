@@ -5,7 +5,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AudiencePicker } from './audience-picker';
 import {
   REACTION_EMOJI,
   REACTION_KINDS,
@@ -25,9 +24,10 @@ import {
 } from '@/lib/api/generated/reactions/reactions';
 import { queryClient } from '@/lib/query-client';
 import { useSession } from '@/lib/session';
-import { SmilePlusIcon } from '@hugeicons/core-free-icons';
+import { SmileIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useState } from 'react';
+import { AudiencePicker } from './audience-picker';
 
 interface ReactionPickerProps {
   momentId: string;
@@ -76,11 +76,12 @@ export function ReactionPicker({ momentId }: ReactionPickerProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button size="icon" variant="ghost" />}>
+      <DropdownMenuTrigger render={<Button size="icon-sm" variant="ghost" />}>
         <HugeiconsIcon
           strokeWidth={2}
-          icon={SmilePlusIcon}
-          className={myReaction ? 'fill-primary/20' : undefined}
+          icon={SmileIcon}
+          className="size-5"
+          // className={myReaction ? 'fill-yellow-500/50' : undefined}
         />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="flex flex-col gap-2 p-2" align="start">
