@@ -173,9 +173,6 @@ export default function AppSidebar({
       <SidebarFooter>
         <div className="flex flex-col gap-2 px-2 py-1 text-xs">
           <div className="flex flex-wrap items-center gap-2">
-            <Link to="/about" className="hover:underline">
-              About
-            </Link>
             <Link to="/privacy" className="hover:underline">
               Privacy
             </Link>
