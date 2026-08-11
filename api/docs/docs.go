@@ -3424,6 +3424,11 @@ const docTemplate = `{
                 "shared_by": {
                     "$ref": "#/definitions/github_com_ngodingvareng_memoria_internal_delivery_rest_dto.AlbumSharedByResponse"
                 },
+                "thread_name": {
+                    "description": "ThreadName is omitted when the image's Moment has no parent\nThread.",
+                    "type": "string",
+                    "example": "Morning Run"
+                },
                 "url": {
                     "type": "string",
                     "example": "https://storage.example.com/moments/.../abc123.jpg?X-Amz-..."

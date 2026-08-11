@@ -1,13 +1,16 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Empty, EmptyDescription, EmptyHeader } from '@/components/ui/empty';
+import { Lightbox } from '@/components/ui/lightbox';
 import { InfiniteScrollSentinel } from '@/components/infinite-scroll-sentinel';
 import {
   AlbumImageList,
   AlbumTimeline,
+  formatAlbumImageCaption,
   groupAlbumImagesByDate,
   useCircleAlbumImages,
 } from '@/features/album';
 import { createFileRoute } from '@tanstack/react-router';
+import React from 'react';
 
 export const Route = createFileRoute('/_app/_circle/c/$id/album')({
   component: RouteComponent,
@@ -19,6 +22,9 @@ function RouteComponent() {
   const images =
     albumQuery.data?.pages.flatMap((page) => page.images ?? []) ?? [];
   const buckets = groupAlbumImagesByDate(images);
+
+  const [isLightboxOpen, setIsLightboxOpen] = React.useState(false);
+  const [lightboxIndex, setLightboxIndex] = React.useState(0);
 
   return (
     <div className="flex flex-col gap-8">
@@ -42,7 +48,17 @@ function RouteComponent() {
         <AlbumTimeline
           albums={buckets.map((bucket) => ({
             date: bucket.date,
-            content: <AlbumImageList images={bucket.images} />,
+            content: (
+              <AlbumImageList
+                images={bucket.images}
+                onImageClick={(image) => {
+                  const index = images.findIndex((i) => i.id === image.id);
+                  if (index === -1) return;
+                  setLightboxIndex(index);
+                  setIsLightboxOpen(true);
+                }}
+              />
+            ),
           }))}
         />
       )}
@@ -54,6 +70,21 @@ function RouteComponent() {
         isLoading={albumQuery.isFetchingNextPage}
         onIntersect={() => albumQuery.fetchNextPage()}
       />
+
+      {images.length > 0 && (
+        <Lightbox
+          images={images.map((image) => ({
+            src: image.url ?? '',
+            alt: image.image_alt,
+            caption: formatAlbumImageCaption(image),
+          }))}
+          open={isLightboxOpen}
+          onOpenChange={setIsLightboxOpen}
+          index={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          loop
+        />
+      )}
     </div>
   );
 }

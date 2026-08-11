@@ -20,6 +20,11 @@ export interface GithubComNgodingvarengMemoriaInternalDeliveryRestDtoAlbumImageR
   moment_id?: string;
   occurred_at?: string;
   shared_by?: GithubComNgodingvarengMemoriaInternalDeliveryRestDtoAlbumSharedByResponse;
+  /**
+   * ThreadName is omitted when the image's Moment has no parent
+   * Thread.
+   */
+  thread_name?: string;
   url?: string;
   width?: number;
 }

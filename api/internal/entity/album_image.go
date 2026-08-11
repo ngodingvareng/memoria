@@ -24,6 +24,10 @@ type AlbumImage struct {
 	OccurredLocal            time.Time
 	OccurredUTCOffsetMinutes int16
 
+	// ThreadName is nil when the image's Moment has no parent Thread
+	// (moments.thread_id is nullable — see that column's own comment).
+	ThreadName *string
+
 	// IsShared and the two SharedBy* fields are always false/nil for a
 	// Personal Album row. For a Circle Album row, IsShared is true iff
 	// this image's Moment reached the Circle via the mention/share flow

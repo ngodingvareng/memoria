@@ -34,7 +34,10 @@ RETURNING *;
 -- back to moments for ordering and visibility" (see that table's own
 -- comment above). occurred_local/occurred_utc_offset_minutes are
 -- returned instead of occurred_at so the caller can bucket by the
--- Moment's local calendar day, not a UTC one.
+-- Moment's local calendar day, not a UTC one. threads.name is
+-- LEFT JOINed (not JOINed) because moments.thread_id is nullable — a
+-- Moment can exist with no parent Thread (see moments.thread_id's own
+-- comment).
 --
 -- A missed Commitment occurrence produces no moments row at all, so it
 -- can produce no moment_images row either — the Commitment Firewall
@@ -53,9 +56,11 @@ SELECT
     moment_images.width,
     moment_images.height,
     moments.occurred_local,
-    moments.occurred_utc_offset_minutes
+    moments.occurred_utc_offset_minutes,
+    threads.name AS thread_name
 FROM moment_images
     JOIN moments ON moments.id = moment_images.moment_id
+    LEFT JOIN threads ON threads.id = moments.thread_id
 WHERE moments.user_id = sqlc.arg(user_id)
     AND moments.deleted_at IS NULL
 ORDER BY moments.occurred_at DESC, moment_images.sort_order ASC, moment_images.id ASC
@@ -133,10 +138,21 @@ SELECT
     circle_moments.occurred_utc_offset_minutes,
     circle_moments.is_shared,
     circle_moments.shared_by_user_id,
-    users.username AS shared_by_username
+    users.username AS shared_by_username,
+    -- Resolved directly off moments/threads rather than threaded
+    -- through the native/shared CTEs above (which is where a Moment's
+    -- own Thread lives for the native branch, and the sharer's
+    -- personal Thread for the shared branch — same column either way)
+    -- because sqlc's nullability inference doesn't reliably carry a
+    -- LEFT JOIN-derived nullable column through a UNION ALL nested two
+    -- CTEs deep; this single extra hop keeps the same LEFT JOIN shape
+    -- ListAlbumImages uses, which sqlc types correctly.
+    threads.name AS thread_name
 FROM moment_images
     JOIN circle_moments ON circle_moments.id = moment_images.moment_id
     LEFT JOIN users ON users.id = circle_moments.shared_by_user_id
+    JOIN moments ON moments.id = moment_images.moment_id
+    LEFT JOIN threads ON threads.id = moments.thread_id
 ORDER BY circle_moments.occurred_at DESC, moment_images.sort_order ASC, moment_images.id ASC
 LIMIT sqlc.arg(page_limit)
 OFFSET sqlc.arg(page_offset);

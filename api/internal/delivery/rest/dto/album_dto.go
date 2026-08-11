@@ -35,6 +35,10 @@ type AlbumImageResponse struct {
 	Height     *int32  `json:"height,omitempty"`
 	OccurredAt string  `json:"occurred_at" example:"2026-08-04T14:30:00+09:00"`
 
+	// ThreadName is omitted when the image's Moment has no parent
+	// Thread.
+	ThreadName *string `json:"thread_name,omitempty" example:"Morning Run"`
+
 	// IsShared/SharedBy are always false/omitted on GET /album. On
 	// GET /circles/{id}/album, IsShared is true and SharedBy is set iff
 	// this image's Moment reached the Circle via the mention/share
@@ -65,6 +69,7 @@ func NewAlbumImageResponse(img usecase.AlbumImageWithURL) AlbumImageResponse {
 		Height:     img.Height,
 		OccurredAt: occurredAt.Format(time.RFC3339),
 		IsShared:   img.IsShared,
+		ThreadName: img.ThreadName,
 	}
 	// SharedByUserID can be nil even when IsShared is true: shared_by_user_id
 	// is ON DELETE SET NULL, so a sharer who deleted their account leaves

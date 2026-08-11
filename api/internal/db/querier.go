@@ -338,7 +338,10 @@ type Querier interface {
 	// back to moments for ordering and visibility" (see that table's own
 	// comment above). occurred_local/occurred_utc_offset_minutes are
 	// returned instead of occurred_at so the caller can bucket by the
-	// Moment's local calendar day, not a UTC one.
+	// Moment's local calendar day, not a UTC one. threads.name is
+	// LEFT JOINed (not JOINed) because moments.thread_id is nullable — a
+	// Moment can exist with no parent Thread (see moments.thread_id's own
+	// comment).
 	//
 	// A missed Commitment occurrence produces no moments row at all, so it
 	// can produce no moment_images row either — the Commitment Firewall

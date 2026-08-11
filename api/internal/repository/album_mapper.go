@@ -15,6 +15,7 @@ func toEntityAlbumImage(row db.ListAlbumImagesRow) *entity.AlbumImage {
 		Height:                   pgInt4ToPtr(row.Height),
 		OccurredLocal:            row.OccurredLocal.Time,
 		OccurredUTCOffsetMinutes: row.OccurredUtcOffsetMinutes,
+		ThreadName:               pgTextToPtr(row.ThreadName),
 	}
 }
 
@@ -39,6 +40,7 @@ func toEntityCircleAlbumImage(row db.ListCircleAlbumImagesRow) *entity.AlbumImag
 		IsShared:                 row.IsShared,
 		SharedByUserID:           pgUUIDToPtr(row.SharedByUserID),
 		SharedByUsername:         pgTextToPtr(row.SharedByUsername),
+		ThreadName:               pgTextToPtr(row.ThreadName),
 	}
 }
 
