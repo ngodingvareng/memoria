@@ -5,7 +5,13 @@ import type { SearchSuggestionItem } from '../hooks/use-search-autocomplete';
 import { SearchSuggestionList } from './search-suggestion-list';
 
 interface SearchSuggestionsPopoverProps {
-  anchorRef: RefObject<HTMLInputElement | null>;
+  // Positions and sizes the popup — the whole InputGroup (input +
+  // search icon addon), not just the input, so the popup's
+  // w-(--anchor-width) matches the full search bar.
+  anchorRef: RefObject<HTMLElement | null>;
+  // Keyboard focus target — the input itself, so it keeps/regains
+  // focus while suggestions are open.
+  inputRef: RefObject<HTMLInputElement | null>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: SearchSuggestionItem[];
@@ -14,11 +20,12 @@ interface SearchSuggestionsPopoverProps {
   onSelect: (item: SearchSuggestionItem) => void;
 }
 
-// Anchored to the search input itself, non-modal so the input keeps
-// keyboard focus while suggestions are open — same shape as
+// Anchored to the search input's InputGroup, non-modal so the input
+// keeps keyboard focus while suggestions are open — same shape as
 // MentionAutocompletePopover.
 export function SearchSuggestionsPopover({
   anchorRef,
+  inputRef,
   open,
   onOpenChange,
   items,
@@ -41,8 +48,8 @@ export function SearchSuggestionsPopover({
           className="isolate z-50"
         >
           <PopoverPrimitive.Popup
-            initialFocus={anchorRef}
-            finalFocus={anchorRef}
+            initialFocus={inputRef}
+            finalFocus={inputRef}
             className={cn(
               'bg-popover text-popover-foreground ring-foreground/5 dark:ring-foreground/10 z-50 flex max-h-96 w-(--anchor-width) min-w-72 origin-(--transform-origin) flex-col gap-0.5 overflow-y-auto rounded-2xl p-1.5 text-sm shadow-lg ring-1 outline-hidden'
             )}

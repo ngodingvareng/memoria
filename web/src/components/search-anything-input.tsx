@@ -9,6 +9,10 @@ import { Search01Icon } from '@hugeicons/core-free-icons';
 
 export default function SearchAnythingInput() {
   const inputRef = useRef<HTMLInputElement>(null);
+  // InputGroup itself doesn't forward a ref, so the popover anchors to
+  // this wrapper instead — matching its width (input + icon addon),
+  // not just the input's.
+  const groupRef = useRef<HTMLDivElement>(null);
   const {
     value,
     isOpen,
@@ -22,29 +26,32 @@ export default function SearchAnythingInput() {
   } = useSearchAutocomplete();
 
   return (
-    <InputGroup className="h-10 w-full max-w-2xl [&_svg]:size-5!">
-      <InputGroupInput
-        ref={inputRef}
-        placeholder="Search anything..."
-        type="search"
-        className="text-base!"
-        value={value}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-      />
-      <InputGroupAddon>
-        <HugeiconsIcon strokeWidth={2} icon={Search01Icon} />
-      </InputGroupAddon>
+    <div ref={groupRef} className="w-full max-w-2xl">
+      <InputGroup className="h-10 w-full [&_svg]:size-5!">
+        <InputGroupInput
+          ref={inputRef}
+          placeholder="Search anything..."
+          type="search"
+          className="text-base!"
+          value={value}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+        />
+        <InputGroupAddon>
+          <HugeiconsIcon strokeWidth={2} icon={Search01Icon} />
+        </InputGroupAddon>
 
-      <SearchSuggestionsPopover
-        anchorRef={inputRef}
-        open={isOpen}
-        onOpenChange={setIsOpen}
-        items={items}
-        activeIndex={activeIndex}
-        isLoading={isLoading}
-        onSelect={handleSelect}
-      />
-    </InputGroup>
+        <SearchSuggestionsPopover
+          anchorRef={groupRef}
+          inputRef={inputRef}
+          open={isOpen}
+          onOpenChange={setIsOpen}
+          items={items}
+          activeIndex={activeIndex}
+          isLoading={isLoading}
+          onSelect={handleSelect}
+        />
+      </InputGroup>
+    </div>
   );
 }
