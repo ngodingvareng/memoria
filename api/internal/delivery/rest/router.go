@@ -35,7 +35,13 @@ type Handlers struct {
 // unauthenticated auth endpoints that are actually brute-forceable —
 // /refresh and /logout require a valid cookie/session already, so they
 // aren't password-guessing targets the way /login and /register are.
-func SetupRoutes(app *fiber.App, issuer usecase.AccessTokenIssuer, authRateLimiter fiber.Handler, requireOnboarded fiber.Handler, h Handlers) {
+func SetupRoutes(
+	app *fiber.App,
+	issuer usecase.AccessTokenIssuer,
+	authRateLimiter fiber.Handler,
+	requireOnboarded fiber.Handler,
+	h Handlers,
+) {
 	app.Get("/healthz", h.Health.Health)
 
 	app.Get("/docs/*", swaggo.New(swaggo.Config{Title: "Book API"}))

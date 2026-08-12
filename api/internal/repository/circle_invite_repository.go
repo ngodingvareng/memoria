@@ -29,7 +29,11 @@ func NewCircleInviteRepository(pool *pgxpool.Pool) *circleInviteRepository {
 }
 
 // CreateUsernameInvite implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) CreateUsernameInvite(ctx context.Context, circleID, invitedByUserID, inviteeUserID uuid.UUID, expiresAt time.Time) (*entity.CircleInvite, error) {
+func (r *circleInviteRepository) CreateUsernameInvite(
+	ctx context.Context,
+	circleID, invitedByUserID, inviteeUserID uuid.UUID,
+	expiresAt time.Time,
+) (*entity.CircleInvite, error) {
 	row, err := r.q.CreateCircleUsernameInvite(ctx, db.CreateCircleUsernameInviteParams{
 		CircleID: circleID, InvitedByUserID: ptrToPgUUID(&invitedByUserID),
 		InviteeUserID: ptrToPgUUID(&inviteeUserID), ExpiresAt: timeToPgTimestamptz(expiresAt),
@@ -41,7 +45,10 @@ func (r *circleInviteRepository) CreateUsernameInvite(ctx context.Context, circl
 }
 
 // GetPendingUsernameInvite implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) GetPendingUsernameInvite(ctx context.Context, circleID, inviteeUserID uuid.UUID) (*entity.CircleInvite, error) {
+func (r *circleInviteRepository) GetPendingUsernameInvite(
+	ctx context.Context,
+	circleID, inviteeUserID uuid.UUID,
+) (*entity.CircleInvite, error) {
 	row, err := r.q.GetPendingCircleUsernameInvite(ctx, db.GetPendingCircleUsernameInviteParams{
 		CircleID: circleID, InviteeUserID: ptrToPgUUID(&inviteeUserID),
 	})
@@ -55,7 +62,10 @@ func (r *circleInviteRepository) GetPendingUsernameInvite(ctx context.Context, c
 }
 
 // ListPendingByInviteeID implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) ListPendingByInviteeID(ctx context.Context, inviteeUserID uuid.UUID) ([]*entity.CircleInvite, error) {
+func (r *circleInviteRepository) ListPendingByInviteeID(
+	ctx context.Context,
+	inviteeUserID uuid.UUID,
+) ([]*entity.CircleInvite, error) {
 	rows, err := r.q.ListPendingCircleInvitesByInviteeID(ctx, ptrToPgUUID(&inviteeUserID))
 	if err != nil {
 		return nil, fmt.Errorf("list pending circle invites: %w", err)
@@ -64,8 +74,14 @@ func (r *circleInviteRepository) ListPendingByInviteeID(ctx context.Context, inv
 }
 
 // AcceptUsernameInvite implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) AcceptUsernameInvite(ctx context.Context, id, inviteeUserID uuid.UUID) (*entity.CircleInvite, error) {
-	row, err := r.q.AcceptCircleUsernameInvite(ctx, db.AcceptCircleUsernameInviteParams{ID: id, InviteeUserID: ptrToPgUUID(&inviteeUserID)})
+func (r *circleInviteRepository) AcceptUsernameInvite(
+	ctx context.Context,
+	id, inviteeUserID uuid.UUID,
+) (*entity.CircleInvite, error) {
+	row, err := r.q.AcceptCircleUsernameInvite(
+		ctx,
+		db.AcceptCircleUsernameInviteParams{ID: id, InviteeUserID: ptrToPgUUID(&inviteeUserID)},
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFound
@@ -76,8 +92,14 @@ func (r *circleInviteRepository) AcceptUsernameInvite(ctx context.Context, id, i
 }
 
 // DeclineUsernameInvite implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) DeclineUsernameInvite(ctx context.Context, id, inviteeUserID uuid.UUID) (*entity.CircleInvite, error) {
-	row, err := r.q.DeclineCircleUsernameInvite(ctx, db.DeclineCircleUsernameInviteParams{ID: id, InviteeUserID: ptrToPgUUID(&inviteeUserID)})
+func (r *circleInviteRepository) DeclineUsernameInvite(
+	ctx context.Context,
+	id, inviteeUserID uuid.UUID,
+) (*entity.CircleInvite, error) {
+	row, err := r.q.DeclineCircleUsernameInvite(
+		ctx,
+		db.DeclineCircleUsernameInviteParams{ID: id, InviteeUserID: ptrToPgUUID(&inviteeUserID)},
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFound
@@ -88,7 +110,10 @@ func (r *circleInviteRepository) DeclineUsernameInvite(ctx context.Context, id, 
 }
 
 // RevokeUsernameInvite implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) RevokeUsernameInvite(ctx context.Context, id, circleID uuid.UUID) (*entity.CircleInvite, error) {
+func (r *circleInviteRepository) RevokeUsernameInvite(
+	ctx context.Context,
+	id, circleID uuid.UUID,
+) (*entity.CircleInvite, error) {
 	row, err := r.q.RevokeCircleUsernameInvite(ctx, db.RevokeCircleUsernameInviteParams{ID: id, CircleID: circleID})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -102,7 +127,10 @@ func (r *circleInviteRepository) RevokeUsernameInvite(ctx context.Context, id, c
 // RevokeActiveLink implements [usecase.CircleInviteRepository]. Returns
 // nil, nil when the Circle has no live link yet — the ordinary
 // first-generation case, not an error (see the query's own comment).
-func (r *circleInviteRepository) RevokeActiveLink(ctx context.Context, circleID uuid.UUID) (*entity.CircleInvite, error) {
+func (r *circleInviteRepository) RevokeActiveLink(
+	ctx context.Context,
+	circleID uuid.UUID,
+) (*entity.CircleInvite, error) {
 	row, err := r.q.RevokeActiveCircleInviteLink(ctx, circleID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -114,7 +142,12 @@ func (r *circleInviteRepository) RevokeActiveLink(ctx context.Context, circleID 
 }
 
 // CreateLink implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) CreateLink(ctx context.Context, circleID, invitedByUserID uuid.UUID, tokenHash string, requiresApproval bool) (*entity.CircleInvite, error) {
+func (r *circleInviteRepository) CreateLink(
+	ctx context.Context,
+	circleID, invitedByUserID uuid.UUID,
+	tokenHash string,
+	requiresApproval bool,
+) (*entity.CircleInvite, error) {
 	row, err := r.q.CreateCircleInviteLink(ctx, db.CreateCircleInviteLinkParams{
 		CircleID: circleID, InvitedByUserID: ptrToPgUUID(&invitedByUserID),
 		TokenHash: ptrToPgText(&tokenHash), RequiresApproval: ptrToPgBool(&requiresApproval),
@@ -126,7 +159,10 @@ func (r *circleInviteRepository) CreateLink(ctx context.Context, circleID, invit
 }
 
 // GetActiveLinkByCircleID implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) GetActiveLinkByCircleID(ctx context.Context, circleID uuid.UUID) (*entity.CircleInvite, error) {
+func (r *circleInviteRepository) GetActiveLinkByCircleID(
+	ctx context.Context,
+	circleID uuid.UUID,
+) (*entity.CircleInvite, error) {
 	row, err := r.q.GetActiveCircleInviteLinkByCircleID(ctx, circleID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -139,7 +175,10 @@ func (r *circleInviteRepository) GetActiveLinkByCircleID(ctx context.Context, ci
 
 // GetActiveLinkByTokenHash implements [usecase.CircleInviteRepository]
 // and [usecase.CircleInviteLinkResolver].
-func (r *circleInviteRepository) GetActiveLinkByTokenHash(ctx context.Context, tokenHash string) (*entity.CircleInvite, error) {
+func (r *circleInviteRepository) GetActiveLinkByTokenHash(
+	ctx context.Context,
+	tokenHash string,
+) (*entity.CircleInvite, error) {
 	row, err := r.q.GetActiveCircleInviteLinkByTokenHash(ctx, ptrToPgText(&tokenHash))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -151,7 +190,11 @@ func (r *circleInviteRepository) GetActiveLinkByTokenHash(ctx context.Context, t
 }
 
 // SetLinkRequiresApproval implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) SetLinkRequiresApproval(ctx context.Context, circleID uuid.UUID, requiresApproval bool) (*entity.CircleInvite, error) {
+func (r *circleInviteRepository) SetLinkRequiresApproval(
+	ctx context.Context,
+	circleID uuid.UUID,
+	requiresApproval bool,
+) (*entity.CircleInvite, error) {
 	row, err := r.q.SetCircleInviteLinkRequiresApproval(ctx, db.SetCircleInviteLinkRequiresApprovalParams{
 		CircleID: circleID, RequiresApproval: ptrToPgBool(&requiresApproval),
 	})
@@ -165,7 +208,11 @@ func (r *circleInviteRepository) SetLinkRequiresApproval(ctx context.Context, ci
 }
 
 // AddMembers implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) AddMembers(ctx context.Context, circleID uuid.UUID, userIDs []uuid.UUID) ([]*entity.CircleMember, error) {
+func (r *circleInviteRepository) AddMembers(
+	ctx context.Context,
+	circleID uuid.UUID,
+	userIDs []uuid.UUID,
+) ([]*entity.CircleMember, error) {
 	rows, err := r.q.AddCircleMembers(ctx, db.AddCircleMembersParams{CircleID: circleID, UserIds: userIDs})
 	if err != nil {
 		return nil, fmt.Errorf("add circle members: %w", err)
@@ -174,7 +221,10 @@ func (r *circleInviteRepository) AddMembers(ctx context.Context, circleID uuid.U
 }
 
 // WithTransaction implements [usecase.CircleInviteRepository].
-func (r *circleInviteRepository) WithTransaction(ctx context.Context, fn func(usecase.CircleInviteRepository) error) error {
+func (r *circleInviteRepository) WithTransaction(
+	ctx context.Context,
+	fn func(usecase.CircleInviteRepository) error,
+) error {
 	if r.pool == nil {
 		return errors.New("circleInviteRepository: cannot start a transaction from within an existing transaction")
 	}

@@ -27,7 +27,11 @@ func NewUserVerificationRepository(pool *pgxpool.Pool) *userVerificationReposito
 }
 
 // Create implements [usecase.UserVerificationRepository].
-func (r *userVerificationRepository) Create(ctx context.Context, identifier, value string, expiresAt time.Time) (*entity.UserVerification, error) {
+func (r *userVerificationRepository) Create(
+	ctx context.Context,
+	identifier, value string,
+	expiresAt time.Time,
+) (*entity.UserVerification, error) {
 	row, err := r.q.CreateUserVerification(ctx, db.CreateUserVerificationParams{
 		Identifier: identifier,
 		Value:      value,
@@ -40,7 +44,10 @@ func (r *userVerificationRepository) Create(ctx context.Context, identifier, val
 }
 
 // GetValid implements [usecase.UserVerificationRepository].
-func (r *userVerificationRepository) GetValid(ctx context.Context, identifier, value string) (*entity.UserVerification, error) {
+func (r *userVerificationRepository) GetValid(
+	ctx context.Context,
+	identifier, value string,
+) (*entity.UserVerification, error) {
 	row, err := r.q.GetValidUserVerification(ctx, db.GetValidUserVerificationParams{
 		Identifier: identifier,
 		Value:      value,

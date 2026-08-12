@@ -39,8 +39,16 @@ type CircleRepository interface {
 	IsSoleActiveAdmin(ctx context.Context, circleID, userID uuid.UUID) (bool, error)
 	Leave(ctx context.Context, circleID, userID uuid.UUID) error
 	RemoveMember(ctx context.Context, circleID, userID, removedByUserID uuid.UUID) error
-	UpdateMemberRole(ctx context.Context, circleID, userID, changedByUserID uuid.UUID, role enum.CircleRole) (*entity.CircleMember, error)
-	UpdateMemberPermissions(ctx context.Context, circleID, userID, changedByUserID uuid.UUID, canInvite, canCapture bool) (*entity.CircleMember, error)
+	UpdateMemberRole(
+		ctx context.Context,
+		circleID, userID, changedByUserID uuid.UUID,
+		role enum.CircleRole,
+	) (*entity.CircleMember, error)
+	UpdateMemberPermissions(
+		ctx context.Context,
+		circleID, userID, changedByUserID uuid.UUID,
+		canInvite, canCapture bool,
+	) (*entity.CircleMember, error)
 
 	// ListSharedCircleIDs is unused by CircleUsecase itself — declared
 	// here only because circleRepository is the single implementation

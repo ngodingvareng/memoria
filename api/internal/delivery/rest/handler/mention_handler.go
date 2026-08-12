@@ -33,7 +33,7 @@ func NewMentionHandler(usecase usecase.MentionUsecase) *MentionHandler {
 // @Success      201 {object} dto.WebResponse[dto.MentionResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      403 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/mentions [post]
+// @Router       /moments/{id}/mentions [post].
 func (h *MentionHandler) CreateMention(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -76,7 +76,7 @@ func (h *MentionHandler) CreateMention(c fiber.Ctx) error {
 // @Param        id path string true "Moment ID"
 // @Success      200 {object} dto.WebResponse[dto.ListMentionsResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/mentions [get]
+// @Router       /moments/{id}/mentions [get].
 func (h *MentionHandler) ListMentions(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -113,7 +113,7 @@ func (h *MentionHandler) ListMentions(c fiber.Ctx) error {
 // @Param        mentionId  path string true "Mention ID"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/mentions/{mentionId} [delete]
+// @Router       /moments/{id}/mentions/{mentionId} [delete].
 func (h *MentionHandler) DeleteMention(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -145,7 +145,7 @@ func (h *MentionHandler) DeleteMention(c fiber.Ctx) error {
 // @Param        id path string true "Moment ID"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/mentions/leave [post]
+// @Router       /moments/{id}/mentions/leave [post].
 func (h *MentionHandler) LeaveMention(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -174,7 +174,7 @@ func (h *MentionHandler) LeaveMention(c fiber.Ctx) error {
 // @Param        page      query int false "Page number (default 1)"
 // @Param        page_size query int false "Moments per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.ListMomentsResponse]
-// @Router       /mentions [get]
+// @Router       /mentions [get].
 func (h *MentionHandler) ListMentionedMoments(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -219,7 +219,7 @@ func (h *MentionHandler) ListMentionedMoments(c fiber.Ctx) error {
 // @Param        q query string true "Username prefix"
 // @Success      200 {object} dto.WebResponse[dto.SearchMentionableUsersResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /mentions/users [get]
+// @Router       /mentions/users [get].
 func (h *MentionHandler) SearchMentionableUsers(c fiber.Ctx) error {
 	var query dto.SearchMentionableUsersQuery
 	if err := c.Bind().Query(&query); err != nil {
@@ -261,7 +261,7 @@ func (h *MentionHandler) SearchMentionableUsers(c fiber.Ctx) error {
 // @Param        request body dto.ShareMomentToCircleRequest true "Target circle"
 // @Success      200 {object} dto.WebResponse[dto.MomentCircleResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/share [post]
+// @Router       /moments/{id}/share [post].
 func (h *MentionHandler) ShareToCircle(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -308,7 +308,7 @@ func (h *MentionHandler) ShareToCircle(c fiber.Ctx) error {
 // @Param        circleId path string true "Circle ID"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/share/{circleId} [delete]
+// @Router       /moments/{id}/share/{circleId} [delete].
 func (h *MentionHandler) UnshareFromCircle(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -341,7 +341,7 @@ func (h *MentionHandler) UnshareFromCircle(c fiber.Ctx) error {
 // @Param        id path string true "Moment ID"
 // @Success      200 {object} dto.WebResponse[dto.ListMomentSharesResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/shares [get]
+// @Router       /moments/{id}/shares [get].
 func (h *MentionHandler) ListShares(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

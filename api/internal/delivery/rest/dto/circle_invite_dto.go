@@ -20,23 +20,23 @@ type SetInviteLinkRequiresApprovalRequest struct {
 }
 
 type CircleInviteResponse struct {
-	ID               string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	CircleID         string  `json:"circle_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	ID               string  `json:"id"                           example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	CircleID         string  `json:"circle_id"                    example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	InvitedByUserID  *string `json:"invited_by_user_id,omitempty"`
-	Kind             string  `json:"kind" example:"username"`
+	Kind             string  `json:"kind"                         example:"username"`
 	InviteeUserID    *string `json:"invitee_user_id,omitempty"`
 	RequiresApproval *bool   `json:"requires_approval,omitempty"`
-	Status           string  `json:"status" example:"pending"`
+	Status           string  `json:"status"                       example:"pending"`
 	ExpiresAt        *string `json:"expires_at,omitempty"`
 	RespondedAt      *string `json:"responded_at,omitempty"`
-	CreatedAt        string  `json:"created_at" example:"2026-07-20T10:00:00Z"`
+	CreatedAt        string  `json:"created_at"                   example:"2026-07-20T10:00:00Z"`
 }
 
 // CircleInviteLinkResponse is returned only from the create/rotate
 // endpoint — it is the one time the raw token is ever exposed.
 type CircleInviteLinkResponse struct {
 	Invite CircleInviteResponse `json:"invite"`
-	Token  string               `json:"token" example:"a1b2c3..."`
+	Token  string               `json:"token"  example:"a1b2c3..."`
 }
 
 type InviteDirectResponse struct {

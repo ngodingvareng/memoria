@@ -12,7 +12,10 @@ import (
 // optional "Share to circle too?" step (FEATURES.md, Mention) — never a
 // standalone "share" action, and only offered when the owner already
 // shares a Circle with someone they mentioned.
-func (u *mentionUsecase) ShareToCircle(ctx context.Context, input ShareMomentToCircleInput) (*entity.MomentCircle, error) {
+func (u *mentionUsecase) ShareToCircle(
+	ctx context.Context,
+	input ShareMomentToCircleInput,
+) (*entity.MomentCircle, error) {
 	if _, err := u.moments.GetByID(ctx, input.MomentID, input.UserID); err != nil {
 		return nil, fmt.Errorf("checking moment ownership: %w", err)
 	}

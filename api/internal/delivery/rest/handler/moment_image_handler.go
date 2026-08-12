@@ -29,7 +29,7 @@ func NewMomentImageHandler(uc usecase.MomentImageUsecase) *MomentImageHandler {
 // @Success      201 {object} dto.WebResponse[dto.MomentImageResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      500 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/images [post]
+// @Router       /moments/{id}/images [post].
 func (h *MomentImageHandler) UploadMomentImage(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -93,7 +93,7 @@ func (h *MomentImageHandler) UploadMomentImage(c fiber.Ctx) error {
 // @Produce      json
 // @Param        id path string true "Moment ID"
 // @Success      200 {object} dto.WebResponse[[]dto.MomentImageResponse]
-// @Router       /moments/{id}/images [get]
+// @Router       /moments/{id}/images [get].
 func (h *MomentImageHandler) ListMomentImages(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -128,7 +128,7 @@ func (h *MomentImageHandler) ListMomentImages(c fiber.Ctx) error {
 // @Param        id      path string true "Moment ID"
 // @Param        imageId path string true "Image ID"
 // @Success      204
-// @Router       /moments/{id}/images/{imageId} [delete]
+// @Router       /moments/{id}/images/{imageId} [delete].
 func (h *MomentImageHandler) DeleteMomentImage(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

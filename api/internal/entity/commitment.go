@@ -11,7 +11,7 @@ import (
 // (FEATURES.md). A Thread may carry more than one, each fully
 // independent. PausedAt/ArchivedAt together are the exit ramp and
 // replace the old threads.has_commitment flag: "does this Thread have
-// an active Commitment" is just "any row where both are nil."
+// an active Commitment" is just "any row where both are nil.".
 type Commitment struct {
 	ID       uuid.UUID
 	ThreadID uuid.UUID

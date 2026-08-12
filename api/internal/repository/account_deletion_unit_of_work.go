@@ -29,7 +29,10 @@ func NewAccountDeletionUnitOfWork(pool *pgxpool.Pool) *accountDeletionUnitOfWork
 }
 
 // WithTransaction implements [usecase.AccountDeletionUnitOfWork].
-func (u *accountDeletionUnitOfWork) WithTransaction(ctx context.Context, fn func(usecase.AccountDeletionRepositories) error) error {
+func (u *accountDeletionUnitOfWork) WithTransaction(
+	ctx context.Context,
+	fn func(usecase.AccountDeletionRepositories) error,
+) error {
 	tx, err := u.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("begin transaction: %w", err)

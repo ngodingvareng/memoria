@@ -26,7 +26,10 @@ func NewNotificationPreferenceRepository(pool *pgxpool.Pool) *notificationPrefer
 // Get implements [usecase.NotificationPreferenceRepository]. Lazily
 // inserts the all-defaults row the first time a user has none, so
 // "missing row" never has to mean "off" above this layer.
-func (r *notificationPreferenceRepository) Get(ctx context.Context, userID uuid.UUID) (*entity.NotificationPreference, error) {
+func (r *notificationPreferenceRepository) Get(
+	ctx context.Context,
+	userID uuid.UUID,
+) (*entity.NotificationPreference, error) {
 	row, err := r.q.GetNotificationPreferences(ctx, userID)
 	if err == nil {
 		return toEntityNotificationPreference(row), nil
@@ -55,7 +58,10 @@ func (r *notificationPreferenceRepository) Get(ctx context.Context, userID uuid.
 // Update implements [usecase.NotificationPreferenceRepository]. Callers
 // must ensure a row already exists (e.g. via Get) — this is a plain
 // UPDATE, not an upsert.
-func (r *notificationPreferenceRepository) Update(ctx context.Context, pref *entity.NotificationPreference) (*entity.NotificationPreference, error) {
+func (r *notificationPreferenceRepository) Update(
+	ctx context.Context,
+	pref *entity.NotificationPreference,
+) (*entity.NotificationPreference, error) {
 	row, err := r.q.UpdateNotificationPreferences(ctx, db.UpdateNotificationPreferencesParams{
 		CommitmentUpcomingEnabled:        pref.CommitmentUpcomingEnabled,
 		MomentDueEnabled:                 pref.MomentDueEnabled,

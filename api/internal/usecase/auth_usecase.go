@@ -64,7 +64,12 @@ type UserAccountRepository interface {
 	// Token/scope fields aren't part of this signature — flows that only
 	// verify an ID token (rather than completing an authorization-code
 	// exchange) never obtain a provider access/refresh token to store.
-	CreateOAuth(ctx context.Context, userID uuid.UUID, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error)
+	CreateOAuth(
+		ctx context.Context,
+		userID uuid.UUID,
+		provider enum.AuthProvider,
+		accountID string,
+	) (*entity.UserAccount, error)
 }
 
 // UserVerificationRepository backs single-use, expiring, identifier/
@@ -302,7 +307,13 @@ func NewAuthUsecase(
 // issueSession mints a fresh access/refresh pair and persists the
 // refresh token — the shared final step of Register, Login, Refresh,
 // and LoginWithGoogle.
-func (u *authUsecase) issueSession(ctx context.Context, repo RefreshTokenRepository, user *entity.User, familyID uuid.UUID, ip, ua *string) (*AuthTokens, error) {
+func (u *authUsecase) issueSession(
+	ctx context.Context,
+	repo RefreshTokenRepository,
+	user *entity.User,
+	familyID uuid.UUID,
+	ip, ua *string,
+) (*AuthTokens, error) {
 	accessToken, accessExpiresAt, err := u.accessTokens.Generate(user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("generating access token: %w", err)

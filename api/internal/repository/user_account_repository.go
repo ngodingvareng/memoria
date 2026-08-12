@@ -28,7 +28,12 @@ func NewUserAccountRepository(pool *pgxpool.Pool) *userAccountRepository {
 }
 
 // CreateCredential implements [usecase.UserAccountRepository].
-func (r *userAccountRepository) CreateCredential(ctx context.Context, userID uuid.UUID, accountID string, passwordHash string) (*entity.UserAccount, error) {
+func (r *userAccountRepository) CreateCredential(
+	ctx context.Context,
+	userID uuid.UUID,
+	accountID string,
+	passwordHash string,
+) (*entity.UserAccount, error) {
 	row, err := r.q.CreateCredentialUserAccount(ctx, db.CreateCredentialUserAccountParams{
 		UserID:       userID,
 		AccountID:    accountID,
@@ -38,11 +43,13 @@ func (r *userAccountRepository) CreateCredential(ctx context.Context, userID uui
 		return nil, fmt.Errorf("create credential account: %w", err)
 	}
 	return toEntityUserAccount(row), nil
-
 }
 
 // GetCredentialByUserID implements [usecase.UserAccountRepository].
-func (r *userAccountRepository) GetCredentialByUserID(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error) {
+func (r *userAccountRepository) GetCredentialByUserID(
+	ctx context.Context,
+	userID uuid.UUID,
+) (*entity.UserAccount, error) {
 	row, err := r.q.GetCredentialUserAccountByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -51,11 +58,13 @@ func (r *userAccountRepository) GetCredentialByUserID(ctx context.Context, userI
 		return nil, fmt.Errorf("get credential account: %w", err)
 	}
 	return toEntityUserAccount(row), nil
-
 }
 
 // IncrementFailedLoginAttempts implements [usecase.UserAccountRepository].
-func (r *userAccountRepository) IncrementFailedLoginAttempts(ctx context.Context, userID uuid.UUID) (*entity.UserAccount, error) {
+func (r *userAccountRepository) IncrementFailedLoginAttempts(
+	ctx context.Context,
+	userID uuid.UUID,
+) (*entity.UserAccount, error) {
 	row, err := r.q.IncrementFailedLoginAttempts(ctx, userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -103,7 +112,11 @@ func (r *userAccountRepository) UpdatePasswordHash(ctx context.Context, userID u
 }
 
 // GetByProvider implements [usecase.UserAccountRepository].
-func (r *userAccountRepository) GetByProvider(ctx context.Context, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error) {
+func (r *userAccountRepository) GetByProvider(
+	ctx context.Context,
+	provider enum.AuthProvider,
+	accountID string,
+) (*entity.UserAccount, error) {
 	row, err := r.q.GetUserAccountByProvider(ctx, db.GetUserAccountByProviderParams{
 		ProviderID: db.AuthProviderID(provider),
 		AccountID:  accountID,
@@ -119,7 +132,12 @@ func (r *userAccountRepository) GetByProvider(ctx context.Context, provider enum
 
 // CreateOAuth implements [usecase.UserAccountRepository]. Token/scope
 // columns are left unset (Valid: false) — see the interface doc comment.
-func (r *userAccountRepository) CreateOAuth(ctx context.Context, userID uuid.UUID, provider enum.AuthProvider, accountID string) (*entity.UserAccount, error) {
+func (r *userAccountRepository) CreateOAuth(
+	ctx context.Context,
+	userID uuid.UUID,
+	provider enum.AuthProvider,
+	accountID string,
+) (*entity.UserAccount, error) {
 	row, err := r.q.CreateOAuthUserAccount(ctx, db.CreateOAuthUserAccountParams{
 		UserID:     userID,
 		AccountID:  accountID,

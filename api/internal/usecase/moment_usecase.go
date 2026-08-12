@@ -60,7 +60,12 @@ type MomentRepository interface {
 	// (GET /search/suggestions). query is the raw trimmed search text
 	// (used for trigram ranking/fallback); prefixQuery is a caller-built
 	// ':*'-suffixed tsquery string (see SearchUsecase's buildPrefixTsQuery).
-	SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Moment, error)
+	SearchSuggestions(
+		ctx context.Context,
+		userID uuid.UUID,
+		query, prefixQuery string,
+		limit int32,
+	) ([]*entity.Moment, error)
 	WithTransaction(ctx context.Context, fn func(MomentRepository) error) error
 }
 
@@ -323,7 +328,10 @@ func (u *momentUsecase) ListMoments(ctx context.Context, input ListMomentsInput)
 // ListThreadMoments implements [MomentUsecase]: a single Thread's
 // browsable timeline. Access to the Thread is checked here, before the
 // repository is ever asked for its Moments.
-func (u *momentUsecase) ListThreadMoments(ctx context.Context, input ListThreadMomentsInput) (*MomentListResult, error) {
+func (u *momentUsecase) ListThreadMoments(
+	ctx context.Context,
+	input ListThreadMomentsInput,
+) (*MomentListResult, error) {
 	if _, err := u.threads.GetByID(ctx, input.ThreadID, input.UserID); err != nil {
 		return nil, fmt.Errorf("checking thread ownership: %w", err)
 	}
@@ -340,7 +348,10 @@ func (u *momentUsecase) ListThreadMoments(ctx context.Context, input ListThreadM
 // ListCircleMoments implements [MomentUsecase]: the Circle's Album feed.
 // Membership is checked here, before the repository is ever asked for
 // its Moments.
-func (u *momentUsecase) ListCircleMoments(ctx context.Context, input ListCircleMomentsInput) (*MomentListResult, error) {
+func (u *momentUsecase) ListCircleMoments(
+	ctx context.Context,
+	input ListCircleMomentsInput,
+) (*MomentListResult, error) {
 	if _, err := u.circles.GetActiveMember(ctx, input.CircleID, input.UserID); err != nil {
 		return nil, fmt.Errorf("checking circle membership: %w", err)
 	}

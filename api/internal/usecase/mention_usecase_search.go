@@ -25,7 +25,11 @@ const (
 // resolving audience_policy = "known" via IsKnownTo — just stopping
 // once mentionSearchResultLimit matches are found instead of failing on
 // the first disallowed one.
-func (u *mentionUsecase) SearchMentionableUsers(ctx context.Context, requestingUserID uuid.UUID, query string) ([]*entity.User, error) {
+func (u *mentionUsecase) SearchMentionableUsers(
+	ctx context.Context,
+	requestingUserID uuid.UUID,
+	query string,
+) ([]*entity.User, error) {
 	if strings.TrimSpace(query) == "" {
 		return []*entity.User{}, nil
 	}

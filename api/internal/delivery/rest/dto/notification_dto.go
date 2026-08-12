@@ -8,7 +8,7 @@ import (
 )
 
 type ListNotificationsQuery struct {
-	Page     int32 `query:"page" validate:"omitempty,gt=0"`
+	Page     int32 `query:"page"      validate:"omitempty,gt=0"`
 	PageSize int32 `query:"page_size" validate:"omitempty,gt=0,lte=100"`
 }
 
@@ -17,8 +17,8 @@ type ListNotificationsQuery struct {
 // goes with which kind. Payload is rendering data only, never
 // authoritative.
 type NotificationResponse struct {
-	ID          string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	Kind        string  `json:"kind" example:"mentioned_in_moment"`
+	ID          string  `json:"id"                      example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	Kind        string  `json:"kind"                    example:"mentioned_in_moment"`
 	ActorUserID *string `json:"actor_user_id,omitempty"`
 
 	MomentID               *string `json:"moment_id,omitempty"`
@@ -31,15 +31,15 @@ type NotificationResponse struct {
 	RecapID                *string `json:"recap_id,omitempty"`
 	ResurfacingID          *string `json:"resurfacing_id,omitempty"`
 
-	Payload   string  `json:"payload" example:"{}"`
-	CreatedAt string  `json:"created_at" example:"2026-08-04T14:35:00Z"`
+	Payload   string  `json:"payload"           example:"{}"`
+	CreatedAt string  `json:"created_at"        example:"2026-08-04T14:35:00Z"`
 	ReadAt    *string `json:"read_at,omitempty"`
 }
 
 type ListNotificationsResponse struct {
 	Notifications []NotificationResponse `json:"notifications"`
 	Pagination    PaginationResponse     `json:"pagination"`
-	UnreadCount   int64                  `json:"unread_count" example:"3"`
+	UnreadCount   int64                  `json:"unread_count"  example:"3"`
 }
 
 // NotificationPreferencesResponse mirrors every column on
@@ -62,12 +62,12 @@ type NotificationPreferencesResponse struct {
 	CircleJoinRequestApprovedEnabled bool `json:"circle_join_request_approved_enabled"`
 
 	ResponseDigestEnabled bool  `json:"response_digest_enabled"`
-	ResponseDigestHour    int16 `json:"response_digest_hour" example:"20"`
+	ResponseDigestHour    int16 `json:"response_digest_hour"    example:"20"`
 
 	// QuietHoursStart/End are "HH:MM:SS" wall-clock strings, both set or
 	// both nil — may wrap past midnight (e.g. 22:00:00 -> 07:00:00).
 	QuietHoursStart *string `json:"quiet_hours_start,omitempty" example:"22:00:00"`
-	QuietHoursEnd   *string `json:"quiet_hours_end,omitempty" example:"07:00:00"`
+	QuietHoursEnd   *string `json:"quiet_hours_end,omitempty"   example:"07:00:00"`
 }
 
 // UpdateNotificationPreferencesRequest carries every field together —
@@ -88,10 +88,10 @@ type UpdateNotificationPreferencesRequest struct {
 	CircleJoinRequestApprovedEnabled bool `json:"circle_join_request_approved_enabled"`
 
 	ResponseDigestEnabled bool  `json:"response_digest_enabled"`
-	ResponseDigestHour    int16 `json:"response_digest_hour" validate:"gte=0,lte=23" example:"20"`
+	ResponseDigestHour    int16 `json:"response_digest_hour"    validate:"gte=0,lte=23" example:"20"`
 
 	QuietHoursStart *string `json:"quiet_hours_start,omitempty" validate:"omitempty,datetime=15:04:05" example:"22:00:00"`
-	QuietHoursEnd   *string `json:"quiet_hours_end,omitempty" validate:"omitempty,datetime=15:04:05" example:"07:00:00"`
+	QuietHoursEnd   *string `json:"quiet_hours_end,omitempty"   validate:"omitempty,datetime=15:04:05" example:"07:00:00"`
 }
 
 func NewNotificationResponse(n *entity.Notification) NotificationResponse {

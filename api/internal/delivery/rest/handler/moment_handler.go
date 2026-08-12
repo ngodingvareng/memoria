@@ -51,7 +51,7 @@ func parseOptionalUUID(s *string) (*uuid.UUID, error) {
 // @Success      201 {object} dto.WebResponse[dto.MomentResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      500 {object} dto.WebResponse[any]
-// @Router       /moments [post]
+// @Router       /moments [post].
 func (h *MomentHandler) CreateMoment(c fiber.Ctx) error {
 	var req dto.CreateMomentRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -134,7 +134,7 @@ func (h *MomentHandler) CreateMoment(c fiber.Ctx) error {
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
 // @Failure      500 {object} dto.WebResponse[any]
-// @Router       /moments/{id} [put]
+// @Router       /moments/{id} [put].
 func (h *MomentHandler) UpdateMoment(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -197,7 +197,7 @@ func (h *MomentHandler) UpdateMoment(c fiber.Ctx) error {
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      500 {object} dto.WebResponse[any]
-// @Router       /moments/{id} [delete]
+// @Router       /moments/{id} [delete].
 func (h *MomentHandler) DeleteMoment(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -226,7 +226,7 @@ func (h *MomentHandler) DeleteMoment(c fiber.Ctx) error {
 // @Param        id path string true "Moment ID"
 // @Success      200 {object} dto.WebResponse[dto.MomentResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /moments/{id} [get]
+// @Router       /moments/{id} [get].
 func (h *MomentHandler) GetMoment(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -272,7 +272,7 @@ func newListMomentsResponse(result *usecase.MomentListResult) dto.ListMomentsRes
 // @Param        page      query int false "Page number (default 1)"
 // @Param        page_size query int false "Moments per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.ListMomentsResponse]
-// @Router       /moments [get]
+// @Router       /moments [get].
 func (h *MomentHandler) ListMoments(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -313,7 +313,7 @@ func (h *MomentHandler) ListMoments(c fiber.Ctx) error {
 // @Param        page_size query int    false "Moments per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.ListMomentsResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /moments/search [get]
+// @Router       /moments/search [get].
 func (h *MomentHandler) SearchMoments(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -355,7 +355,7 @@ func (h *MomentHandler) SearchMoments(c fiber.Ctx) error {
 // @Param        page_size query int    false "Moments per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.ListMomentsResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/moments [get]
+// @Router       /circles/{id}/moments [get].
 func (h *MomentHandler) ListCircleMoments(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -401,7 +401,7 @@ func (h *MomentHandler) ListCircleMoments(c fiber.Ctx) error {
 // @Param        page      query int    false "Page number (default 1)"
 // @Param        page_size query int    false "Moments per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.ListMomentsResponse]
-// @Router       /threads/{id}/moments [get]
+// @Router       /threads/{id}/moments [get].
 func (h *MomentHandler) ListThreadMoments(c fiber.Ctx) error {
 	threadID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

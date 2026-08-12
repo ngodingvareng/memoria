@@ -38,6 +38,7 @@ type UploadMomentImageInput struct {
 // generated on read. Mirrors ThreadImageWithURL.
 type MomentImageWithURL struct {
 	*entity.MomentImage
+
 	URL string
 }
 
@@ -53,14 +54,21 @@ type momentImageUsecase struct {
 	moments MomentAccessChecker
 }
 
-func NewMomentImageUsecase(repo MomentImageRepository, storage Storage, moments MomentAccessChecker) MomentImageUsecase {
+func NewMomentImageUsecase(
+	repo MomentImageRepository,
+	storage Storage,
+	moments MomentAccessChecker,
+) MomentImageUsecase {
 	return &momentImageUsecase{repo: repo, storage: storage, moments: moments}
 }
 
 // UploadMomentImage implements [MomentImageUsecase]. Photos are what
 // feed the Album (FEATURES.md, Looking Back), so every image here is
 // tied to a Moment the caller actually owns.
-func (u *momentImageUsecase) UploadMomentImage(ctx context.Context, input UploadMomentImageInput) (*MomentImageWithURL, error) {
+func (u *momentImageUsecase) UploadMomentImage(
+	ctx context.Context,
+	input UploadMomentImageInput,
+) (*MomentImageWithURL, error) {
 	if _, err := u.moments.GetByID(ctx, input.MomentID, input.UserID); err != nil {
 		return nil, fmt.Errorf("checking moment ownership: %w", err)
 	}
@@ -83,7 +91,7 @@ func (u *momentImageUsecase) UploadMomentImage(ctx context.Context, input Upload
 		// Same orphan-on-failure tradeoff as ThreadImageUsecase.UploadThreadImage
 		// — see its comment and SCHEMA_REVIEW.md / TODO.md for the real fix.
 		if delErr := u.storage.Delete(context.WithoutCancel(ctx), key); delErr != nil {
-			return nil, fmt.Errorf("saving image record: %w (cleanup also failed: %v)", err, delErr)
+			return nil, fmt.Errorf("saving image record: %w (cleanup also failed: %w)", err, delErr)
 		}
 		return nil, fmt.Errorf("saving image record: %w", err)
 	}
@@ -97,7 +105,10 @@ func (u *momentImageUsecase) UploadMomentImage(ctx context.Context, input Upload
 }
 
 // ListMomentImages implements [MomentImageUsecase].
-func (u *momentImageUsecase) ListMomentImages(ctx context.Context, momentID, userID uuid.UUID) ([]MomentImageWithURL, error) {
+func (u *momentImageUsecase) ListMomentImages(
+	ctx context.Context,
+	momentID, userID uuid.UUID,
+) ([]MomentImageWithURL, error) {
 	if _, err := u.moments.GetByID(ctx, momentID, userID); err != nil {
 		return nil, fmt.Errorf("checking moment ownership: %w", err)
 	}

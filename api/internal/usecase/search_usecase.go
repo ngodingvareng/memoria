@@ -19,12 +19,22 @@ const suggestionLimit int32 = 5
 // ThreadRepository.SearchSuggestions on purpose — same pattern as
 // ThreadAccessChecker (thread_image_usecase.go).
 type ThreadSuggestionSearcher interface {
-	SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Thread, error)
+	SearchSuggestions(
+		ctx context.Context,
+		userID uuid.UUID,
+		query, prefixQuery string,
+		limit int32,
+	) ([]*entity.Thread, error)
 }
 
 // MomentSuggestionSearcher is the Moment-domain equivalent.
 type MomentSuggestionSearcher interface {
-	SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Moment, error)
+	SearchSuggestions(
+		ctx context.Context,
+		userID uuid.UUID,
+		query, prefixQuery string,
+		limit int32,
+	) ([]*entity.Moment, error)
 }
 
 type SearchSuggestionsInput struct {
@@ -53,7 +63,10 @@ func NewSearchUsecase(threads ThreadSuggestionSearcher, moments MomentSuggestion
 // SearchSuggestions implements [SearchUsecase]. A blank query (after
 // trimming) short-circuits to an empty result without querying either
 // domain — there is nothing to suggest for an empty search box.
-func (u *searchUsecase) SearchSuggestions(ctx context.Context, input SearchSuggestionsInput) (*SearchSuggestionsResult, error) {
+func (u *searchUsecase) SearchSuggestions(
+	ctx context.Context,
+	input SearchSuggestionsInput,
+) (*SearchSuggestionsResult, error) {
 	query := strings.TrimSpace(input.Query)
 	if query == "" {
 		return &SearchSuggestionsResult{}, nil
@@ -82,7 +95,7 @@ var (
 // tsquery-special characters (&, |, !, (, ), :) are stripped first so
 // arbitrary input never produces a malformed or unintended-boolean-logic
 // query string. An input that is empty or punctuation-only after
-// stripping yields an empty string, which to_tsquery('simple', '')
+// stripping yields an empty string, which to_tsquery('simple', ”)
 // accepts and simply matches nothing — no extra guard needed.
 func buildPrefixTsQuery(query string) string {
 	cleaned := tsqueryUnsafeChars.ReplaceAllString(query, " ")

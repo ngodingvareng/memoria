@@ -81,7 +81,14 @@ func NewS3Storage(ctx context.Context, cfg S3Config) (*s3Storage, error) {
 			// photos 403 until this is fixed, which is loud and quick to
 			// notice — better than the app refusing to boot over an
 			// object-storage policy call.
-			slog.Warn("failed to apply public-read bucket policy", "error", err, "prefixes", cfg.PublicPrefixes)
+			slog.WarnContext(
+				ctx,
+				"failed to apply public-read bucket policy",
+				"error",
+				err,
+				"prefixes",
+				cfg.PublicPrefixes,
+			)
 		}
 	}
 

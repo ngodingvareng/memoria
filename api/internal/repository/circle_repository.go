@@ -39,7 +39,10 @@ func (r *circleRepository) Create(ctx context.Context, circle *entity.Circle) (*
 }
 
 // AddCreatorAsAdmin implements [usecase.CircleRepository].
-func (r *circleRepository) AddCreatorAsAdmin(ctx context.Context, circleID, userID uuid.UUID) (*entity.CircleMember, error) {
+func (r *circleRepository) AddCreatorAsAdmin(
+	ctx context.Context,
+	circleID, userID uuid.UUID,
+) (*entity.CircleMember, error) {
 	row, err := r.q.AddCircleCreatorAsAdmin(ctx, db.AddCircleCreatorAsAdminParams{CircleID: circleID, UserID: userID})
 	if err != nil {
 		return nil, fmt.Errorf("seat circle creator as admin: %w", err)
@@ -48,7 +51,11 @@ func (r *circleRepository) AddCreatorAsAdmin(ctx context.Context, circleID, user
 }
 
 // Update implements [usecase.CircleRepository].
-func (r *circleRepository) Update(ctx context.Context, circle *entity.Circle, userID uuid.UUID) (*entity.Circle, error) {
+func (r *circleRepository) Update(
+	ctx context.Context,
+	circle *entity.Circle,
+	userID uuid.UUID,
+) (*entity.Circle, error) {
 	row, err := r.q.UpdateCircle(ctx, toUpdateCircleParams(circle, userID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -62,7 +69,11 @@ func (r *circleRepository) Update(ctx context.Context, circle *entity.Circle, us
 // UpdateImagePath implements [usecase.CircleRepository]. Same admin-only
 // gate as Update, enforced in the WHERE clause — a non-admin's attempt
 // and a wrong/foreign id are indistinguishable, both errs.ErrNotFound.
-func (r *circleRepository) UpdateImagePath(ctx context.Context, id, userID uuid.UUID, imagePath *string) (*entity.Circle, error) {
+func (r *circleRepository) UpdateImagePath(
+	ctx context.Context,
+	id, userID uuid.UUID,
+	imagePath *string,
+) (*entity.Circle, error) {
 	row, err := r.q.UpdateCircleImagePath(ctx, db.UpdateCircleImagePathParams{
 		ID:        id,
 		UserID:    userID,
@@ -118,7 +129,10 @@ func (r *circleRepository) ListMembers(ctx context.Context, circleID uuid.UUID) 
 // GetActiveMember implements [usecase.CircleRepository] and
 // [usecase.CircleAccessChecker] — both interfaces declare this method
 // with an identical name and signature (CODING_STANDARDS.md §5).
-func (r *circleRepository) GetActiveMember(ctx context.Context, circleID, userID uuid.UUID) (*entity.CircleMember, error) {
+func (r *circleRepository) GetActiveMember(
+	ctx context.Context,
+	circleID, userID uuid.UUID,
+) (*entity.CircleMember, error) {
 	row, err := r.q.GetActiveCircleMember(ctx, db.GetActiveCircleMemberParams{CircleID: circleID, UserID: userID})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -131,7 +145,10 @@ func (r *circleRepository) GetActiveMember(ctx context.Context, circleID, userID
 
 // IsSoleActiveAdmin implements [usecase.CircleRepository].
 func (r *circleRepository) IsSoleActiveAdmin(ctx context.Context, circleID, userID uuid.UUID) (bool, error) {
-	isSole, err := r.q.IsSoleActiveCircleAdmin(ctx, db.IsSoleActiveCircleAdminParams{CircleID: circleID, UserID: userID})
+	isSole, err := r.q.IsSoleActiveCircleAdmin(
+		ctx,
+		db.IsSoleActiveCircleAdminParams{CircleID: circleID, UserID: userID},
+	)
 	if err != nil {
 		return false, fmt.Errorf("checking sole active circle admin: %w", err)
 	}
@@ -160,7 +177,11 @@ func (r *circleRepository) RemoveMember(ctx context.Context, circleID, userID, r
 }
 
 // UpdateMemberRole implements [usecase.CircleRepository].
-func (r *circleRepository) UpdateMemberRole(ctx context.Context, circleID, userID, changedByUserID uuid.UUID, role enum.CircleRole) (*entity.CircleMember, error) {
+func (r *circleRepository) UpdateMemberRole(
+	ctx context.Context,
+	circleID, userID, changedByUserID uuid.UUID,
+	role enum.CircleRole,
+) (*entity.CircleMember, error) {
 	row, err := r.q.UpdateCircleMemberRole(ctx, db.UpdateCircleMemberRoleParams{
 		Role: db.CircleRole(role), CircleID: circleID, UserID: userID, ChangedByUserID: changedByUserID,
 	})
@@ -174,7 +195,11 @@ func (r *circleRepository) UpdateMemberRole(ctx context.Context, circleID, userI
 }
 
 // UpdateMemberPermissions implements [usecase.CircleRepository].
-func (r *circleRepository) UpdateMemberPermissions(ctx context.Context, circleID, userID, changedByUserID uuid.UUID, canInvite, canCapture bool) (*entity.CircleMember, error) {
+func (r *circleRepository) UpdateMemberPermissions(
+	ctx context.Context,
+	circleID, userID, changedByUserID uuid.UUID,
+	canInvite, canCapture bool,
+) (*entity.CircleMember, error) {
 	row, err := r.q.UpdateCircleMemberPermissions(ctx, db.UpdateCircleMemberPermissionsParams{
 		CanInvite: canInvite, CanCapture: canCapture,
 		CircleID: circleID, UserID: userID, ChangedByUserID: changedByUserID,
@@ -190,7 +215,10 @@ func (r *circleRepository) UpdateMemberPermissions(ctx context.Context, circleID
 
 // ListSharedCircleIDs implements [usecase.CircleShareChecker].
 func (r *circleRepository) ListSharedCircleIDs(ctx context.Context, userA, userB uuid.UUID) ([]uuid.UUID, error) {
-	ids, err := r.q.ListCircleIDsSharedBetweenUsers(ctx, db.ListCircleIDsSharedBetweenUsersParams{UserA: userA, UserB: userB})
+	ids, err := r.q.ListCircleIDsSharedBetweenUsers(
+		ctx,
+		db.ListCircleIDsSharedBetweenUsersParams{UserA: userA, UserB: userB},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("listing shared circles: %w", err)
 	}

@@ -33,7 +33,7 @@ func NewCommentHandler(usecase usecase.CommentUsecase) *CommentHandler {
 // @Success      201 {object} dto.WebResponse[dto.CommentResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      403 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/comments [post]
+// @Router       /moments/{id}/comments [post].
 func (h *CommentHandler) CreateComment(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -82,7 +82,7 @@ func (h *CommentHandler) CreateComment(c fiber.Ctx) error {
 // @Param        id path string true "Moment ID"
 // @Success      200 {object} dto.WebResponse[dto.ListCommentsResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/comments [get]
+// @Router       /moments/{id}/comments [get].
 func (h *CommentHandler) ListComments(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -122,7 +122,7 @@ func (h *CommentHandler) ListComments(c fiber.Ctx) error {
 // @Success      200 {object} dto.WebResponse[dto.CommentResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/comments/{commentId} [put]
+// @Router       /moments/{id}/comments/{commentId} [put].
 func (h *CommentHandler) UpdateComment(c fiber.Ctx) error {
 	commentID, err := uuid.Parse(c.Params("commentId"))
 	if err != nil {
@@ -142,7 +142,10 @@ func (h *CommentHandler) UpdateComment(c fiber.Ctx) error {
 		return errs.ErrUnauthorized
 	}
 
-	comment, err := h.usecase.UpdateComment(c, usecase.UpdateCommentInput{ID: commentID, UserID: userID, Body: req.Body})
+	comment, err := h.usecase.UpdateComment(
+		c,
+		usecase.UpdateCommentInput{ID: commentID, UserID: userID, Body: req.Body},
+	)
 	if err != nil {
 		return err
 	}
@@ -163,7 +166,7 @@ func (h *CommentHandler) UpdateComment(c fiber.Ctx) error {
 // @Param        commentId path string true "Comment ID"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/comments/{commentId} [delete]
+// @Router       /moments/{id}/comments/{commentId} [delete].
 func (h *CommentHandler) DeleteComment(c fiber.Ctx) error {
 	commentID, err := uuid.Parse(c.Params("commentId"))
 	if err != nil {
@@ -192,7 +195,7 @@ func (h *CommentHandler) DeleteComment(c fiber.Ctx) error {
 // @Param        id path string true "Moment ID"
 // @Success      200 {object} dto.WebResponse[dto.MomentAudienceResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/audience [get]
+// @Router       /moments/{id}/audience [get].
 func (h *CommentHandler) GetAudience(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

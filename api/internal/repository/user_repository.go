@@ -50,7 +50,6 @@ func (r *userRepository) Create(ctx context.Context, user *entity.User) (*entity
 		return nil, fmt.Errorf("create user: %w", err)
 	}
 	return toEntityUser(row), nil
-
 }
 
 // GetByEmail implements [usecase.UserRepository].
@@ -63,7 +62,6 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*entity.
 		return nil, fmt.Errorf("get user by email: %w", err)
 	}
 	return toEntityUser(row), nil
-
 }
 
 // GetByID implements [usecase.UserRepository].
@@ -76,7 +74,6 @@ func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Use
 		return nil, fmt.Errorf("get user by id: %w", err)
 	}
 	return toEntityUser(row), nil
-
 }
 
 // GetByUsername implements [usecase.UserRepository].
@@ -125,7 +122,12 @@ func (r *userRepository) UpdatePrivacySettings(ctx context.Context, user *entity
 }
 
 // SearchByUsernamePrefix implements [usecase.UserSearcher].
-func (r *userRepository) SearchByUsernamePrefix(ctx context.Context, excludeUserID uuid.UUID, query string, limit int32) ([]*entity.User, error) {
+func (r *userRepository) SearchByUsernamePrefix(
+	ctx context.Context,
+	excludeUserID uuid.UUID,
+	query string,
+	limit int32,
+) ([]*entity.User, error) {
 	rows, err := r.q.SearchUsersByUsername(ctx, db.SearchUsersByUsernameParams{
 		ExcludeUserID: excludeUserID,
 		Query:         pgtype.Text{String: escapeLikePattern(query), Valid: true},

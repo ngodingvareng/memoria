@@ -27,7 +27,7 @@ func NewHealthHandler(db *pgxpool.Pool) *HealthHandler {
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[any]
 // @Failure      503 {object} dto.WebResponse[any]
-// @Router       /healthz [get]
+// @Router       /healthz [get].
 func (h *HealthHandler) Health(c fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(c, 2*time.Second)
 	defer cancel()

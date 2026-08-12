@@ -25,7 +25,12 @@ func NewReactionRepository(pool *pgxpool.Pool) *reactionRepository {
 // Upsert implements [usecase.ReactionRepository]. Reacting again with a
 // different kind just changes it (FEATURES.md, Response) — there is no
 // separate update path.
-func (r *reactionRepository) Upsert(ctx context.Context, momentID, userID uuid.UUID, circleID *uuid.UUID, kind enum.ReactionKind) (*entity.Reaction, error) {
+func (r *reactionRepository) Upsert(
+	ctx context.Context,
+	momentID, userID uuid.UUID,
+	circleID *uuid.UUID,
+	kind enum.ReactionKind,
+) (*entity.Reaction, error) {
 	row, err := r.q.UpsertReaction(ctx, db.UpsertReactionParams{
 		MomentID: momentID, UserID: ptrToPgUUID(&userID), CircleID: ptrToPgUUID(circleID), Kind: db.ReactionKind(kind),
 	})
@@ -51,7 +56,12 @@ func (r *reactionRepository) Delete(ctx context.Context, momentID, userID uuid.U
 // rows (who reacted + kind) — counts are never materialized
 // (FEATURES.md, Response: "Reaction counts are never displayed as a
 // number").
-func (r *reactionRepository) ListForMoment(ctx context.Context, momentID, viewerID uuid.UUID, mentionAllowed bool, visibleCircleIDs []uuid.UUID) ([]*entity.Reaction, error) {
+func (r *reactionRepository) ListForMoment(
+	ctx context.Context,
+	momentID, viewerID uuid.UUID,
+	mentionAllowed bool,
+	visibleCircleIDs []uuid.UUID,
+) ([]*entity.Reaction, error) {
 	if visibleCircleIDs == nil {
 		visibleCircleIDs = []uuid.UUID{}
 	}

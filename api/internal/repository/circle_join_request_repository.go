@@ -27,7 +27,11 @@ func NewCircleJoinRequestRepository(pool *pgxpool.Pool) *circleJoinRequestReposi
 }
 
 // Create implements [usecase.CircleJoinRequestRepository].
-func (r *circleJoinRequestRepository) Create(ctx context.Context, circleID, userID uuid.UUID, inviteID *uuid.UUID) (*entity.CircleJoinRequest, error) {
+func (r *circleJoinRequestRepository) Create(
+	ctx context.Context,
+	circleID, userID uuid.UUID,
+	inviteID *uuid.UUID,
+) (*entity.CircleJoinRequest, error) {
 	row, err := r.q.CreateCircleJoinRequest(ctx, db.CreateCircleJoinRequestParams{
 		CircleID: circleID, UserID: userID, InviteID: ptrToPgUUID(inviteID),
 	})
@@ -38,8 +42,14 @@ func (r *circleJoinRequestRepository) Create(ctx context.Context, circleID, user
 }
 
 // GetPendingByUser implements [usecase.CircleJoinRequestRepository].
-func (r *circleJoinRequestRepository) GetPendingByUser(ctx context.Context, circleID, userID uuid.UUID) (*entity.CircleJoinRequest, error) {
-	row, err := r.q.GetPendingCircleJoinRequestByUser(ctx, db.GetPendingCircleJoinRequestByUserParams{CircleID: circleID, UserID: userID})
+func (r *circleJoinRequestRepository) GetPendingByUser(
+	ctx context.Context,
+	circleID, userID uuid.UUID,
+) (*entity.CircleJoinRequest, error) {
+	row, err := r.q.GetPendingCircleJoinRequestByUser(
+		ctx,
+		db.GetPendingCircleJoinRequestByUserParams{CircleID: circleID, UserID: userID},
+	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, errs.ErrNotFound
@@ -50,7 +60,11 @@ func (r *circleJoinRequestRepository) GetPendingByUser(ctx context.Context, circ
 }
 
 // ListPendingByCircleID implements [usecase.CircleJoinRequestRepository].
-func (r *circleJoinRequestRepository) ListPendingByCircleID(ctx context.Context, circleID uuid.UUID, limit, offset int32) ([]*entity.CircleJoinRequest, error) {
+func (r *circleJoinRequestRepository) ListPendingByCircleID(
+	ctx context.Context,
+	circleID uuid.UUID,
+	limit, offset int32,
+) ([]*entity.CircleJoinRequest, error) {
 	rows, err := r.q.ListPendingCircleJoinRequestsByCircleID(ctx, db.ListPendingCircleJoinRequestsByCircleIDParams{
 		CircleID: circleID, PageLimit: limit, PageOffset: offset,
 	})
@@ -72,7 +86,10 @@ func (r *circleJoinRequestRepository) CountPendingByCircleID(ctx context.Context
 // Approve implements [usecase.CircleJoinRequestRepository]. Returns
 // errs.ErrNotFound if someone else already decided this request —
 // exactly how two approvers acting at once resolve to one decision.
-func (r *circleJoinRequestRepository) Approve(ctx context.Context, id, circleID, decidedByUserID uuid.UUID) (*entity.CircleJoinRequest, error) {
+func (r *circleJoinRequestRepository) Approve(
+	ctx context.Context,
+	id, circleID, decidedByUserID uuid.UUID,
+) (*entity.CircleJoinRequest, error) {
 	row, err := r.q.ApproveCircleJoinRequest(ctx, db.ApproveCircleJoinRequestParams{
 		ID: id, CircleID: circleID, DecidedByUserID: ptrToPgUUID(&decidedByUserID),
 	})
@@ -86,7 +103,10 @@ func (r *circleJoinRequestRepository) Approve(ctx context.Context, id, circleID,
 }
 
 // Reject implements [usecase.CircleJoinRequestRepository].
-func (r *circleJoinRequestRepository) Reject(ctx context.Context, id, circleID, decidedByUserID uuid.UUID) (*entity.CircleJoinRequest, error) {
+func (r *circleJoinRequestRepository) Reject(
+	ctx context.Context,
+	id, circleID, decidedByUserID uuid.UUID,
+) (*entity.CircleJoinRequest, error) {
 	row, err := r.q.RejectCircleJoinRequest(ctx, db.RejectCircleJoinRequestParams{
 		ID: id, CircleID: circleID, DecidedByUserID: ptrToPgUUID(&decidedByUserID),
 	})
@@ -100,7 +120,10 @@ func (r *circleJoinRequestRepository) Reject(ctx context.Context, id, circleID, 
 }
 
 // Cancel implements [usecase.CircleJoinRequestRepository].
-func (r *circleJoinRequestRepository) Cancel(ctx context.Context, id, userID uuid.UUID) (*entity.CircleJoinRequest, error) {
+func (r *circleJoinRequestRepository) Cancel(
+	ctx context.Context,
+	id, userID uuid.UUID,
+) (*entity.CircleJoinRequest, error) {
 	row, err := r.q.CancelCircleJoinRequest(ctx, db.CancelCircleJoinRequestParams{ID: id, UserID: userID})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -114,7 +137,11 @@ func (r *circleJoinRequestRepository) Cancel(ctx context.Context, id, userID uui
 // AddMembers implements [usecase.CircleJoinRequestRepository]. Same
 // underlying write as CircleInviteRepository.AddMembers — both flows
 // funnel into the one admit path (FEATURES.md, Circle Invite).
-func (r *circleJoinRequestRepository) AddMembers(ctx context.Context, circleID uuid.UUID, userIDs []uuid.UUID) ([]*entity.CircleMember, error) {
+func (r *circleJoinRequestRepository) AddMembers(
+	ctx context.Context,
+	circleID uuid.UUID,
+	userIDs []uuid.UUID,
+) ([]*entity.CircleMember, error) {
 	rows, err := r.q.AddCircleMembers(ctx, db.AddCircleMembersParams{CircleID: circleID, UserIds: userIDs})
 	if err != nil {
 		return nil, fmt.Errorf("add circle members: %w", err)
@@ -123,7 +150,10 @@ func (r *circleJoinRequestRepository) AddMembers(ctx context.Context, circleID u
 }
 
 // WithTransaction implements [usecase.CircleJoinRequestRepository].
-func (r *circleJoinRequestRepository) WithTransaction(ctx context.Context, fn func(usecase.CircleJoinRequestRepository) error) error {
+func (r *circleJoinRequestRepository) WithTransaction(
+	ctx context.Context,
+	fn func(usecase.CircleJoinRequestRepository) error,
+) error {
 	if r.pool == nil {
 		return errors.New("circleJoinRequestRepository: cannot start a transaction from within an existing transaction")
 	}

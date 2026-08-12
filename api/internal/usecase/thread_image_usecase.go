@@ -61,6 +61,7 @@ type UploadThreadImageInput struct {
 // generated on read.
 type ThreadImageWithURL struct {
 	*entity.ThreadImage
+
 	URL string
 }
 
@@ -76,12 +77,19 @@ type threadImageUsecase struct {
 	threads ThreadAccessChecker
 }
 
-func NewThreadImageUsecase(repo ThreadImageRepository, storage Storage, threads ThreadAccessChecker) ThreadImageUsecase {
+func NewThreadImageUsecase(
+	repo ThreadImageRepository,
+	storage Storage,
+	threads ThreadAccessChecker,
+) ThreadImageUsecase {
 	return &threadImageUsecase{repo: repo, storage: storage, threads: threads}
 }
 
 // UploadThreadImage implements [ThreadImageUsecase].
-func (u *threadImageUsecase) UploadThreadImage(ctx context.Context, input UploadThreadImageInput) (*ThreadImageWithURL, error) {
+func (u *threadImageUsecase) UploadThreadImage(
+	ctx context.Context,
+	input UploadThreadImageInput,
+) (*ThreadImageWithURL, error) {
 	if _, err := u.threads.GetByID(ctx, input.ThreadID, input.UserID); err != nil {
 		return nil, fmt.Errorf("checking thread ownership: %w", err)
 	}
@@ -106,7 +114,7 @@ func (u *threadImageUsecase) UploadThreadImage(ctx context.Context, input Upload
 		// job (diffing storage against image_path values still
 		// referenced in the DB) is the real fix for that, not this.
 		if delErr := u.storage.Delete(context.WithoutCancel(ctx), key); delErr != nil {
-			return nil, fmt.Errorf("saving image record: %w (cleanup also failed: %v)", err, delErr)
+			return nil, fmt.Errorf("saving image record: %w (cleanup also failed: %w)", err, delErr)
 		}
 		return nil, fmt.Errorf("saving image record: %w", err)
 	}
@@ -120,7 +128,10 @@ func (u *threadImageUsecase) UploadThreadImage(ctx context.Context, input Upload
 }
 
 // ListThreadImages implements [ThreadImageUsecase].
-func (u *threadImageUsecase) ListThreadImages(ctx context.Context, threadID, userID uuid.UUID) ([]ThreadImageWithURL, error) {
+func (u *threadImageUsecase) ListThreadImages(
+	ctx context.Context,
+	threadID, userID uuid.UUID,
+) ([]ThreadImageWithURL, error) {
 	if _, err := u.threads.GetByID(ctx, threadID, userID); err != nil {
 		return nil, fmt.Errorf("checking thread ownership: %w", err)
 	}
@@ -139,7 +150,6 @@ func (u *threadImageUsecase) ListThreadImages(ctx context.Context, threadID, use
 		out = append(out, ThreadImageWithURL{ThreadImage: img, URL: url})
 	}
 	return out, nil
-
 }
 
 // DeleteThreadImage implements [ThreadImageUsecase].
@@ -165,7 +175,6 @@ func (u *threadImageUsecase) DeleteThreadImage(ctx context.Context, threadID, im
 		return fmt.Errorf("deleting thread image object: %w", err)
 	}
 	return nil
-
 }
 
 // buildImageKey deliberately ignores the client-supplied filename except

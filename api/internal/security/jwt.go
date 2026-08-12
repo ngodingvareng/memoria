@@ -53,7 +53,7 @@ func (j *JWTAccessTokenIssuer) Generate(userID uuid.UUID) (string, time.Time, er
 
 func (j *JWTAccessTokenIssuer) Parse(tokenString string) (uuid.UUID, error) {
 	claims := &accessTokenClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}

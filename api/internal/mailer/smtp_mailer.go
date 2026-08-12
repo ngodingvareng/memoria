@@ -47,7 +47,13 @@ func (m *SMTPMailer) Send(_ context.Context, to, subject, body string) error {
 	// SendMail negotiates STARTTLS itself when the server advertises
 	// the extension (which is what most SMTP providers on port 587
 	// require) — no separate TLS handling needed here.
-	if err := smtp.SendMail(addr, auth, m.cfg.From, []string{to}, buildMessage(m.cfg.From, to, subject, body)); err != nil {
+	if err := smtp.SendMail(
+		addr,
+		auth,
+		m.cfg.From,
+		[]string{to},
+		buildMessage(m.cfg.From, to, subject, body),
+	); err != nil {
 		return fmt.Errorf("sending email to %s: %w", to, err)
 	}
 	return nil

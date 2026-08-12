@@ -106,8 +106,15 @@ func (r *momentRepository) GetByID(ctx context.Context, id, userID uuid.UUID) (*
 }
 
 // ListByUserID implements [usecase.MomentRepository].
-func (r *momentRepository) ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.Moment, error) {
-	rows, err := r.q.ListMomentsByUserID(ctx, db.ListMomentsByUserIDParams{UserID: userID, PageLimit: limit, PageOffset: offset})
+func (r *momentRepository) ListByUserID(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit, offset int32,
+) ([]*entity.Moment, error) {
+	rows, err := r.q.ListMomentsByUserID(
+		ctx,
+		db.ListMomentsByUserIDParams{UserID: userID, PageLimit: limit, PageOffset: offset},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("list moments by user id: %w", err)
 	}
@@ -115,8 +122,15 @@ func (r *momentRepository) ListByUserID(ctx context.Context, userID uuid.UUID, l
 }
 
 // ListHomeFeed implements [usecase.MomentRepository].
-func (r *momentRepository) ListHomeFeed(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.Moment, error) {
-	rows, err := r.q.ListHomeFeedMoments(ctx, db.ListHomeFeedMomentsParams{UserID: userID, PageLimit: limit, PageOffset: offset})
+func (r *momentRepository) ListHomeFeed(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit, offset int32,
+) ([]*entity.Moment, error) {
+	rows, err := r.q.ListHomeFeedMoments(
+		ctx,
+		db.ListHomeFeedMomentsParams{UserID: userID, PageLimit: limit, PageOffset: offset},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("list home feed moments: %w", err)
 	}
@@ -126,7 +140,11 @@ func (r *momentRepository) ListHomeFeed(ctx context.Context, userID uuid.UUID, l
 // ListByThreadID implements [usecase.MomentRepository]. No user_id
 // filter at the query level — access to the Thread itself is checked
 // upstream by the usecase via ThreadAccessChecker.
-func (r *momentRepository) ListByThreadID(ctx context.Context, threadID uuid.UUID, limit, offset int32) ([]*entity.Moment, error) {
+func (r *momentRepository) ListByThreadID(
+	ctx context.Context,
+	threadID uuid.UUID,
+	limit, offset int32,
+) ([]*entity.Moment, error) {
 	rows, err := r.q.ListMomentsByThreadID(ctx, db.ListMomentsByThreadIDParams{
 		ThreadID:   ptrToPgUUID(&threadID),
 		PageLimit:  limit,
@@ -141,7 +159,11 @@ func (r *momentRepository) ListByThreadID(ctx context.Context, threadID uuid.UUI
 // ListByCircle implements [usecase.MomentRepository]. No membership
 // filter at the query level — access is checked upstream by the
 // usecase via CircleAccessChecker.
-func (r *momentRepository) ListByCircle(ctx context.Context, circleID uuid.UUID, limit, offset int32) ([]*entity.Moment, error) {
+func (r *momentRepository) ListByCircle(
+	ctx context.Context,
+	circleID uuid.UUID,
+	limit, offset int32,
+) ([]*entity.Moment, error) {
 	rows, err := r.q.ListCircleMoments(ctx, db.ListCircleMomentsParams{
 		CircleID:   ptrToPgUUID(&circleID),
 		PageLimit:  limit,
@@ -154,7 +176,12 @@ func (r *momentRepository) ListByCircle(ctx context.Context, circleID uuid.UUID,
 }
 
 // Search implements [usecase.MomentRepository].
-func (r *momentRepository) Search(ctx context.Context, userID uuid.UUID, query string, limit, offset int32) ([]*entity.Moment, error) {
+func (r *momentRepository) Search(
+	ctx context.Context,
+	userID uuid.UUID,
+	query string,
+	limit, offset int32,
+) ([]*entity.Moment, error) {
 	rows, err := r.q.SearchMoments(ctx, db.SearchMomentsParams{
 		UserID:     userID,
 		Query:      query,
@@ -168,7 +195,12 @@ func (r *momentRepository) Search(ctx context.Context, userID uuid.UUID, query s
 }
 
 // SearchSuggestions implements [usecase.MomentRepository].
-func (r *momentRepository) SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Moment, error) {
+func (r *momentRepository) SearchSuggestions(
+	ctx context.Context,
+	userID uuid.UUID,
+	query, prefixQuery string,
+	limit int32,
+) ([]*entity.Moment, error) {
 	rows, err := r.q.SearchMomentSuggestions(ctx, db.SearchMomentSuggestionsParams{
 		UserID:      userID,
 		Query:       query,
@@ -198,8 +230,14 @@ func (r *momentRepository) GetWithAccess(ctx context.Context, id, viewerID uuid.
 }
 
 // ListVisibleCircleIDs implements [usecase.MomentReader].
-func (r *momentRepository) ListVisibleCircleIDs(ctx context.Context, momentID, viewerID uuid.UUID) ([]uuid.UUID, error) {
-	rows, err := r.q.ListMomentVisibleCircleIDs(ctx, db.ListMomentVisibleCircleIDsParams{MomentID: momentID, UserID: viewerID})
+func (r *momentRepository) ListVisibleCircleIDs(
+	ctx context.Context,
+	momentID, viewerID uuid.UUID,
+) ([]uuid.UUID, error) {
+	rows, err := r.q.ListMomentVisibleCircleIDs(
+		ctx,
+		db.ListMomentVisibleCircleIDsParams{MomentID: momentID, UserID: viewerID},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("list moment visible circle ids: %w", err)
 	}

@@ -29,7 +29,7 @@ func NewAlbumHandler(usecase usecase.AlbumUsecase) *AlbumHandler {
 // @Param        page      query int false "Page number (default 1)"
 // @Param        page_size query int false "Images per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.ListAlbumResponse]
-// @Router       /album [get]
+// @Router       /album [get].
 func (h *AlbumHandler) ListAlbum(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -70,7 +70,7 @@ func (h *AlbumHandler) ListAlbum(c fiber.Ctx) error {
 // @Param        page_size query int    false "Images per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.ListAlbumResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/album [get]
+// @Router       /circles/{id}/album [get].
 func (h *AlbumHandler) ListCircleAlbum(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

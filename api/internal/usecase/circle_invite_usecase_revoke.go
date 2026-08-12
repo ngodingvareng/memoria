@@ -10,7 +10,10 @@ import (
 
 // RevokeInvite implements [CircleInviteUsecase]: the inviting side
 // withdrawing an invite the recipient hasn't answered yet.
-func (u *circleInviteUsecase) RevokeInvite(ctx context.Context, inviteID, circleID, revokedByUserID uuid.UUID) (*entity.CircleInvite, error) {
+func (u *circleInviteUsecase) RevokeInvite(
+	ctx context.Context,
+	inviteID, circleID, revokedByUserID uuid.UUID,
+) (*entity.CircleInvite, error) {
 	if err := u.requireCanInvite(ctx, circleID, revokedByUserID); err != nil {
 		return nil, err
 	}

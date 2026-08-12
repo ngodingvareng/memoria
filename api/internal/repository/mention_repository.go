@@ -30,7 +30,11 @@ func NewMentionRepository(pool *pgxpool.Pool) *mentionRepository {
 }
 
 // Create implements [usecase.MentionRepository].
-func (r *mentionRepository) Create(ctx context.Context, momentID, mentionedUserID uuid.UUID, displayName string) (*entity.MomentMention, error) {
+func (r *mentionRepository) Create(
+	ctx context.Context,
+	momentID, mentionedUserID uuid.UUID,
+	displayName string,
+) (*entity.MomentMention, error) {
 	row, err := r.q.CreateMomentMention(ctx, db.CreateMomentMentionParams{
 		MomentID: momentID, MentionedUserID: ptrToPgUUID(&mentionedUserID), DisplayName: displayName,
 	})
@@ -51,7 +55,11 @@ func (r *mentionRepository) ListByMomentID(ctx context.Context, momentID uuid.UU
 
 // ListMentionedMoments implements [usecase.MentionRepository]:
 // "Mentioned Moments" (FEATURES.md, Looking Back).
-func (r *mentionRepository) ListMentionedMoments(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.Moment, error) {
+func (r *mentionRepository) ListMentionedMoments(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit, offset int32,
+) ([]*entity.Moment, error) {
 	rows, err := r.q.ListMentionedMomentsByUserID(ctx, db.ListMentionedMomentsByUserIDParams{
 		MentionedUserID: ptrToPgUUID(&userID), PageLimit: limit, PageOffset: offset,
 	})
@@ -86,7 +94,10 @@ func (r *mentionRepository) Delete(ctx context.Context, id, momentID uuid.UUID) 
 // ShareToCircle implements [usecase.MentionRepository]. Returns nil,
 // nil when the Moment is already shared into circleID — idempotent, per
 // the query's own comment, not an error.
-func (r *mentionRepository) ShareToCircle(ctx context.Context, momentID, circleID, sharedByUserID uuid.UUID) (*entity.MomentCircle, error) {
+func (r *mentionRepository) ShareToCircle(
+	ctx context.Context,
+	momentID, circleID, sharedByUserID uuid.UUID,
+) (*entity.MomentCircle, error) {
 	row, err := r.q.ShareMomentToCircle(ctx, db.ShareMomentToCircleParams{
 		MomentID: momentID, CircleID: circleID, SharedByUserID: ptrToPgUUID(&sharedByUserID),
 	})
@@ -110,7 +121,10 @@ func (r *mentionRepository) ListSharedCircleIDs(ctx context.Context, momentID uu
 
 // UnshareFromCircle implements [usecase.MentionRepository].
 func (r *mentionRepository) UnshareFromCircle(ctx context.Context, momentID, circleID uuid.UUID) error {
-	if err := r.q.UnshareMomentFromCircle(ctx, db.UnshareMomentFromCircleParams{MomentID: momentID, CircleID: circleID}); err != nil {
+	if err := r.q.UnshareMomentFromCircle(
+		ctx,
+		db.UnshareMomentFromCircleParams{MomentID: momentID, CircleID: circleID},
+	); err != nil {
 		return fmt.Errorf("unshare moment from circle: %w", err)
 	}
 	return nil

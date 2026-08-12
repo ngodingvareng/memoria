@@ -9,7 +9,10 @@ import (
 )
 
 // ListMentions implements [MentionUsecase].
-func (u *mentionUsecase) ListMentions(ctx context.Context, momentID, ownerUserID uuid.UUID) ([]*entity.MomentMention, error) {
+func (u *mentionUsecase) ListMentions(
+	ctx context.Context,
+	momentID, ownerUserID uuid.UUID,
+) ([]*entity.MomentMention, error) {
 	if _, err := u.moments.GetByID(ctx, momentID, ownerUserID); err != nil {
 		return nil, fmt.Errorf("checking moment ownership: %w", err)
 	}
@@ -22,7 +25,10 @@ func (u *mentionUsecase) ListMentions(ctx context.Context, momentID, ownerUserID
 
 // ListMentionedMoments implements [MentionUsecase]: "Mentioned Moments"
 // (FEATURES.md, Looking Back).
-func (u *mentionUsecase) ListMentionedMoments(ctx context.Context, input ListMentionedMomentsInput) (*MomentListResult, error) {
+func (u *mentionUsecase) ListMentionedMoments(
+	ctx context.Context,
+	input ListMentionedMomentsInput,
+) (*MomentListResult, error) {
 	page, pageSize := normalizedPage(input.Page, input.PageSize)
 	moments, err := u.repo.ListMentionedMoments(ctx, input.UserID, pageSize, (page-1)*pageSize)
 	if err != nil {

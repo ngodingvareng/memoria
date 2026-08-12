@@ -35,7 +35,12 @@ func (u *authUsecase) ForgotPassword(ctx context.Context, email string) error {
 	if err != nil {
 		return fmt.Errorf("generating reset token: %w", err)
 	}
-	if _, err := u.verifications.Create(ctx, identifier, u.refreshTokenGen.Hash(rawToken), time.Now().Add(passwordResetTokenTTL)); err != nil {
+	if _, err := u.verifications.Create(
+		ctx,
+		identifier,
+		u.refreshTokenGen.Hash(rawToken),
+		time.Now().Add(passwordResetTokenTTL),
+	); err != nil {
 		return fmt.Errorf("storing reset token: %w", err)
 	}
 
@@ -43,7 +48,8 @@ func (u *authUsecase) ForgotPassword(ctx context.Context, email string) error {
 		strings.TrimSuffix(u.webBaseURL, "/"), url.QueryEscape(rawToken), url.QueryEscape(email))
 	body := fmt.Sprintf(
 		"Hi %s,\n\nSomeone requested a password reset for your Memoria account. If this was you, use the link below within 30 minutes to set a new password:\n\n%s\n\nIf you didn't request this, you can safely ignore this email.",
-		user.Name, resetLink,
+		user.Name,
+		resetLink,
 	)
 	if err := u.mailer.Send(ctx, email, "Reset your Memoria password", body); err != nil {
 		return fmt.Errorf("sending reset email: %w", err)

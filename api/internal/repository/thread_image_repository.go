@@ -49,7 +49,11 @@ func (r *threadImageRepository) ListByThreadID(ctx context.Context, threadID uui
 // image's path so the caller can remove the matching storage object; a
 // mismatched id/threadID is a silent no-op (nil, nil), matching the
 // ownership-check semantics used elsewhere in this package.
-func (r *threadImageRepository) Delete(ctx context.Context, threadID uuid.UUID, imageID uuid.UUID) (*entity.ThreadImage, error) {
+func (r *threadImageRepository) Delete(
+	ctx context.Context,
+	threadID uuid.UUID,
+	imageID uuid.UUID,
+) (*entity.ThreadImage, error) {
 	row, err := r.q.DeleteThreadImage(ctx, db.DeleteThreadImageParams{
 		ID:       imageID,
 		ThreadID: threadID,

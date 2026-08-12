@@ -23,11 +23,11 @@ type SearchMentionableUsersResponse struct {
 }
 
 type MentionResponse struct {
-	ID              string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	MomentID        string  `json:"moment_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	ID              string  `json:"id"                          example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	MomentID        string  `json:"moment_id"                   example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	MentionedUserID *string `json:"mentioned_user_id,omitempty"`
-	DisplayName     string  `json:"display_name" example:"Gede"`
-	CreatedAt       string  `json:"created_at" example:"2026-07-20T10:00:00Z"`
+	DisplayName     string  `json:"display_name"                example:"Gede"`
+	CreatedAt       string  `json:"created_at"                  example:"2026-07-20T10:00:00Z"`
 	// SharedCircleIDs is only populated by CreateMention — which
 	// Circles the owner and the mentioned user both actively belong to,
 	// the candidate set for "Share to circle too?" (FEATURES.md,
@@ -50,10 +50,10 @@ type ShareMomentToCircleRequest struct {
 }
 
 type MomentCircleResponse struct {
-	MomentID       string  `json:"moment_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	CircleID       string  `json:"circle_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	MomentID       string  `json:"moment_id"                   example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	CircleID       string  `json:"circle_id"                   example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	SharedByUserID *string `json:"shared_by_user_id,omitempty"`
-	SharedAt       string  `json:"shared_at" example:"2026-07-20T10:00:00Z"`
+	SharedAt       string  `json:"shared_at"                   example:"2026-07-20T10:00:00Z"`
 }
 
 func NewMentionResponse(e *entity.MomentMention) MentionResponse {

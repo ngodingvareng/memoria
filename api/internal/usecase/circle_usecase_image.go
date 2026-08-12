@@ -26,7 +26,7 @@ func (u *circleUsecase) UploadCircleImage(ctx context.Context, input UploadCircl
 	updated, err := u.repo.UpdateImagePath(ctx, input.CircleID, input.UserID, &publicURL)
 	if err != nil {
 		if delErr := u.storage.Delete(context.WithoutCancel(ctx), key); delErr != nil {
-			return nil, fmt.Errorf("saving circle image: %w (cleanup also failed: %v)", err, delErr)
+			return nil, fmt.Errorf("saving circle image: %w (cleanup also failed: %w)", err, delErr)
 		}
 		return nil, fmt.Errorf("saving circle image: %w", err)
 	}

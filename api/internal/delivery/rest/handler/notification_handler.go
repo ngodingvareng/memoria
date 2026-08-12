@@ -32,7 +32,7 @@ func NewNotificationHandler(uc usecase.NotificationUsecase) *NotificationHandler
 // @Param        page_size query int false "Page size"
 // @Success      200 {object} dto.WebResponse[dto.ListNotificationsResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /notifications [get]
+// @Router       /notifications [get].
 func (h *NotificationHandler) ListNotifications(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -69,7 +69,7 @@ func (h *NotificationHandler) ListNotifications(c fiber.Ctx) error {
 // @Param        id path string true "Notification ID"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /notifications/{id}/read [patch]
+// @Router       /notifications/{id}/read [patch].
 func (h *NotificationHandler) MarkNotificationRead(c fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -94,7 +94,7 @@ func (h *NotificationHandler) MarkNotificationRead(c fiber.Ctx) error {
 // @Summary      Mark every visible notification read
 // @Tags         notifications
 // @Success      204
-// @Router       /notifications/read-all [post]
+// @Router       /notifications/read-all [post].
 func (h *NotificationHandler) MarkAllNotificationsRead(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -115,7 +115,7 @@ func (h *NotificationHandler) MarkAllNotificationsRead(c fiber.Ctx) error {
 // @Tags         notifications
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[dto.NotificationPreferencesResponse]
-// @Router       /notifications/preferences [get]
+// @Router       /notifications/preferences [get].
 func (h *NotificationHandler) GetNotificationPreferences(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -143,7 +143,7 @@ func (h *NotificationHandler) GetNotificationPreferences(c fiber.Ctx) error {
 // @Param        request body dto.UpdateNotificationPreferencesRequest true "New preferences"
 // @Success      200 {object} dto.WebResponse[dto.NotificationPreferencesResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /notifications/preferences [put]
+// @Router       /notifications/preferences [put].
 func (h *NotificationHandler) UpdateNotificationPreferences(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {

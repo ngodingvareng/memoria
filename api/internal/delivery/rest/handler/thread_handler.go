@@ -35,7 +35,7 @@ func NewThreadHandler(usecase usecase.ThreadUsecase) *ThreadHandler {
 // @Success      201 {object} dto.WebResponse[dto.ThreadResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      500 {object} dto.WebResponse[any]
-// @Router       /threads [post]
+// @Router       /threads [post].
 func (h *ThreadHandler) CreateThread(c fiber.Ctx) error {
 	var req dto.CreateThreadRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -81,7 +81,6 @@ func (h *ThreadHandler) CreateThread(c fiber.Ctx) error {
 		Message: "thread created",
 		Data:    dto.NewThreadResponse(response),
 	})
-
 }
 
 // UpdateThread godoc
@@ -96,7 +95,7 @@ func (h *ThreadHandler) CreateThread(c fiber.Ctx) error {
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
 // @Failure      500 {object} dto.WebResponse[any]
-// @Router       /threads/{id} [put]
+// @Router       /threads/{id} [put].
 func (h *ThreadHandler) UpdateThread(c fiber.Ctx) error {
 	threadID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -148,7 +147,7 @@ func (h *ThreadHandler) UpdateThread(c fiber.Ctx) error {
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      500 {object} dto.WebResponse[any]
-// @Router       /threads/{id} [delete]
+// @Router       /threads/{id} [delete].
 func (h *ThreadHandler) DeleteThread(c fiber.Ctx) error {
 	threadID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -180,7 +179,7 @@ func (h *ThreadHandler) DeleteThread(c fiber.Ctx) error {
 // @Param        id path string true "Thread ID"
 // @Success      200 {object} dto.WebResponse[dto.ThreadResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /threads/{id} [get]
+// @Router       /threads/{id} [get].
 func (h *ThreadHandler) GetThread(c fiber.Ctx) error {
 	threadID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -215,7 +214,7 @@ func (h *ThreadHandler) GetThread(c fiber.Ctx) error {
 // @Param        page           query int    false "Page number (default 1)"
 // @Param        page_size      query int    false "Threads per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.SearchThreadsResponse]
-// @Router       /threads [get]
+// @Router       /threads [get].
 func (h *ThreadHandler) SearchThreads(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -269,7 +268,7 @@ func (h *ThreadHandler) SearchThreads(c fiber.Ctx) error {
 // @Param        id path string true "Circle ID"
 // @Success      200 {object} dto.WebResponse[dto.ListThreadsResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/threads [get]
+// @Router       /circles/{id}/threads [get].
 func (h *ThreadHandler) ListCircleThreads(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

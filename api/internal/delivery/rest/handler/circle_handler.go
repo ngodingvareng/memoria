@@ -32,7 +32,7 @@ func NewCircleHandler(usecase usecase.CircleUsecase) *CircleHandler {
 // @Param        request body dto.CreateCircleRequest true "Create circle request"
 // @Success      201 {object} dto.WebResponse[dto.CircleResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /circles [post]
+// @Router       /circles [post].
 func (h *CircleHandler) CreateCircle(c fiber.Ctx) error {
 	var req dto.CreateCircleRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -78,7 +78,7 @@ func (h *CircleHandler) CreateCircle(c fiber.Ctx) error {
 // @Success      200 {object} dto.WebResponse[dto.CircleResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id} [put]
+// @Router       /circles/{id} [put].
 func (h *CircleHandler) UpdateCircle(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -130,7 +130,7 @@ func (h *CircleHandler) UpdateCircle(c fiber.Ctx) error {
 // @Success      200 {object} dto.WebResponse[dto.CircleResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/image [post]
+// @Router       /circles/{id}/image [post].
 func (h *CircleHandler) UploadCircleImage(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -192,7 +192,7 @@ func (h *CircleHandler) UploadCircleImage(c fiber.Ctx) error {
 // @Param        id path string true "Circle ID"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /circles/{id} [delete]
+// @Router       /circles/{id} [delete].
 func (h *CircleHandler) DissolveCircle(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -221,7 +221,7 @@ func (h *CircleHandler) DissolveCircle(c fiber.Ctx) error {
 // @Param        id path string true "Circle ID"
 // @Success      200 {object} dto.WebResponse[dto.CircleResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id} [get]
+// @Router       /circles/{id} [get].
 func (h *CircleHandler) GetCircle(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -251,7 +251,7 @@ func (h *CircleHandler) GetCircle(c fiber.Ctx) error {
 // @Tags         circles
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[dto.ListCirclesResponse]
-// @Router       /circles [get]
+// @Router       /circles [get].
 func (h *CircleHandler) ListMyCircles(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -283,7 +283,7 @@ func (h *CircleHandler) ListMyCircles(c fiber.Ctx) error {
 // @Param        id path string true "Circle ID"
 // @Success      200 {object} dto.WebResponse[dto.ListCircleMembersResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/members [get]
+// @Router       /circles/{id}/members [get].
 func (h *CircleHandler) ListMembers(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -320,7 +320,7 @@ func (h *CircleHandler) ListMembers(c fiber.Ctx) error {
 // @Param        userId path string true "Target user ID"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/members/{userId} [delete]
+// @Router       /circles/{id}/members/{userId} [delete].
 func (h *CircleHandler) RemoveMember(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -348,7 +348,16 @@ func (h *CircleHandler) RemoveMember(c fiber.Ctx) error {
 		return err
 	}
 
-	slog.InfoContext(c, "circle member removed", "circle_id", circleID, "user_id", targetUserID, "removed_by_user_id", userID)
+	slog.InfoContext(
+		c,
+		"circle member removed",
+		"circle_id",
+		circleID,
+		"user_id",
+		targetUserID,
+		"removed_by_user_id",
+		userID,
+	)
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
@@ -364,7 +373,7 @@ func (h *CircleHandler) RemoveMember(c fiber.Ctx) error {
 // @Param        request body dto.UpdateCircleMemberRoleRequest true "Update role request"
 // @Success      200 {object} dto.WebResponse[dto.CircleMemberResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/members/{userId}/role [patch]
+// @Router       /circles/{id}/members/{userId}/role [patch].
 func (h *CircleHandler) UpdateMemberRole(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -395,7 +404,16 @@ func (h *CircleHandler) UpdateMemberRole(c fiber.Ctx) error {
 		return err
 	}
 
-	slog.InfoContext(c, "circle member role updated", "circle_id", circleID, "user_id", targetUserID, "changed_by_user_id", userID)
+	slog.InfoContext(
+		c,
+		"circle member role updated",
+		"circle_id",
+		circleID,
+		"user_id",
+		targetUserID,
+		"changed_by_user_id",
+		userID,
+	)
 
 	return c.JSON(dto.WebResponse[dto.CircleMemberResponse]{
 		Code:    fiber.StatusOK,
@@ -415,7 +433,7 @@ func (h *CircleHandler) UpdateMemberRole(c fiber.Ctx) error {
 // @Param        request body dto.UpdateCircleMemberPermissionsRequest true "Update permissions request"
 // @Success      200 {object} dto.WebResponse[dto.CircleMemberResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/members/{userId} [patch]
+// @Router       /circles/{id}/members/{userId} [patch].
 func (h *CircleHandler) UpdateMemberPermissions(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -444,7 +462,16 @@ func (h *CircleHandler) UpdateMemberPermissions(c fiber.Ctx) error {
 		return err
 	}
 
-	slog.InfoContext(c, "circle member permissions updated", "circle_id", circleID, "user_id", targetUserID, "changed_by_user_id", userID)
+	slog.InfoContext(
+		c,
+		"circle member permissions updated",
+		"circle_id",
+		circleID,
+		"user_id",
+		targetUserID,
+		"changed_by_user_id",
+		userID,
+	)
 
 	return c.JSON(dto.WebResponse[dto.CircleMemberResponse]{
 		Code:    fiber.StatusOK,

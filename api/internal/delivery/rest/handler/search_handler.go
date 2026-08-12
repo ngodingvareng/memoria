@@ -30,7 +30,7 @@ func NewSearchHandler(usecase usecase.SearchUsecase) *SearchHandler {
 // @Param        q query string true "Search text"
 // @Success      200 {object} dto.WebResponse[dto.SearchSuggestionsResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /search/suggestions [get]
+// @Router       /search/suggestions [get].
 func (h *SearchHandler) Suggestions(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {

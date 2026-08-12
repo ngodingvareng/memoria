@@ -36,7 +36,7 @@ func NewUserHandler(uc usecase.UserUsecase, secureCookies bool) *UserHandler {
 // @Param        username query string true "Username to check"
 // @Success      200 {object} dto.WebResponse[dto.CheckUsernameAvailabilityResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /users/username-availability [get]
+// @Router       /users/username-availability [get].
 func (h *UserHandler) CheckUsernameAvailability(c fiber.Ctx) error {
 	username := c.Query("username")
 	if !validate.UsernameFormat.MatchString(username) {
@@ -66,7 +66,7 @@ func (h *UserHandler) CheckUsernameAvailability(c fiber.Ctx) error {
 // @Success      200 {object} dto.WebResponse[dto.UserResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      409 {object} dto.WebResponse[any]
-// @Router       /users/me/username [patch]
+// @Router       /users/me/username [patch].
 func (h *UserHandler) SetUsername(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -105,7 +105,7 @@ func (h *UserHandler) SetUsername(c fiber.Ctx) error {
 // @Success      200 {object} dto.WebResponse[dto.PublicUserResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /users/{id} [get]
+// @Router       /users/{id} [get].
 func (h *UserHandler) GetUserByID(c fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -134,7 +134,7 @@ func (h *UserHandler) GetUserByID(c fiber.Ctx) error {
 // @Success      200 {object} dto.WebResponse[dto.PublicUserResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /users/username/{username} [get]
+// @Router       /users/username/{username} [get].
 func (h *UserHandler) GetUserByUsername(c fiber.Ctx) error {
 	username := c.Params("username")
 	if !validate.UsernameFormat.MatchString(username) {
@@ -162,7 +162,7 @@ func (h *UserHandler) GetUserByUsername(c fiber.Ctx) error {
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /users/me/knowns [post]
+// @Router       /users/me/knowns [post].
 func (h *UserHandler) MarkUserKnown(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -192,7 +192,7 @@ func (h *UserHandler) MarkUserKnown(c fiber.Ctx) error {
 // @Param        username path string true "Username to unmark"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /users/me/knowns/{username} [delete]
+// @Router       /users/me/knowns/{username} [delete].
 func (h *UserHandler) UnmarkUserKnown(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -218,7 +218,7 @@ func (h *UserHandler) UnmarkUserKnown(c fiber.Ctx) error {
 // @Tags         users
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[dto.ListKnownUsersResponse]
-// @Router       /users/me/knowns [get]
+// @Router       /users/me/knowns [get].
 func (h *UserHandler) ListKnownUsers(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -243,7 +243,7 @@ func (h *UserHandler) ListKnownUsers(c fiber.Ctx) error {
 // @Tags         users
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[dto.PrivateUserResponse]
-// @Router       /users/me [get]
+// @Router       /users/me [get].
 func (h *UserHandler) GetMe(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -271,7 +271,7 @@ func (h *UserHandler) GetMe(c fiber.Ctx) error {
 // @Param        request body dto.UpdatePrivacySettingsRequest true "New privacy settings"
 // @Success      200 {object} dto.WebResponse[dto.PrivateUserResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /users/me/privacy [put]
+// @Router       /users/me/privacy [put].
 func (h *UserHandler) UpdatePrivacySettings(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -313,7 +313,7 @@ func (h *UserHandler) UpdatePrivacySettings(c fiber.Ctx) error {
 // @Param        request body dto.BlockUserRequest true "Username to block"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /users/me/blocks [post]
+// @Router       /users/me/blocks [post].
 func (h *UserHandler) BlockUser(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -343,7 +343,7 @@ func (h *UserHandler) BlockUser(c fiber.Ctx) error {
 // @Param        username path string true "Username to unblock"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /users/me/blocks/{username} [delete]
+// @Router       /users/me/blocks/{username} [delete].
 func (h *UserHandler) UnblockUser(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -369,7 +369,7 @@ func (h *UserHandler) UnblockUser(c fiber.Ctx) error {
 // @Tags         users
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[dto.ListBlockedUsersResponse]
-// @Router       /users/me/blocks [get]
+// @Router       /users/me/blocks [get].
 func (h *UserHandler) ListBlockedUsers(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -395,7 +395,7 @@ func (h *UserHandler) ListBlockedUsers(c fiber.Ctx) error {
 // @Param        request body dto.MuteUserRequest true "Username to mute"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /users/me/mutes [post]
+// @Router       /users/me/mutes [post].
 func (h *UserHandler) MuteUser(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -425,7 +425,7 @@ func (h *UserHandler) MuteUser(c fiber.Ctx) error {
 // @Param        username path string true "Username to unmute"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /users/me/mutes/{username} [delete]
+// @Router       /users/me/mutes/{username} [delete].
 func (h *UserHandler) UnmuteUser(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -451,7 +451,7 @@ func (h *UserHandler) UnmuteUser(c fiber.Ctx) error {
 // @Tags         users
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[dto.ListMutedUsersResponse]
-// @Router       /users/me/mutes [get]
+// @Router       /users/me/mutes [get].
 func (h *UserHandler) ListMutedUsers(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -480,7 +480,7 @@ func (h *UserHandler) ListMutedUsers(c fiber.Ctx) error {
 // @Param        image formData file true "Image file"
 // @Success      200 {object} dto.WebResponse[dto.PublicUserResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /users/me/image [post]
+// @Router       /users/me/image [post].
 func (h *UserHandler) UploadProfileImage(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -537,7 +537,7 @@ func (h *UserHandler) UploadProfileImage(c fiber.Ctx) error {
 // @Param        request body dto.DeleteAccountRequest true "Confirmation"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /users/me [delete]
+// @Router       /users/me [delete].
 func (h *UserHandler) DeleteAccount(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {

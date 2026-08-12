@@ -12,9 +12,9 @@ import (
 	"github.com/ngodingvareng/memoria/internal/config"
 )
 
-// @title Book API
+// @title Memoria API
 // @version 1.0
-// @BasePath /api/v1
+// @BasePath /api/v1.
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
@@ -62,5 +62,4 @@ func main() {
 
 	container.DB.Close()
 	slog.Info("database connection closed, exiting")
-
 }

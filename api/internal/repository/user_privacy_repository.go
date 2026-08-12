@@ -97,7 +97,10 @@ func (r *userPrivacyRepository) IsMuted(ctx context.Context, muterUserID, mutedU
 // user_blocks.sql's CreateUserBlock) — blocking someone already blocked
 // is a no-op, not an error.
 func (r *userPrivacyRepository) Block(ctx context.Context, blockerUserID, blockedUserID uuid.UUID) error {
-	if err := r.q.CreateUserBlock(ctx, db.CreateUserBlockParams{BlockerUserID: blockerUserID, BlockedUserID: blockedUserID}); err != nil {
+	if err := r.q.CreateUserBlock(
+		ctx,
+		db.CreateUserBlockParams{BlockerUserID: blockerUserID, BlockedUserID: blockedUserID},
+	); err != nil {
 		return fmt.Errorf("blocking user: %w", err)
 	}
 	return nil
@@ -106,7 +109,10 @@ func (r *userPrivacyRepository) Block(ctx context.Context, blockerUserID, blocke
 // Unblock implements [usecase.UserBlockRepository]. Silent no-op if the
 // pair isn't currently blocked.
 func (r *userPrivacyRepository) Unblock(ctx context.Context, blockerUserID, blockedUserID uuid.UUID) error {
-	if err := r.q.DeleteUserBlock(ctx, db.DeleteUserBlockParams{BlockerUserID: blockerUserID, BlockedUserID: blockedUserID}); err != nil {
+	if err := r.q.DeleteUserBlock(
+		ctx,
+		db.DeleteUserBlockParams{BlockerUserID: blockerUserID, BlockedUserID: blockedUserID},
+	); err != nil {
 		return fmt.Errorf("unblocking user: %w", err)
 	}
 	return nil
@@ -129,7 +135,10 @@ func (r *userPrivacyRepository) ListBlockedUserIDs(ctx context.Context, blockerU
 // user_mutes.sql's CreateUserMute) — muting someone already muted is a
 // no-op, not an error.
 func (r *userPrivacyRepository) Mute(ctx context.Context, muterUserID, mutedUserID uuid.UUID) error {
-	if err := r.q.CreateUserMute(ctx, db.CreateUserMuteParams{MuterUserID: muterUserID, MutedUserID: mutedUserID}); err != nil {
+	if err := r.q.CreateUserMute(
+		ctx,
+		db.CreateUserMuteParams{MuterUserID: muterUserID, MutedUserID: mutedUserID},
+	); err != nil {
 		return fmt.Errorf("muting user: %w", err)
 	}
 	return nil
@@ -138,7 +147,10 @@ func (r *userPrivacyRepository) Mute(ctx context.Context, muterUserID, mutedUser
 // Unmute implements [usecase.UserMuteRepository]. Silent no-op if the
 // pair isn't currently muted.
 func (r *userPrivacyRepository) Unmute(ctx context.Context, muterUserID, mutedUserID uuid.UUID) error {
-	if err := r.q.DeleteUserMute(ctx, db.DeleteUserMuteParams{MuterUserID: muterUserID, MutedUserID: mutedUserID}); err != nil {
+	if err := r.q.DeleteUserMute(
+		ctx,
+		db.DeleteUserMuteParams{MuterUserID: muterUserID, MutedUserID: mutedUserID},
+	); err != nil {
 		return fmt.Errorf("unmuting user: %w", err)
 	}
 	return nil

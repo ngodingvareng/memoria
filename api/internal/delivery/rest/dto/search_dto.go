@@ -14,15 +14,15 @@ type SearchSuggestionsQuery struct {
 // Moment payload — a live-typing popover only needs enough to identify
 // and preview the match.
 type MomentSuggestionResponse struct {
-	ID         string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	ID         string  `json:"id"                   example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	Note       *string `json:"note,omitempty"`
 	PlaceName  *string `json:"place_name,omitempty"`
-	OccurredAt string  `json:"occurred_at" example:"2026-08-04T14:30:00+09:00"`
+	OccurredAt string  `json:"occurred_at"          example:"2026-08-04T14:30:00+09:00"`
 }
 
 type ThreadSuggestionResponse struct {
-	ID       string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	Name     string  `json:"name" example:"Morning workout"`
+	ID       string  `json:"id"                  example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	Name     string  `json:"name"                example:"Morning workout"`
 	ColorHex *string `json:"color_hex,omitempty"`
 }
 

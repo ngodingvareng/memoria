@@ -9,7 +9,10 @@ import (
 )
 
 // DeclineInvite implements [CircleInviteUsecase].
-func (u *circleInviteUsecase) DeclineInvite(ctx context.Context, inviteID, userID uuid.UUID) (*entity.CircleInvite, error) {
+func (u *circleInviteUsecase) DeclineInvite(
+	ctx context.Context,
+	inviteID, userID uuid.UUID,
+) (*entity.CircleInvite, error) {
 	invite, err := u.repo.DeclineUsernameInvite(ctx, inviteID, userID)
 	if err != nil {
 		return nil, fmt.Errorf("declining circle invite: %w", err)

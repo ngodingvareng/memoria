@@ -34,7 +34,7 @@ func NewReactionHandler(usecase usecase.ReactionUsecase) *ReactionHandler {
 // @Success      200 {object} dto.WebResponse[dto.ReactionResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      403 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/reactions [put]
+// @Router       /moments/{id}/reactions [put].
 func (h *ReactionHandler) SetReaction(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -82,7 +82,7 @@ func (h *ReactionHandler) SetReaction(c fiber.Ctx) error {
 // @Param        circle_id query string false "Circle audience (omit for the mention context)"
 // @Success      204
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/reactions [delete]
+// @Router       /moments/{id}/reactions [delete].
 func (h *ReactionHandler) RemoveReaction(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -122,7 +122,7 @@ func (h *ReactionHandler) RemoveReaction(c fiber.Ctx) error {
 // @Param        id path string true "Moment ID"
 // @Success      200 {object} dto.WebResponse[dto.ListReactionsResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /moments/{id}/reactions [get]
+// @Router       /moments/{id}/reactions [get].
 func (h *ReactionHandler) ListReactions(c fiber.Ctx) error {
 	momentID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

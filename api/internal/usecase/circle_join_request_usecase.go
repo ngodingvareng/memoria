@@ -18,7 +18,11 @@ type CircleJoinRequestRepository interface {
 	// GetPendingByUser backs the "you already asked" check before
 	// writing a new request.
 	GetPendingByUser(ctx context.Context, circleID, userID uuid.UUID) (*entity.CircleJoinRequest, error)
-	ListPendingByCircleID(ctx context.Context, circleID uuid.UUID, limit, offset int32) ([]*entity.CircleJoinRequest, error)
+	ListPendingByCircleID(
+		ctx context.Context,
+		circleID uuid.UUID,
+		limit, offset int32,
+	) ([]*entity.CircleJoinRequest, error)
 	CountPendingByCircleID(ctx context.Context, circleID uuid.UUID) (int64, error)
 	// Approve/Reject/Cancel return errs.ErrNotFound if the request was
 	// already decided/withdrawn — same "no row = 404" reasoning used
@@ -58,7 +62,11 @@ type CircleJoinRequestUsecase interface {
 	// immediately or opens a join request, depending on the link's
 	// requires_approval setting.
 	FollowInviteLink(ctx context.Context, rawToken string, userID uuid.UUID) (*FollowInviteLinkResult, error)
-	ListPending(ctx context.Context, circleID, userID uuid.UUID, page, pageSize int32) ([]*entity.CircleJoinRequest, error)
+	ListPending(
+		ctx context.Context,
+		circleID, userID uuid.UUID,
+		page, pageSize int32,
+	) ([]*entity.CircleJoinRequest, error)
 	Approve(ctx context.Context, id, circleID, decidedByUserID uuid.UUID) (*entity.CircleMember, error)
 	Reject(ctx context.Context, id, circleID, decidedByUserID uuid.UUID) (*entity.CircleJoinRequest, error)
 	Cancel(ctx context.Context, id, userID uuid.UUID) (*entity.CircleJoinRequest, error)
@@ -73,12 +81,30 @@ type circleJoinRequestUsecase struct {
 	notifications NotificationCreator
 }
 
-func NewCircleJoinRequestUsecase(repo CircleJoinRequestRepository, circles CircleAccessChecker, members CircleMemberLister, links CircleInviteLinkResolver, tokens RefreshTokenGenerator, notifications NotificationCreator) CircleJoinRequestUsecase {
-	return &circleJoinRequestUsecase{repo: repo, circles: circles, members: members, links: links, tokens: tokens, notifications: notifications}
+func NewCircleJoinRequestUsecase(
+	repo CircleJoinRequestRepository,
+	circles CircleAccessChecker,
+	members CircleMemberLister,
+	links CircleInviteLinkResolver,
+	tokens RefreshTokenGenerator,
+	notifications NotificationCreator,
+) CircleJoinRequestUsecase {
+	return &circleJoinRequestUsecase{
+		repo:          repo,
+		circles:       circles,
+		members:       members,
+		links:         links,
+		tokens:        tokens,
+		notifications: notifications,
+	}
 }
 
 // FollowInviteLink implements [CircleJoinRequestUsecase].
-func (u *circleJoinRequestUsecase) FollowInviteLink(ctx context.Context, rawToken string, userID uuid.UUID) (*FollowInviteLinkResult, error) {
+func (u *circleJoinRequestUsecase) FollowInviteLink(
+	ctx context.Context,
+	rawToken string,
+	userID uuid.UUID,
+) (*FollowInviteLinkResult, error) {
 	invite, err := u.links.GetActiveLinkByTokenHash(ctx, u.tokens.Hash(rawToken))
 	if err != nil {
 		return nil, fmt.Errorf("resolving invite link: %w", err)
@@ -145,7 +171,11 @@ func (u *circleJoinRequestUsecase) FollowInviteLink(ctx context.Context, rawToke
 // ListPending implements [CircleJoinRequestUsecase]: the approval
 // queue, gated to members with invite privileges (FEATURES.md, Circle
 // Invite).
-func (u *circleJoinRequestUsecase) ListPending(ctx context.Context, circleID, userID uuid.UUID, page, pageSize int32) ([]*entity.CircleJoinRequest, error) {
+func (u *circleJoinRequestUsecase) ListPending(
+	ctx context.Context,
+	circleID, userID uuid.UUID,
+	page, pageSize int32,
+) ([]*entity.CircleJoinRequest, error) {
 	member, err := u.circles.GetActiveMember(ctx, circleID, userID)
 	if err != nil {
 		return nil, fmt.Errorf("checking circle membership: %w", err)
@@ -164,7 +194,10 @@ func (u *circleJoinRequestUsecase) ListPending(ctx context.Context, circleID, us
 
 // Approve implements [CircleJoinRequestUsecase]. Deciding the request
 // and seating the membership run in the same transaction.
-func (u *circleJoinRequestUsecase) Approve(ctx context.Context, id, circleID, decidedByUserID uuid.UUID) (*entity.CircleMember, error) {
+func (u *circleJoinRequestUsecase) Approve(
+	ctx context.Context,
+	id, circleID, decidedByUserID uuid.UUID,
+) (*entity.CircleMember, error) {
 	member, err := u.circles.GetActiveMember(ctx, circleID, decidedByUserID)
 	if err != nil {
 		return nil, fmt.Errorf("checking circle membership: %w", err)
@@ -211,7 +244,10 @@ func (u *circleJoinRequestUsecase) Approve(ctx context.Context, id, circleID, de
 }
 
 // Reject implements [CircleJoinRequestUsecase].
-func (u *circleJoinRequestUsecase) Reject(ctx context.Context, id, circleID, decidedByUserID uuid.UUID) (*entity.CircleJoinRequest, error) {
+func (u *circleJoinRequestUsecase) Reject(
+	ctx context.Context,
+	id, circleID, decidedByUserID uuid.UUID,
+) (*entity.CircleJoinRequest, error) {
 	member, err := u.circles.GetActiveMember(ctx, circleID, decidedByUserID)
 	if err != nil {
 		return nil, fmt.Errorf("checking circle membership: %w", err)
@@ -229,7 +265,10 @@ func (u *circleJoinRequestUsecase) Reject(ctx context.Context, id, circleID, dec
 
 // Cancel implements [CircleJoinRequestUsecase]: the requester
 // withdrawing before anyone answered.
-func (u *circleJoinRequestUsecase) Cancel(ctx context.Context, id, userID uuid.UUID) (*entity.CircleJoinRequest, error) {
+func (u *circleJoinRequestUsecase) Cancel(
+	ctx context.Context,
+	id, userID uuid.UUID,
+) (*entity.CircleJoinRequest, error) {
 	request, err := u.repo.Cancel(ctx, id, userID)
 	if err != nil {
 		return nil, fmt.Errorf("cancelling circle join request: %w", err)

@@ -24,11 +24,11 @@ type CreateMomentRequest struct {
 	// online capture) — see FEATURES.md's Time table.
 	RecordedAt *string `json:"recorded_at,omitempty" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
 
-	Note      *string  `json:"note,omitempty" validate:"omitempty,max=10000"`
-	ColorHex  *string  `json:"color_hex,omitempty" validate:"omitempty,hexcolor"`
+	Note      *string  `json:"note,omitempty"       validate:"omitempty,max=10000"`
+	ColorHex  *string  `json:"color_hex,omitempty"  validate:"omitempty,hexcolor"`
 	PlaceName *string  `json:"place_name,omitempty" validate:"omitempty,max=255"`
-	Latitude  *float64 `json:"latitude,omitempty" validate:"required_with=Longitude,omitempty,gte=-90,lte=90"`
-	Longitude *float64 `json:"longitude,omitempty" validate:"required_with=Latitude,omitempty,gte=-180,lte=180"`
+	Latitude  *float64 `json:"latitude,omitempty"   validate:"required_with=Longitude,omitempty,gte=-90,lte=90"`
+	Longitude *float64 `json:"longitude,omitempty"  validate:"required_with=Latitude,omitempty,gte=-180,lte=180"`
 
 	// ClientID lets an offline-captured Moment be synced twice (e.g. a
 	// flaky retry) without creating a duplicate.
@@ -38,40 +38,40 @@ type CreateMomentRequest struct {
 type UpdateMomentRequest struct {
 	ThreadID *string `json:"thread_id,omitempty" validate:"omitempty,uuid"`
 
-	OccurredAt               string `json:"occurred_at" validate:"required,datetime=2006-01-02T15:04:05Z07:00" example:"2026-08-04T14:30:00+09:00"`
-	OccurredUTCOffsetMinutes int16  `json:"occurred_utc_offset_minutes" validate:"gte=-1020,lte=1020" example:"540"`
+	OccurredAt               string `json:"occurred_at"                 validate:"required,datetime=2006-01-02T15:04:05Z07:00" example:"2026-08-04T14:30:00+09:00"`
+	OccurredUTCOffsetMinutes int16  `json:"occurred_utc_offset_minutes" validate:"gte=-1020,lte=1020"                          example:"540"`
 
-	Note      *string  `json:"note,omitempty" validate:"omitempty,max=10000"`
-	ColorHex  *string  `json:"color_hex,omitempty" validate:"omitempty,hexcolor"`
+	Note      *string  `json:"note,omitempty"       validate:"omitempty,max=10000"`
+	ColorHex  *string  `json:"color_hex,omitempty"  validate:"omitempty,hexcolor"`
 	PlaceName *string  `json:"place_name,omitempty" validate:"omitempty,max=255"`
-	Latitude  *float64 `json:"latitude,omitempty" validate:"required_with=Longitude,omitempty,gte=-90,lte=90"`
-	Longitude *float64 `json:"longitude,omitempty" validate:"required_with=Latitude,omitempty,gte=-180,lte=180"`
+	Latitude  *float64 `json:"latitude,omitempty"   validate:"required_with=Longitude,omitempty,gte=-90,lte=90"`
+	Longitude *float64 `json:"longitude,omitempty"  validate:"required_with=Latitude,omitempty,gte=-180,lte=180"`
 }
 
 type ListMomentsQuery struct {
-	Page     int32 `query:"page" validate:"omitempty,gt=0"`
+	Page     int32 `query:"page"      validate:"omitempty,gt=0"`
 	PageSize int32 `query:"page_size" validate:"omitempty,gt=0,lte=100"`
 }
 
 type SearchMomentsQuery struct {
-	Query    string `query:"q" validate:"required,min=1,max=255"`
-	Page     int32  `query:"page" validate:"omitempty,gt=0"`
+	Query    string `query:"q"         validate:"required,min=1,max=255"`
+	Page     int32  `query:"page"      validate:"omitempty,gt=0"`
 	PageSize int32  `query:"page_size" validate:"omitempty,gt=0,lte=100"`
 }
 
 type MomentResponse struct {
-	ID       string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	UserID   string  `json:"user_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	ID       string  `json:"id"                  example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	UserID   string  `json:"user_id"             example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	ThreadID *string `json:"thread_id,omitempty" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	Origin   string  `json:"origin" example:"manual"`
+	Origin   string  `json:"origin"              example:"manual"`
 
 	// OccurredAt is reconstructed from occurred_local +
 	// occurred_utc_offset_minutes, so it round-trips exactly the wall
 	// time and offset the Moment was captured with.
-	OccurredAt               string `json:"occurred_at" example:"2026-08-04T14:30:00+09:00"`
+	OccurredAt               string `json:"occurred_at"                 example:"2026-08-04T14:30:00+09:00"`
 	OccurredUTCOffsetMinutes int16  `json:"occurred_utc_offset_minutes" example:"540"`
-	RecordedAt               string `json:"recorded_at" example:"2026-08-04T14:35:00Z"`
-	SettlingTimeSeconds      int64  `json:"settling_time_seconds" example:"300"`
+	RecordedAt               string `json:"recorded_at"                 example:"2026-08-04T14:35:00Z"`
+	SettlingTimeSeconds      int64  `json:"settling_time_seconds"       example:"300"`
 
 	Note      *string  `json:"note,omitempty"`
 	ColorHex  *string  `json:"color_hex,omitempty"`

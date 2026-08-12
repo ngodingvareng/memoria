@@ -32,7 +32,7 @@ func NewCircleJoinRequestHandler(usecase usecase.CircleJoinRequestUsecase) *Circ
 // @Success      200 {object} dto.WebResponse[dto.FollowInviteLinkResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circle-join-requests [post]
+// @Router       /circle-join-requests [post].
 func (h *CircleJoinRequestHandler) FollowInviteLink(c fiber.Ctx) error {
 	var req dto.FollowInviteLinkRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -81,7 +81,7 @@ func (h *CircleJoinRequestHandler) FollowInviteLink(c fiber.Ctx) error {
 // @Param        page_size query int    false "Requests per page (default 20, max 100)"
 // @Success      200 {object} dto.WebResponse[dto.ListCircleJoinRequestsResponse]
 // @Failure      403 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/join-requests [get]
+// @Router       /circles/{id}/join-requests [get].
 func (h *CircleJoinRequestHandler) ListPending(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -123,7 +123,7 @@ func (h *CircleJoinRequestHandler) ListPending(c fiber.Ctx) error {
 // @Param        requestId path string true "Join request ID"
 // @Success      200 {object} dto.WebResponse[dto.CircleMemberResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/join-requests/{requestId}/approve [post]
+// @Router       /circles/{id}/join-requests/{requestId}/approve [post].
 func (h *CircleJoinRequestHandler) Approve(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -144,7 +144,16 @@ func (h *CircleJoinRequestHandler) Approve(c fiber.Ctx) error {
 		return err
 	}
 
-	slog.InfoContext(c, "circle join request approved", "request_id", requestID, "circle_id", circleID, "decided_by_user_id", userID)
+	slog.InfoContext(
+		c,
+		"circle join request approved",
+		"request_id",
+		requestID,
+		"circle_id",
+		circleID,
+		"decided_by_user_id",
+		userID,
+	)
 
 	return c.JSON(dto.WebResponse[dto.CircleMemberResponse]{
 		Code:    fiber.StatusOK,
@@ -161,7 +170,7 @@ func (h *CircleJoinRequestHandler) Approve(c fiber.Ctx) error {
 // @Param        requestId path string true "Join request ID"
 // @Success      200 {object} dto.WebResponse[dto.CircleJoinRequestResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/join-requests/{requestId}/reject [post]
+// @Router       /circles/{id}/join-requests/{requestId}/reject [post].
 func (h *CircleJoinRequestHandler) Reject(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -182,7 +191,16 @@ func (h *CircleJoinRequestHandler) Reject(c fiber.Ctx) error {
 		return err
 	}
 
-	slog.InfoContext(c, "circle join request rejected", "request_id", requestID, "circle_id", circleID, "decided_by_user_id", userID)
+	slog.InfoContext(
+		c,
+		"circle join request rejected",
+		"request_id",
+		requestID,
+		"circle_id",
+		circleID,
+		"decided_by_user_id",
+		userID,
+	)
 
 	return c.JSON(dto.WebResponse[dto.CircleJoinRequestResponse]{
 		Code:    fiber.StatusOK,
@@ -198,7 +216,7 @@ func (h *CircleJoinRequestHandler) Reject(c fiber.Ctx) error {
 // @Param        id path string true "Join request ID"
 // @Success      200 {object} dto.WebResponse[dto.CircleJoinRequestResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circle-join-requests/{id}/cancel [post]
+// @Router       /circle-join-requests/{id}/cancel [post].
 func (h *CircleJoinRequestHandler) Cancel(c fiber.Ctx) error {
 	requestID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

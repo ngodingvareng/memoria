@@ -70,7 +70,7 @@ func NewThreadImageHandler(uc usecase.ThreadImageUsecase) *ThreadImageHandler {
 // @Success      201 {object} dto.WebResponse[dto.ThreadImageResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      500 {object} dto.WebResponse[any]
-// @Router       /threads/{id}/images [post]
+// @Router       /threads/{id}/images [post].
 func (h *ThreadImageHandler) UploadThreadImage(c fiber.Ctx) error {
 	threadID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -134,7 +134,7 @@ func (h *ThreadImageHandler) UploadThreadImage(c fiber.Ctx) error {
 // @Produce      json
 // @Param        id path string true "Thread ID"
 // @Success      200 {object} dto.WebResponse[[]dto.ThreadImageResponse]
-// @Router       /threads/{id}/images [get]
+// @Router       /threads/{id}/images [get].
 func (h *ThreadImageHandler) ListThreadImages(c fiber.Ctx) error {
 	threadID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -169,7 +169,7 @@ func (h *ThreadImageHandler) ListThreadImages(c fiber.Ctx) error {
 // @Param        id      path string true "Thread ID"
 // @Param        imageId path string true "Image ID"
 // @Success      204
-// @Router       /threads/{id}/images/{imageId} [delete]
+// @Router       /threads/{id}/images/{imageId} [delete].
 func (h *ThreadImageHandler) DeleteThreadImage(c fiber.Ctx) error {
 	threadID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

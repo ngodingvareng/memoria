@@ -11,7 +11,7 @@ type CreateCommentRequest struct {
 	// CircleID omitted means the mention context; set, it names which
 	// Circle audience the comment is posted in (FEATURES.md, Response).
 	CircleID *string `json:"circle_id,omitempty" validate:"omitempty,uuid"`
-	Body     string  `json:"body" validate:"required,min=1,max=10000"`
+	Body     string  `json:"body"                validate:"required,min=1,max=10000"`
 }
 
 type UpdateCommentRequest struct {
@@ -19,13 +19,13 @@ type UpdateCommentRequest struct {
 }
 
 type CommentResponse struct {
-	ID        string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	MomentID  string  `json:"moment_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	ID        string  `json:"id"                  example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	MomentID  string  `json:"moment_id"           example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	UserID    *string `json:"user_id,omitempty"`
 	CircleID  *string `json:"circle_id,omitempty"`
-	Body      string  `json:"body" example:"Oh man, I remember this!"`
-	CreatedAt string  `json:"created_at" example:"2026-07-20T10:00:00Z"`
-	UpdatedAt string  `json:"updated_at" example:"2026-07-20T10:00:00Z"`
+	Body      string  `json:"body"                example:"Oh man, I remember this!"`
+	CreatedAt string  `json:"created_at"          example:"2026-07-20T10:00:00Z"`
+	UpdatedAt string  `json:"updated_at"          example:"2026-07-20T10:00:00Z"`
 }
 
 type ListCommentsResponse struct {

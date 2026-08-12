@@ -30,6 +30,7 @@ type AlbumRepository interface {
 // generated on read. Mirrors MomentImageWithURL/ThreadImageWithURL.
 type AlbumImageWithURL struct {
 	*entity.AlbumImage
+
 	URL string
 }
 

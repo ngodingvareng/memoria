@@ -12,7 +12,10 @@ import (
 // row and seating the membership run in the same transaction — an
 // accepted invite with no resulting membership would be a stuck state
 // no retry can recover from.
-func (u *circleInviteUsecase) AcceptInvite(ctx context.Context, inviteID, userID uuid.UUID) (*entity.CircleMember, error) {
+func (u *circleInviteUsecase) AcceptInvite(
+	ctx context.Context,
+	inviteID, userID uuid.UUID,
+) (*entity.CircleMember, error) {
 	var member *entity.CircleMember
 	err := u.repo.WithTransaction(ctx, func(tx CircleInviteRepository) error {
 		invite, err := tx.AcceptUsernameInvite(ctx, inviteID, userID)

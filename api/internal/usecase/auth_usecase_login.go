@@ -65,7 +65,11 @@ func (u *authUsecase) registerFailedLogin(ctx context.Context, userID uuid.UUID)
 		return fmt.Errorf("incrementing failed login attempts: %w", err)
 	}
 	if int(updated.FailedLoginAttempts) >= u.maxFailedLoginAttempts {
-		if err := u.userAccounts.LockCredentialAccount(ctx, userID, time.Now().Add(u.loginLockoutDuration)); err != nil {
+		if err := u.userAccounts.LockCredentialAccount(
+			ctx,
+			userID,
+			time.Now().Add(u.loginLockoutDuration),
+		); err != nil {
 			return fmt.Errorf("locking account: %w", err)
 		}
 	}

@@ -83,7 +83,22 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	}
 	googleVerifier := security.NewGoogleIDTokenVerifier(cfg.GoogleClientID)
 
-	authUsecase := usecase.NewAuthUsecase(authUoW, userRepo, userAccountRepo, refreshTokenRepo, userVerificationRepo, hasher, accessTokenIssuer, refreshTokenGenerator, smtpMailer, cfg.WebBaseURL, cfg.JWTRefreshTokenTTL, cfg.LoginMaxFailedAttempts, cfg.LoginLockoutDuration, googleVerifier)
+	authUsecase := usecase.NewAuthUsecase(
+		authUoW,
+		userRepo,
+		userAccountRepo,
+		refreshTokenRepo,
+		userVerificationRepo,
+		hasher,
+		accessTokenIssuer,
+		refreshTokenGenerator,
+		smtpMailer,
+		cfg.WebBaseURL,
+		cfg.JWTRefreshTokenTTL,
+		cfg.LoginMaxFailedAttempts,
+		cfg.LoginLockoutDuration,
+		googleVerifier,
+	)
 	authHandler := handler.NewAuthHandler(authUsecase, cfg.SecureCookies)
 
 	// userPrivacyRepo is constructed here (ahead of 3d below) because
@@ -92,7 +107,14 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	userPrivacyRepo := repository.NewUserPrivacyRepository(conn)
 	accountDeletionUoW := repository.NewAccountDeletionUnitOfWork(conn)
 
-	userUsecase := usecase.NewUserUsecase(userRepo, userPrivacyRepo, userPrivacyRepo, userPrivacyRepo, objectStorage, accountDeletionUoW)
+	userUsecase := usecase.NewUserUsecase(
+		userRepo,
+		userPrivacyRepo,
+		userPrivacyRepo,
+		userPrivacyRepo,
+		objectStorage,
+		accountDeletionUoW,
+	)
 	userHandler := handler.NewUserHandler(userUsecase, cfg.SecureCookies)
 
 	// 3b. Threads. circleRepo is constructed here (ahead of the rest of
@@ -146,15 +168,39 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 	circleHandler := handler.NewCircleHandler(circleUsecase)
 
 	circleInviteRepo := repository.NewCircleInviteRepository(conn)
-	circleInviteUsecase := usecase.NewCircleInviteUsecase(circleInviteRepo, circleRepo, userRepo, userPrivacyRepo, refreshTokenGenerator, notificationUsecase)
+	circleInviteUsecase := usecase.NewCircleInviteUsecase(
+		circleInviteRepo,
+		circleRepo,
+		userRepo,
+		userPrivacyRepo,
+		refreshTokenGenerator,
+		notificationUsecase,
+	)
 	circleInviteHandler := handler.NewCircleInviteHandler(circleInviteUsecase)
 
 	circleJoinRequestRepo := repository.NewCircleJoinRequestRepository(conn)
-	circleJoinRequestUsecase := usecase.NewCircleJoinRequestUsecase(circleJoinRequestRepo, circleRepo, circleRepo, circleInviteRepo, refreshTokenGenerator, notificationUsecase)
+	circleJoinRequestUsecase := usecase.NewCircleJoinRequestUsecase(
+		circleJoinRequestRepo,
+		circleRepo,
+		circleRepo,
+		circleInviteRepo,
+		refreshTokenGenerator,
+		notificationUsecase,
+	)
 	circleJoinRequestHandler := handler.NewCircleJoinRequestHandler(circleJoinRequestUsecase)
 
 	mentionRepo := repository.NewMentionRepository(conn)
-	mentionUsecase := usecase.NewMentionUsecase(mentionRepo, momentRepo, circleRepo, circleRepo, userRepo, userPrivacyRepo, userPrivacyRepo, userRepo, notificationUsecase)
+	mentionUsecase := usecase.NewMentionUsecase(
+		mentionRepo,
+		momentRepo,
+		circleRepo,
+		circleRepo,
+		userRepo,
+		userPrivacyRepo,
+		userPrivacyRepo,
+		userRepo,
+		notificationUsecase,
+	)
 	mentionHandler := handler.NewMentionHandler(mentionUsecase)
 
 	responseEventRepo := repository.NewResponseEventRepository(conn)
@@ -240,5 +286,4 @@ func NewContainer(cfg *config.Config) (*Container, error) {
 		App: fiberApp,
 		DB:  conn,
 	}, nil
-
 }

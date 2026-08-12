@@ -7,7 +7,7 @@ import (
 )
 
 type ListAlbumQuery struct {
-	Page     int32 `query:"page" validate:"omitempty,gt=0"`
+	Page     int32 `query:"page"      validate:"omitempty,gt=0"`
 	PageSize int32 `query:"page_size" validate:"omitempty,gt=0,lte=100"`
 }
 
@@ -18,7 +18,7 @@ type ListAlbumQuery struct {
 // hasn't claimed a handle yet, or who has since deleted their account —
 // see NewAlbumImageResponse).
 type AlbumSharedByResponse struct {
-	ID       string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	ID       string  `json:"id"                 example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	Username *string `json:"username,omitempty" example:"budisantoso"`
 }
 
@@ -27,13 +27,13 @@ type AlbumSharedByResponse struct {
 // payload) so the client can date-bucket the Album into its timeline
 // with no extra per-Moment fetch.
 type AlbumImageResponse struct {
-	ID         string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	MomentID   string  `json:"moment_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	URL        string  `json:"url" example:"https://storage.example.com/moments/.../abc123.jpg?X-Amz-..."`
+	ID         string  `json:"id"                  example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	MomentID   string  `json:"moment_id"           example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	URL        string  `json:"url"                 example:"https://storage.example.com/moments/.../abc123.jpg?X-Amz-..."`
 	ImageAlt   *string `json:"image_alt,omitempty"`
 	Width      *int32  `json:"width,omitempty"`
 	Height     *int32  `json:"height,omitempty"`
-	OccurredAt string  `json:"occurred_at" example:"2026-08-04T14:30:00+09:00"`
+	OccurredAt string  `json:"occurred_at"         example:"2026-08-04T14:30:00+09:00"`
 
 	// ThreadName is omitted when the image's Moment has no parent
 	// Thread.
@@ -55,8 +55,13 @@ type ListAlbumResponse struct {
 func NewAlbumImageResponse(img usecase.AlbumImageWithURL) AlbumImageResponse {
 	loc := time.FixedZone("", int(img.OccurredUTCOffsetMinutes)*60)
 	occurredAt := time.Date(
-		img.OccurredLocal.Year(), img.OccurredLocal.Month(), img.OccurredLocal.Day(),
-		img.OccurredLocal.Hour(), img.OccurredLocal.Minute(), img.OccurredLocal.Second(), img.OccurredLocal.Nanosecond(),
+		img.OccurredLocal.Year(),
+		img.OccurredLocal.Month(),
+		img.OccurredLocal.Day(),
+		img.OccurredLocal.Hour(),
+		img.OccurredLocal.Minute(),
+		img.OccurredLocal.Second(),
+		img.OccurredLocal.Nanosecond(),
 		loc,
 	)
 

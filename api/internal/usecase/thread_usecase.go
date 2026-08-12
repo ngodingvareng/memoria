@@ -54,7 +54,12 @@ type ThreadRepository interface {
 	// the raw trimmed search text (used for trigram ranking/fallback);
 	// prefixQuery is a caller-built ':*'-suffixed tsquery string (see
 	// SearchUsecase's buildPrefixTsQuery).
-	SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Thread, error)
+	SearchSuggestions(
+		ctx context.Context,
+		userID uuid.UUID,
+		query, prefixQuery string,
+		limit int32,
+	) ([]*entity.Thread, error)
 	// GetByID also grants access to a collaborative Thread's Circle
 	// members, not just its creator — see threads.GetThreadWithAccess.
 	GetByID(ctx context.Context, id, userID uuid.UUID) (*entity.Thread, error)

@@ -49,7 +49,7 @@ func NewAuthHandler(uc usecase.AuthUsecase, secureCookies bool) *AuthHandler {
 // @Success      201 {object} dto.WebResponse[dto.LoginResponse]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      409 {object} dto.WebResponse[any]
-// @Router       /auth/register [post]
+// @Router       /auth/register [post].
 func (h *AuthHandler) Register(c fiber.Ctx) error {
 	var req dto.RegisterRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -95,7 +95,7 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 // @Param        request body dto.LoginRequest true "Login request"
 // @Success      200 {object} dto.WebResponse[dto.LoginResponse]
 // @Failure      401 {object} dto.WebResponse[any]
-// @Router       /auth/login [post]
+// @Router       /auth/login [post].
 func (h *AuthHandler) Login(c fiber.Ctx) error {
 	var req dto.LoginRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -145,7 +145,7 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 // @Success      200 {object} dto.WebResponse[dto.LoginResponse]
 // @Failure      401 {object} dto.WebResponse[any]
 // @Failure      409 {object} dto.WebResponse[any]
-// @Router       /auth/google [post]
+// @Router       /auth/google [post].
 func (h *AuthHandler) GoogleLogin(c fiber.Ctx) error {
 	var req dto.GoogleLoginRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -189,7 +189,7 @@ func (h *AuthHandler) GoogleLogin(c fiber.Ctx) error {
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[dto.LoginResponse]
 // @Failure      401 {object} dto.WebResponse[any]
-// @Router       /auth/refresh [post]
+// @Router       /auth/refresh [post].
 func (h *AuthHandler) Refresh(c fiber.Ctx) error {
 	rawToken := c.Cookies(middleware.RefreshCookieName)
 	if rawToken == "" {
@@ -228,7 +228,7 @@ func (h *AuthHandler) Refresh(c fiber.Ctx) error {
 // @Summary      Log out of the current session
 // @Tags         auth
 // @Success      204
-// @Router       /auth/logout [post]
+// @Router       /auth/logout [post].
 func (h *AuthHandler) Logout(c fiber.Ctx) error {
 	// usecase.Logout is idempotent — a missing/already-revoked token
 	// resolves to a nil error there, so there's nothing to distinguish
@@ -254,7 +254,7 @@ func (h *AuthHandler) Logout(c fiber.Ctx) error {
 // @Param        request body dto.ForgotPasswordRequest true "Email to send the reset link to"
 // @Success      200 {object} dto.WebResponse[any]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /auth/forgot-password [post]
+// @Router       /auth/forgot-password [post].
 func (h *AuthHandler) ForgotPassword(c fiber.Ctx) error {
 	var req dto.ForgotPasswordRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -287,7 +287,7 @@ func (h *AuthHandler) ForgotPassword(c fiber.Ctx) error {
 // @Success      200 {object} dto.WebResponse[any]
 // @Failure      400 {object} dto.WebResponse[any]
 // @Failure      401 {object} dto.WebResponse[any]
-// @Router       /auth/reset-password [post]
+// @Router       /auth/reset-password [post].
 func (h *AuthHandler) ResetPassword(c fiber.Ctx) error {
 	var req dto.ResetPasswordRequest
 	if err := c.Bind().Body(&req); err != nil {

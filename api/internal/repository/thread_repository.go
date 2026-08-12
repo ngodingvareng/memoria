@@ -106,7 +106,10 @@ func (r *threadRepository) GetByID(ctx context.Context, id, userID uuid.UUID) (*
 }
 
 // Search implements [usecase.ThreadRepository].
-func (r *threadRepository) Search(ctx context.Context, params usecase.SearchThreadsParams) ([]*entity.Thread, int64, error) {
+func (r *threadRepository) Search(
+	ctx context.Context,
+	params usecase.SearchThreadsParams,
+) ([]*entity.Thread, int64, error) {
 	rows, err := r.q.SearchThreads(ctx, db.SearchThreadsParams{
 		UserID:        params.UserID,
 		Name:          ptrToPgText(params.Name),
@@ -136,7 +139,12 @@ func (r *threadRepository) Search(ctx context.Context, params usecase.SearchThre
 }
 
 // SearchSuggestions implements [usecase.ThreadRepository].
-func (r *threadRepository) SearchSuggestions(ctx context.Context, userID uuid.UUID, query, prefixQuery string, limit int32) ([]*entity.Thread, error) {
+func (r *threadRepository) SearchSuggestions(
+	ctx context.Context,
+	userID uuid.UUID,
+	query, prefixQuery string,
+	limit int32,
+) ([]*entity.Thread, error) {
 	rows, err := r.q.SearchThreadSuggestions(ctx, db.SearchThreadSuggestionsParams{
 		UserID:      userID,
 		Query:       query,
@@ -199,5 +207,4 @@ func (r *threadRepository) WithTransaction(ctx context.Context, fn func(usecase.
 		return err
 	}
 	return tx.Commit(ctx)
-
 }

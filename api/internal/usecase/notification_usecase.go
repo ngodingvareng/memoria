@@ -115,7 +115,10 @@ type NotificationUsecase interface {
 	GetPreferences(ctx context.Context, userID uuid.UUID) (*entity.NotificationPreference, error)
 	// UpdatePreferences returns errs.ErrInvalidInput if quiet hours are
 	// only half-set or the digest hour is out of range.
-	UpdatePreferences(ctx context.Context, input UpdateNotificationPreferencesInput) (*entity.NotificationPreference, error)
+	UpdatePreferences(
+		ctx context.Context,
+		input UpdateNotificationPreferencesInput,
+	) (*entity.NotificationPreference, error)
 }
 
 type notificationUsecase struct {
@@ -124,7 +127,11 @@ type notificationUsecase struct {
 	users UserPolicyReader
 }
 
-func NewNotificationUsecase(repo NotificationRepository, prefs NotificationPreferenceRepository, users UserPolicyReader) NotificationUsecase {
+func NewNotificationUsecase(
+	repo NotificationRepository,
+	prefs NotificationPreferenceRepository,
+	users UserPolicyReader,
+) NotificationUsecase {
 	return &notificationUsecase{repo: repo, prefs: prefs, users: users}
 }
 
@@ -133,7 +140,10 @@ func NewNotificationUsecase(repo NotificationRepository, prefs NotificationPrefe
 // forward when the recipient is currently inside their own quiet hours
 // (FEATURES.md, Notification Preferences) rather than delaying the
 // insert — see the notifications table's own deliver_after comment.
-func (u *notificationUsecase) CreateNotification(ctx context.Context, input CreateNotificationInput) (*entity.Notification, error) {
+func (u *notificationUsecase) CreateNotification(
+	ctx context.Context,
+	input CreateNotificationInput,
+) (*entity.Notification, error) {
 	pref, err := u.prefs.Get(ctx, input.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("loading notification preferences: %w", err)
@@ -180,7 +190,10 @@ func (u *notificationUsecase) CreateNotification(ctx context.Context, input Crea
 
 // ListNotifications implements [NotificationUsecase]: the in-app feed,
 // plus the unread count the same screen needs for its header badge.
-func (u *notificationUsecase) ListNotifications(ctx context.Context, input ListNotificationsInput) (*NotificationListResult, error) {
+func (u *notificationUsecase) ListNotifications(
+	ctx context.Context,
+	input ListNotificationsInput,
+) (*NotificationListResult, error) {
 	page, pageSize := normalizedPage(input.Page, input.PageSize)
 
 	notifications, err := u.repo.ListByUserID(ctx, input.UserID, pageSize, (page-1)*pageSize)
@@ -196,7 +209,13 @@ func (u *notificationUsecase) ListNotifications(ctx context.Context, input ListN
 		return nil, fmt.Errorf("counting unread notifications: %w", err)
 	}
 
-	return &NotificationListResult{Notifications: notifications, Total: total, UnreadCount: unread, Page: page, PageSize: pageSize}, nil
+	return &NotificationListResult{
+		Notifications: notifications,
+		Total:         total,
+		UnreadCount:   unread,
+		Page:          page,
+		PageSize:      pageSize,
+	}, nil
 }
 
 // MarkRead implements [NotificationUsecase].
@@ -216,7 +235,10 @@ func (u *notificationUsecase) MarkAllRead(ctx context.Context, userID uuid.UUID)
 }
 
 // GetPreferences implements [NotificationUsecase].
-func (u *notificationUsecase) GetPreferences(ctx context.Context, userID uuid.UUID) (*entity.NotificationPreference, error) {
+func (u *notificationUsecase) GetPreferences(
+	ctx context.Context,
+	userID uuid.UUID,
+) (*entity.NotificationPreference, error) {
 	pref, err := u.prefs.Get(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("getting notification preferences: %w", err)
@@ -225,7 +247,10 @@ func (u *notificationUsecase) GetPreferences(ctx context.Context, userID uuid.UU
 }
 
 // UpdatePreferences implements [NotificationUsecase].
-func (u *notificationUsecase) UpdatePreferences(ctx context.Context, input UpdateNotificationPreferencesInput) (*entity.NotificationPreference, error) {
+func (u *notificationUsecase) UpdatePreferences(
+	ctx context.Context,
+	input UpdateNotificationPreferencesInput,
+) (*entity.NotificationPreference, error) {
 	if (input.QuietHoursStart == nil) != (input.QuietHoursEnd == nil) {
 		return nil, errs.ErrInvalidInput
 	}

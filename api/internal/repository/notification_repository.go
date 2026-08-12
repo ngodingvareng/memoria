@@ -51,7 +51,11 @@ func (r *notificationRepository) Create(ctx context.Context, n *entity.Notificat
 }
 
 // ListByUserID implements [usecase.NotificationRepository].
-func (r *notificationRepository) ListByUserID(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.Notification, error) {
+func (r *notificationRepository) ListByUserID(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit, offset int32,
+) ([]*entity.Notification, error) {
 	rows, err := r.q.ListNotificationsByUserID(ctx, db.ListNotificationsByUserIDParams{
 		UserID:     userID,
 		PageLimit:  limit,

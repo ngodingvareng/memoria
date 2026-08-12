@@ -32,7 +32,12 @@ type MentionRepository interface {
 // structurally by the existing UserRepository (see user_repository.go's
 // SearchByUsernamePrefix) — no new repository needed.
 type UserSearcher interface {
-	SearchByUsernamePrefix(ctx context.Context, excludeUserID uuid.UUID, query string, limit int32) ([]*entity.User, error)
+	SearchByUsernamePrefix(
+		ctx context.Context,
+		excludeUserID uuid.UUID,
+		query string,
+		limit int32,
+	) ([]*entity.User, error)
 }
 
 // --- Inputs / outputs ---
@@ -105,6 +110,26 @@ type mentionUsecase struct {
 	notifications NotificationCreator
 }
 
-func NewMentionUsecase(repo MentionRepository, moments MomentAccessChecker, circles CircleAccessChecker, circleShares CircleShareChecker, users UserPolicyReader, knowns UserKnownChecker, blocks UserBlockChecker, searcher UserSearcher, notifications NotificationCreator) MentionUsecase {
-	return &mentionUsecase{repo: repo, moments: moments, circles: circles, circleShares: circleShares, users: users, knowns: knowns, blocks: blocks, searcher: searcher, notifications: notifications}
+func NewMentionUsecase(
+	repo MentionRepository,
+	moments MomentAccessChecker,
+	circles CircleAccessChecker,
+	circleShares CircleShareChecker,
+	users UserPolicyReader,
+	knowns UserKnownChecker,
+	blocks UserBlockChecker,
+	searcher UserSearcher,
+	notifications NotificationCreator,
+) MentionUsecase {
+	return &mentionUsecase{
+		repo:          repo,
+		moments:       moments,
+		circles:       circles,
+		circleShares:  circleShares,
+		users:         users,
+		knowns:        knowns,
+		blocks:        blocks,
+		searcher:      searcher,
+		notifications: notifications,
+	}
 }

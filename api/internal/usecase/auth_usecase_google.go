@@ -57,7 +57,12 @@ func (u *authUsecase) LoginWithGoogle(ctx context.Context, input GoogleLoginInpu
 		if err != nil {
 			return fmt.Errorf("creating user: %w", err)
 		}
-		if _, err := repos.UserAccount.CreateOAuth(ctx, user.ID, enum.AuthProviderGoogle, identity.Subject); err != nil {
+		if _, err := repos.UserAccount.CreateOAuth(
+			ctx,
+			user.ID,
+			enum.AuthProviderGoogle,
+			identity.Subject,
+		); err != nil {
 			return fmt.Errorf("creating google account: %w", err)
 		}
 		t, err := u.issueSession(ctx, repos.RefreshToken, user, uuid.New(), input.IPAddress, input.UserAgent)

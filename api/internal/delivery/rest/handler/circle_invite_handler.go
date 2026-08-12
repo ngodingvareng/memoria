@@ -32,7 +32,7 @@ func NewCircleInviteHandler(usecase usecase.CircleInviteUsecase) *CircleInviteHa
 // @Param        request body dto.InviteDirectRequest true "Usernames to invite"
 // @Success      200 {object} dto.WebResponse[dto.InviteDirectResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/members/direct [post]
+// @Router       /circles/{id}/members/direct [post].
 func (h *CircleInviteHandler) InviteDirect(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -73,7 +73,7 @@ func (h *CircleInviteHandler) InviteDirect(c fiber.Ctx) error {
 // @Tags         circle-invites
 // @Produce      json
 // @Success      200 {object} dto.WebResponse[dto.ListCircleInvitesResponse]
-// @Router       /circle-invites [get]
+// @Router       /circle-invites [get].
 func (h *CircleInviteHandler) ListMyPendingInvites(c fiber.Ctx) error {
 	userID, ok := middleware.UserIDFromContext(c)
 	if !ok {
@@ -104,7 +104,7 @@ func (h *CircleInviteHandler) ListMyPendingInvites(c fiber.Ctx) error {
 // @Param        id path string true "Invite ID"
 // @Success      200 {object} dto.WebResponse[dto.CircleMemberResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circle-invites/{id}/accept [post]
+// @Router       /circle-invites/{id}/accept [post].
 func (h *CircleInviteHandler) AcceptInvite(c fiber.Ctx) error {
 	inviteID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -137,7 +137,7 @@ func (h *CircleInviteHandler) AcceptInvite(c fiber.Ctx) error {
 // @Param        id path string true "Invite ID"
 // @Success      200 {object} dto.WebResponse[dto.CircleInviteResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circle-invites/{id}/decline [post]
+// @Router       /circle-invites/{id}/decline [post].
 func (h *CircleInviteHandler) DeclineInvite(c fiber.Ctx) error {
 	inviteID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -171,7 +171,7 @@ func (h *CircleInviteHandler) DeclineInvite(c fiber.Ctx) error {
 // @Param        inviteId path string true "Invite ID"
 // @Success      200 {object} dto.WebResponse[dto.CircleInviteResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/invites/{inviteId}/revoke [post]
+// @Router       /circles/{id}/invites/{inviteId}/revoke [post].
 func (h *CircleInviteHandler) RevokeInvite(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -208,7 +208,7 @@ func (h *CircleInviteHandler) RevokeInvite(c fiber.Ctx) error {
 // @Param        id path string true "Circle ID"
 // @Success      200 {object} dto.WebResponse[dto.CircleInviteResponse]
 // @Failure      404 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/invite-link [get]
+// @Router       /circles/{id}/invite-link [get].
 func (h *CircleInviteHandler) GetInviteLink(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -242,7 +242,7 @@ func (h *CircleInviteHandler) GetInviteLink(c fiber.Ctx) error {
 // @Param        request body dto.CreateOrRotateInviteLinkRequest true "Link options"
 // @Success      201 {object} dto.WebResponse[dto.CircleInviteLinkResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/invite-link [post]
+// @Router       /circles/{id}/invite-link [post].
 func (h *CircleInviteHandler) CreateOrRotateInviteLink(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -287,7 +287,7 @@ func (h *CircleInviteHandler) CreateOrRotateInviteLink(c fiber.Ctx) error {
 // @Param        request body dto.SetInviteLinkRequiresApprovalRequest true "New approval requirement"
 // @Success      200 {object} dto.WebResponse[dto.CircleInviteResponse]
 // @Failure      400 {object} dto.WebResponse[any]
-// @Router       /circles/{id}/invite-link/approval [patch]
+// @Router       /circles/{id}/invite-link/approval [patch].
 func (h *CircleInviteHandler) SetInviteLinkRequiresApproval(c fiber.Ctx) error {
 	circleID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

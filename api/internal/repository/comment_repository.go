@@ -25,7 +25,13 @@ func NewCommentRepository(pool *pgxpool.Pool) *commentRepository {
 }
 
 // Create implements [usecase.CommentRepository].
-func (r *commentRepository) Create(ctx context.Context, momentID uuid.UUID, userID uuid.UUID, circleID *uuid.UUID, body string) (*entity.Comment, error) {
+func (r *commentRepository) Create(
+	ctx context.Context,
+	momentID uuid.UUID,
+	userID uuid.UUID,
+	circleID *uuid.UUID,
+	body string,
+) (*entity.Comment, error) {
 	row, err := r.q.CreateComment(ctx, db.CreateCommentParams{
 		MomentID: momentID, UserID: ptrToPgUUID(&userID), CircleID: ptrToPgUUID(circleID), Body: body,
 	})
@@ -48,7 +54,12 @@ func (r *commentRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.
 }
 
 // ListForMoment implements [usecase.CommentRepository].
-func (r *commentRepository) ListForMoment(ctx context.Context, momentID, viewerID uuid.UUID, mentionAllowed bool, visibleCircleIDs []uuid.UUID) ([]*entity.Comment, error) {
+func (r *commentRepository) ListForMoment(
+	ctx context.Context,
+	momentID, viewerID uuid.UUID,
+	mentionAllowed bool,
+	visibleCircleIDs []uuid.UUID,
+) ([]*entity.Comment, error) {
 	if visibleCircleIDs == nil {
 		visibleCircleIDs = []uuid.UUID{}
 	}

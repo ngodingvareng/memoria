@@ -20,8 +20,8 @@ type RegisterRequest struct {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email" example:"budi@example.com"`
-	Password string `json:"password" validate:"required" example:"correct horse battery staple"`
+	Email    string `json:"email"    validate:"required,email" example:"budi@example.com"`
+	Password string `json:"password" validate:"required"       example:"correct horse battery staple"`
 }
 
 type ForgotPasswordRequest struct {
@@ -39,7 +39,7 @@ type ResetPasswordRequest struct {
 	Email string `json:"email" validate:"required,email,max=255" example:"budi@example.com"`
 	// Token is the raw value from the emailed reset link, never the
 	// hash stored server-side.
-	Token       string `json:"token" validate:"required" example:"9f1c2e..."`
+	Token       string `json:"token"        validate:"required"               example:"9f1c2e..."`
 	NewPassword string `json:"new_password" validate:"required,min=8,max=256" example:"a new correct horse battery staple"`
 }
 
@@ -59,13 +59,13 @@ type LoginResponse struct {
 }
 
 type UserResponse struct {
-	ID   string `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	ID   string `json:"id"   example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	Name string `json:"name" example:"Budi Santoso"`
 	// Username is nil until the welcome/onboarding step claims one.
 	Username      *string `json:"username,omitempty" example:"budisantoso"`
-	Email         string  `json:"email" example:"budi@example.com"`
-	EmailVerified bool    `json:"email_verified" example:"false"`
-	CreatedAt     string  `json:"created_at" example:"2026-07-20T10:00:00Z"`
+	Email         string  `json:"email"              example:"budi@example.com"`
+	EmailVerified bool    `json:"email_verified"     example:"false"`
+	CreatedAt     string  `json:"created_at"         example:"2026-07-20T10:00:00Z"`
 }
 
 func NewUserResponse(u *entity.User) UserResponse {

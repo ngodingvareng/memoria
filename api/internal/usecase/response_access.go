@@ -61,7 +61,10 @@ func NewResponseAccessChecker(moments MomentReader, blocks UserBlockChecker) *Re
 // — "Blocked users can never view, comment, or react to the other's
 // Moments, in any context, in either direction" (FEATURES.md, Response
 // Terms) — before resolving which contexts the viewer may act/read in.
-func (r *ResponseAccessChecker) ResolveAudience(ctx context.Context, momentID, viewerID uuid.UUID) (*ResponseAudience, error) {
+func (r *ResponseAccessChecker) ResolveAudience(
+	ctx context.Context,
+	momentID, viewerID uuid.UUID,
+) (*ResponseAudience, error) {
 	moment, err := r.moments.GetWithAccess(ctx, momentID, viewerID)
 	if err != nil {
 		return nil, fmt.Errorf("resolving moment access: %w", err)

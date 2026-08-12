@@ -12,13 +12,23 @@ import (
 // --- Repository interface, defined here per the Dependency Rule ---
 
 type ReactionRepository interface {
-	Upsert(ctx context.Context, momentID, userID uuid.UUID, circleID *uuid.UUID, kind enum.ReactionKind) (*entity.Reaction, error)
+	Upsert(
+		ctx context.Context,
+		momentID, userID uuid.UUID,
+		circleID *uuid.UUID,
+		kind enum.ReactionKind,
+	) (*entity.Reaction, error)
 	// Delete is a sqlc :exec query — a WHERE clause matching zero rows
 	// is a silent no-op.
 	Delete(ctx context.Context, momentID, userID uuid.UUID, circleID *uuid.UUID) error
 	// ListForMoment returns the rows (who reacted + kind); counts are
 	// never materialized (FEATURES.md, Response).
-	ListForMoment(ctx context.Context, momentID, viewerID uuid.UUID, mentionAllowed bool, visibleCircleIDs []uuid.UUID) ([]*entity.Reaction, error)
+	ListForMoment(
+		ctx context.Context,
+		momentID, viewerID uuid.UUID,
+		mentionAllowed bool,
+		visibleCircleIDs []uuid.UUID,
+	) ([]*entity.Reaction, error)
 	// AnonymizeByUserID is account deletion's counterpart to
 	// CommentRepository.AnonymizeByUserID — same reasoning (FEATURES.md,
 	// Lifecycle & Deletion).
@@ -55,7 +65,11 @@ type reactionUsecase struct {
 	events ResponseEventRepository
 }
 
-func NewReactionUsecase(repo ReactionRepository, access *ResponseAccessChecker, events ResponseEventRepository) ReactionUsecase {
+func NewReactionUsecase(
+	repo ReactionRepository,
+	access *ResponseAccessChecker,
+	events ResponseEventRepository,
+) ReactionUsecase {
 	return &reactionUsecase{repo: repo, access: access, events: events}
 }
 

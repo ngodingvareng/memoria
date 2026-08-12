@@ -8,7 +8,10 @@ import (
 )
 
 // UpdatePrivacySettings implements [UserUsecase].
-func (u *userUsecase) UpdatePrivacySettings(ctx context.Context, input UpdatePrivacySettingsInput) (*entity.User, error) {
+func (u *userUsecase) UpdatePrivacySettings(
+	ctx context.Context,
+	input UpdatePrivacySettingsInput,
+) (*entity.User, error) {
 	updated, err := u.users.UpdatePrivacySettings(ctx, &entity.User{
 		ID:                     input.UserID,
 		MentionPolicy:          input.MentionPolicy,

@@ -27,7 +27,7 @@ func (u *userUsecase) UploadProfileImage(ctx context.Context, input UploadProfil
 		// already succeeded before this DB write failed, so best-effort
 		// delete it rather than leave it dangling in storage.
 		if delErr := u.storage.Delete(context.WithoutCancel(ctx), key); delErr != nil {
-			return nil, fmt.Errorf("saving profile image: %w (cleanup also failed: %v)", err, delErr)
+			return nil, fmt.Errorf("saving profile image: %w (cleanup also failed: %w)", err, delErr)
 		}
 		return nil, fmt.Errorf("saving profile image: %w", err)
 	}

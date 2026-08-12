@@ -8,8 +8,8 @@ import (
 
 // ErrorResponse describes a single field-level validation failure.
 type ErrorResponse struct {
-	Field   string `json:"field" example:"name"`
-	Tag     string `json:"tag" example:"required"`
+	Field   string `json:"field"   example:"name"`
+	Tag     string `json:"tag"     example:"required"`
 	Message string `json:"message" example:"name is required"`
 }
 

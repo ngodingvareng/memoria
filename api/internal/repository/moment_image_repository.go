@@ -67,7 +67,11 @@ func (r *momentImageRepository) Delete(ctx context.Context, momentID, imageID uu
 }
 
 // ListPersonalImages implements [usecase.AlbumRepository].
-func (r *momentImageRepository) ListPersonalImages(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]*entity.AlbumImage, error) {
+func (r *momentImageRepository) ListPersonalImages(
+	ctx context.Context,
+	userID uuid.UUID,
+	limit, offset int32,
+) ([]*entity.AlbumImage, error) {
 	rows, err := r.q.ListAlbumImages(ctx, db.ListAlbumImagesParams{
 		UserID:     userID,
 		PageLimit:  limit,
@@ -92,7 +96,11 @@ func (r *momentImageRepository) ListImagePathsByOwnerID(ctx context.Context, own
 // filter at the query level — access is checked upstream by
 // AlbumUsecase via CircleAccessChecker, same pattern as
 // MomentUsecase.ListCircleMoments.
-func (r *momentImageRepository) ListCircleImages(ctx context.Context, circleID uuid.UUID, limit, offset int32) ([]*entity.AlbumImage, error) {
+func (r *momentImageRepository) ListCircleImages(
+	ctx context.Context,
+	circleID uuid.UUID,
+	limit, offset int32,
+) ([]*entity.AlbumImage, error) {
 	rows, err := r.q.ListCircleAlbumImages(ctx, db.ListCircleAlbumImagesParams{
 		CircleID:   ptrToPgUUID(&circleID),
 		PageLimit:  limit,

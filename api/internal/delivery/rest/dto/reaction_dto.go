@@ -9,7 +9,7 @@ import (
 type SetReactionRequest struct {
 	// CircleID omitted means the mention context — see CreateCommentRequest.
 	CircleID *string `json:"circle_id,omitempty" validate:"omitempty,uuid"`
-	Kind     string  `json:"kind" validate:"required,oneof=heart joy tender" example:"heart"`
+	Kind     string  `json:"kind"                validate:"required,oneof=heart joy tender" example:"heart"`
 }
 
 type RemoveReactionQuery struct {
@@ -17,12 +17,12 @@ type RemoveReactionQuery struct {
 }
 
 type ReactionResponse struct {
-	ID        string  `json:"id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
-	MomentID  string  `json:"moment_id" example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	ID        string  `json:"id"                  example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
+	MomentID  string  `json:"moment_id"           example:"3fa85f64-5717-4562-b3fc-2c963f66afa6"`
 	UserID    *string `json:"user_id,omitempty"`
 	CircleID  *string `json:"circle_id,omitempty"`
-	Kind      string  `json:"kind" example:"heart"`
-	CreatedAt string  `json:"created_at" example:"2026-07-20T10:00:00Z"`
+	Kind      string  `json:"kind"                example:"heart"`
+	CreatedAt string  `json:"created_at"          example:"2026-07-20T10:00:00Z"`
 }
 
 // ListReactionsResponse deliberately carries only the rows — who

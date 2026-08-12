@@ -21,7 +21,11 @@ const pendingUsernameInviteTTL = 30 * 24 * time.Hour
 // --- Repository interface, defined here per the Dependency Rule ---
 
 type CircleInviteRepository interface {
-	CreateUsernameInvite(ctx context.Context, circleID, invitedByUserID, inviteeUserID uuid.UUID, expiresAt time.Time) (*entity.CircleInvite, error)
+	CreateUsernameInvite(
+		ctx context.Context,
+		circleID, invitedByUserID, inviteeUserID uuid.UUID,
+		expiresAt time.Time,
+	) (*entity.CircleInvite, error)
 	GetPendingUsernameInvite(ctx context.Context, circleID, inviteeUserID uuid.UUID) (*entity.CircleInvite, error)
 	ListPendingByInviteeID(ctx context.Context, inviteeUserID uuid.UUID) ([]*entity.CircleInvite, error)
 	// AcceptUsernameInvite/DeclineUsernameInvite return errs.ErrNotFound
@@ -35,9 +39,18 @@ type CircleInviteRepository interface {
 	// RevokeActiveLink returns nil, nil when the Circle has no live link
 	// yet — the ordinary first-generation case, not an error.
 	RevokeActiveLink(ctx context.Context, circleID uuid.UUID) (*entity.CircleInvite, error)
-	CreateLink(ctx context.Context, circleID, invitedByUserID uuid.UUID, tokenHash string, requiresApproval bool) (*entity.CircleInvite, error)
+	CreateLink(
+		ctx context.Context,
+		circleID, invitedByUserID uuid.UUID,
+		tokenHash string,
+		requiresApproval bool,
+	) (*entity.CircleInvite, error)
 	GetActiveLinkByCircleID(ctx context.Context, circleID uuid.UUID) (*entity.CircleInvite, error)
-	SetLinkRequiresApproval(ctx context.Context, circleID uuid.UUID, requiresApproval bool) (*entity.CircleInvite, error)
+	SetLinkRequiresApproval(
+		ctx context.Context,
+		circleID uuid.UUID,
+		requiresApproval bool,
+	) (*entity.CircleInvite, error)
 
 	// AddMembers admits people directly — used both for the "policy
 	// clears" branch of InviteDirect and for AcceptInvite.
@@ -97,8 +110,15 @@ type CircleInviteUsecase interface {
 	RevokeInvite(ctx context.Context, inviteID, circleID, revokedByUserID uuid.UUID) (*entity.CircleInvite, error)
 
 	GetInviteLink(ctx context.Context, circleID, userID uuid.UUID) (*entity.CircleInvite, error)
-	CreateOrRotateInviteLink(ctx context.Context, input CreateOrRotateInviteLinkInput) (*CreateOrRotateInviteLinkResult, error)
-	SetInviteLinkRequiresApproval(ctx context.Context, circleID, userID uuid.UUID, requiresApproval bool) (*entity.CircleInvite, error)
+	CreateOrRotateInviteLink(
+		ctx context.Context,
+		input CreateOrRotateInviteLinkInput,
+	) (*CreateOrRotateInviteLinkResult, error)
+	SetInviteLinkRequiresApproval(
+		ctx context.Context,
+		circleID, userID uuid.UUID,
+		requiresApproval bool,
+	) (*entity.CircleInvite, error)
 }
 
 type circleInviteUsecase struct {
@@ -110,8 +130,22 @@ type circleInviteUsecase struct {
 	notifications NotificationCreator
 }
 
-func NewCircleInviteUsecase(repo CircleInviteRepository, circles CircleAccessChecker, users UserPolicyReader, blocks UserBlockChecker, tokens RefreshTokenGenerator, notifications NotificationCreator) CircleInviteUsecase {
-	return &circleInviteUsecase{repo: repo, circles: circles, users: users, blocks: blocks, tokens: tokens, notifications: notifications}
+func NewCircleInviteUsecase(
+	repo CircleInviteRepository,
+	circles CircleAccessChecker,
+	users UserPolicyReader,
+	blocks UserBlockChecker,
+	tokens RefreshTokenGenerator,
+	notifications NotificationCreator,
+) CircleInviteUsecase {
+	return &circleInviteUsecase{
+		repo:          repo,
+		circles:       circles,
+		users:         users,
+		blocks:        blocks,
+		tokens:        tokens,
+		notifications: notifications,
+	}
 }
 
 // requireCanInvite gates every entry point in the Circle Invite flow

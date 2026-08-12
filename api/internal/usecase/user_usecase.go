@@ -122,8 +122,22 @@ type userUsecase struct {
 	accountDeletion AccountDeletionUnitOfWork
 }
 
-func NewUserUsecase(users UserRepository, knowns UserKnownRepository, blocks UserBlockRepository, mutes UserMuteRepository, storage ProfileImageStorage, accountDeletion AccountDeletionUnitOfWork) UserUsecase {
-	return &userUsecase{users: users, knowns: knowns, blocks: blocks, mutes: mutes, storage: storage, accountDeletion: accountDeletion}
+func NewUserUsecase(
+	users UserRepository,
+	knowns UserKnownRepository,
+	blocks UserBlockRepository,
+	mutes UserMuteRepository,
+	storage ProfileImageStorage,
+	accountDeletion AccountDeletionUnitOfWork,
+) UserUsecase {
+	return &userUsecase{
+		users:           users,
+		knowns:          knowns,
+		blocks:          blocks,
+		mutes:           mutes,
+		storage:         storage,
+		accountDeletion: accountDeletion,
+	}
 }
 
 // resolveUsers looks up each id's profile, silently skipping any that no

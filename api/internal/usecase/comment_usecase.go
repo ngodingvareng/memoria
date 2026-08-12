@@ -16,7 +16,12 @@ import (
 type CommentRepository interface {
 	Create(ctx context.Context, momentID, userID uuid.UUID, circleID *uuid.UUID, body string) (*entity.Comment, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.Comment, error)
-	ListForMoment(ctx context.Context, momentID, viewerID uuid.UUID, mentionAllowed bool, visibleCircleIDs []uuid.UUID) ([]*entity.Comment, error)
+	ListForMoment(
+		ctx context.Context,
+		momentID, viewerID uuid.UUID,
+		mentionAllowed bool,
+		visibleCircleIDs []uuid.UUID,
+	) ([]*entity.Comment, error)
 	// Update/SoftDelete return errs.ErrNotFound / are a silent no-op —
 	// see comment_repository.go for the exact split.
 	Update(ctx context.Context, id, userID uuid.UUID, body string) (*entity.Comment, error)
@@ -74,14 +79,23 @@ type commentUsecase struct {
 	events ResponseEventRepository
 }
 
-func NewCommentUsecase(repo CommentRepository, access *ResponseAccessChecker, events ResponseEventRepository) CommentUsecase {
+func NewCommentUsecase(
+	repo CommentRepository,
+	access *ResponseAccessChecker,
+	events ResponseEventRepository,
+) CommentUsecase {
 	return &commentUsecase{repo: repo, access: access, events: events}
 }
 
 // requireAudience resolves the viewer's audience for momentID and
 // checks circleID (nil = mention context) is one they may act/read in
 // — the same rule CreateComment and ListComments both need.
-func requireAudience(ctx context.Context, access *ResponseAccessChecker, momentID, viewerID uuid.UUID, circleID *uuid.UUID) (*ResponseAudience, error) {
+func requireAudience(
+	ctx context.Context,
+	access *ResponseAccessChecker,
+	momentID, viewerID uuid.UUID,
+	circleID *uuid.UUID,
+) (*ResponseAudience, error) {
 	audience, err := access.ResolveAudience(ctx, momentID, viewerID)
 	if err != nil {
 		return nil, err

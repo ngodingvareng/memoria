@@ -40,7 +40,10 @@ func (u *circleUsecase) RemoveMember(ctx context.Context, circleID, targetUserID
 // UpdateMemberRole implements [CircleUsecase]. Blocks demoting the
 // Circle's sole active admin to member — same orphaned-Circle concern as
 // LeaveCircle. Promoting someone to admin never needs the check.
-func (u *circleUsecase) UpdateMemberRole(ctx context.Context, input UpdateCircleMemberRoleInput) (*entity.CircleMember, error) {
+func (u *circleUsecase) UpdateMemberRole(
+	ctx context.Context,
+	input UpdateCircleMemberRoleInput,
+) (*entity.CircleMember, error) {
 	if input.Role != enum.CircleRoleAdmin {
 		isSoleAdmin, err := u.repo.IsSoleActiveAdmin(ctx, input.CircleID, input.UserID)
 		if err != nil {
@@ -59,8 +62,18 @@ func (u *circleUsecase) UpdateMemberRole(ctx context.Context, input UpdateCircle
 }
 
 // UpdateMemberPermissions implements [CircleUsecase].
-func (u *circleUsecase) UpdateMemberPermissions(ctx context.Context, input UpdateCircleMemberPermissionsInput) (*entity.CircleMember, error) {
-	member, err := u.repo.UpdateMemberPermissions(ctx, input.CircleID, input.UserID, input.ChangedByUserID, input.CanInvite, input.CanCapture)
+func (u *circleUsecase) UpdateMemberPermissions(
+	ctx context.Context,
+	input UpdateCircleMemberPermissionsInput,
+) (*entity.CircleMember, error) {
+	member, err := u.repo.UpdateMemberPermissions(
+		ctx,
+		input.CircleID,
+		input.UserID,
+		input.ChangedByUserID,
+		input.CanInvite,
+		input.CanCapture,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("updating circle member permissions: %w", err)
 	}
