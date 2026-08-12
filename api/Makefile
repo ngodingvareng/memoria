@@ -41,15 +41,17 @@ dev:
 	@docker-compose -f docker-compose.dev.yaml up -d
 	@printf "$(COLOR_SUCCESS)✓ Docker Compose started successfully.$(COLOR_RESET)\n"
 	@printf "$(COLOR_INFO)[3/3] Running Go application... (Press Ctrl+C to stop)$(COLOR_RESET)\n"
-	@bash -c '\
-		cleanup() { \
-			printf "\n$(COLOR_WARN)Stopping server & shutting down Docker containers...$(COLOR_RESET)\n"; \
-			docker-compose -f docker-compose.dev.yaml down; \
-			printf "$(COLOR_SUCCESS)✓ Docker Compose stopped successfully.$(COLOR_RESET)\n"; \
-		}; \
-		trap cleanup INT TERM; \
-		go run cmd/api/main.go || true \
-	'
+	@cleanup() { \
+		printf "\n$(COLOR_WARN)Stopping server & shutting down Docker containers...$(COLOR_RESET)\n"; \
+		docker-compose -f docker-compose.dev.yaml down; \
+		printf "$(COLOR_SUCCESS)✓ Docker Compose stopped successfully.$(COLOR_RESET)\n"; \
+	}; \
+	trap cleanup INT TERM; \
+	if command -v jq > /dev/null 2>&1; then \
+		go run cmd/api/main.go | jq -R -r '. as $$line | try (fromjson) catch $$line'; \
+	else \
+		go run cmd/api/main.go; \
+	fi
 
 ## dev-only: Run Go application directly without Docker.
 dev-only:

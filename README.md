@@ -12,7 +12,7 @@ Memoria is a full-stack private memory keeper built with Golang and React (using
 
 Its value is deferred by design — almost nothing it does matters on day one, and all of it compounds by year three. The archive is the product.
 
-The core entity is the **Thread** — e.g. "Work," "Morning Run," "Reading" — a recurring strand of a life rather than a task. Each Thread holds many **Moments**, its individual occurrences. Moments are captured manually whenever the user wants, which is the primary way Memoria is meant to be used; *capture* is the verb, *Moment* is the thing.
+The core entity is the **Thread** — e.g. "Work," "Morning Run," "Reading" — a recurring strand of a life rather than a task. Each Thread holds many **Moments**, its individual occurrences. Moments are captured manually whenever the user wants, which is the primary way Memoria is meant to be used; _capture_ is the verb, _Moment_ is the thing.
 
 A manually captured Moment has no state at all — it is created and it exists. A Thread can also take on one or more **Commitments**, an opt-in scheduled mode where Memoria generates a Moment each time it comes due (**due** → **kept**, or **missed** if the confirmation window closes unanswered) and keeps an honest record of whether the user showed up. Commitment deliberately judges the user; that is what it's for, so you can look back and learn from what you actually did. It's explained bluntly at opt-in, its strictness is user-set, and the record it produces reaches the archive only in aggregate — a year's adherence rate is a memory worth keeping, a wall of individual missed days is not.
 
@@ -77,6 +77,16 @@ Install dependencies for whichever projects you plan to work on. `api/` and `web
 ### Run the application
 
 Run the API and the web app. Starting the API will automatically spin up the database container via Docker (you can check the Makefile to see how it works).
+
+> **💡 Tip: Install `jq` for Better Log Readability**
+> We highly recommend installing [`jq`](https://jqlang.github.io/jq/download/) before running the API. The `make dev` script will automatically detect `jq` and use it to pretty-print the JSON logs from the Go server, making them much easier to read during development. If `jq` is not installed, the application will still run normally, but the logs will be printed as raw, compact JSON strings.
+>
+> **Installation commands:**
+>
+> - **macOS:** `brew install jq`
+> - **Ubuntu/Debian:** `sudo apt install jq`
+> - **Arch Linux:** `sudo pacman -S jq`
+> - **Windows:** `winget install jqlang.jq` (or via Scoop/Chocolatey)
 
 ```sh
 (cd api && make dev)
