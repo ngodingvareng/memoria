@@ -57,9 +57,15 @@ func (m *SMTPMailer) Send(_ context.Context, to, subject, body string) error {
 // multipart/HTML, which is all a reset-link email needs.
 func buildMessage(from, to, subject, body string) []byte {
 	var msg strings.Builder
-	msg.WriteString("From: " + from + "\r\n")
-	msg.WriteString("To: " + to + "\r\n")
-	msg.WriteString("Subject: " + subject + "\r\n")
+	msg.WriteString("From: ")
+	msg.WriteString(from)
+	msg.WriteString("\r\n")
+	msg.WriteString("To: ")
+	msg.WriteString(to)
+	msg.WriteString("\r\n")
+	msg.WriteString("Subject: ")
+	msg.WriteString(subject)
+	msg.WriteString("\r\n")
 	msg.WriteString("MIME-Version: 1.0\r\n")
 	msg.WriteString("Content-Type: text/plain; charset=\"utf-8\"\r\n")
 	msg.WriteString("\r\n")
