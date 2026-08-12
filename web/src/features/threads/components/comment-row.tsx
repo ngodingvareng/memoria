@@ -83,93 +83,92 @@ export function CommentRow({
   };
 
   return (
-    <div className="flex gap-2">
-      <Avatar size="sm">
-        <AvatarImage
-          src={userQuery.data?.image_path ?? undefined}
-          alt={authorName}
-        />
-        <AvatarFallback>{authorName.charAt(0).toUpperCase()}</AvatarFallback>
-      </Avatar>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{authorName}</span>
-          {showBadge && (
-            <Badge variant="secondary">
-              {comment.circle_id ? (
-                <CircleNameLabel circleId={comment.circle_id} />
-              ) : (
-                'Mentioned'
-              )}
-            </Badge>
-          )}
-          {comment.created_at && (
-            <span className="text-muted-foreground text-xs">
-              {dayjs(comment.created_at).fromNow()}
-            </span>
-          )}
-          {isOwn && (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<Button variant="ghost" size="icon-sm" />}
-              >
-                <HugeiconsIcon icon={MoreVerticalIcon} strokeWidth={2} />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                    <HugeiconsIcon icon={Edit04Icon} strokeWidth={2} />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => setIsDeleteOpen(true)}
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-        {isEditing ? (
-          <div className="flex flex-col gap-1">
-            <Textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-            />
-            <div className="flex justify-end gap-1">
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setIsEditing(false);
-                  setDraft(comment.body ?? '');
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleSave}
-                disabled={updateComment.isPending}
-              >
-                Save
-              </Button>
-            </div>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <Avatar size="sm">
+          <AvatarImage
+            src={userQuery.data?.image_path ?? undefined}
+            alt={authorName}
+          />
+          <AvatarFallback>{authorName.charAt(0).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{authorName}</span>
+            {showBadge && (
+              <Badge variant="secondary">
+                {comment.circle_id ? (
+                  <CircleNameLabel circleId={comment.circle_id} />
+                ) : (
+                  'Mentioned'
+                )}
+              </Badge>
+            )}
+            {comment.created_at && (
+              <span className="text-muted-foreground text-xs">
+                {dayjs(comment.created_at).fromNow()}
+              </span>
+            )}
           </div>
-        ) : (
-          <p className="text-sm whitespace-pre-wrap">{comment.body}</p>
-        )}
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+        </div>
+        {isOwn && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={<Button variant="ghost" size="icon" />}
+            >
+              <HugeiconsIcon icon={MoreVerticalIcon} strokeWidth={2} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  <HugeiconsIcon icon={Edit04Icon} strokeWidth={2} />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setIsDeleteOpen(true)}
+                >
+                  <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
+      {isEditing ? (
+        <div className="flex flex-col gap-1">
+          <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} />
+          <div className="flex justify-end gap-1">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setIsEditing(false);
+                setDraft(comment.body ?? '');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSave}
+              disabled={updateComment.isPending}
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <p className="whitespace-pre-wrap">{comment.body}</p>
+      )}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <ConfirmDestructiveDialog
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
