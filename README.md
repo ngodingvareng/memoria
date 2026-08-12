@@ -8,36 +8,69 @@
 
 ## What is this dawg?
 
-Memoria is a full-stack private memory keeper built with Golang and React (using TanStack Router), built around a simple philosophy: capture your moments and history today so you can look back and reminisce later. It's inspired by Instagram (for the social side) and GitHub's contribution graph (for visualizing daily activity over time).
+Memoria is a full-stack private memory keeper built with Golang and React (using
+TanStack Router), built around a simple philosophy: capture your moments and
+history today so you can look back and reminisce later. It's inspired by
+Instagram (for the social side) and GitHub's contribution graph (for visualizing
+daily activity over time).
 
-Its value is deferred by design — almost nothing it does matters on day one, and all of it compounds by year three. The archive is the product.
+Its value is deferred by design — almost nothing it does matters on day one, and
+all of it compounds by year three. The archive is the product.
 
-The core entity is the **Thread** — e.g. "Work," "Morning Run," "Reading" — a recurring strand of a life rather than a task. Each Thread holds many **Moments**, its individual occurrences. Moments are captured manually whenever the user wants, which is the primary way Memoria is meant to be used; _capture_ is the verb, _Moment_ is the thing.
+The core entity is the **Thread** — e.g. "Work," "Morning Run," "Reading" — a
+recurring strand of a life rather than a task. Each Thread holds many
+**Moments**, its individual occurrences. Moments are captured manually whenever
+the user wants, which is the primary way Memoria is meant to be used; _capture_
+is the verb, _Moment_ is the thing.
 
-A manually captured Moment has no state at all — it is created and it exists. A Thread can also take on one or more **Commitments**, an opt-in scheduled mode where Memoria generates a Moment each time it comes due (**due** → **kept**, or **missed** if the confirmation window closes unanswered) and keeps an honest record of whether the user showed up. Commitment deliberately judges the user; that is what it's for, so you can look back and learn from what you actually did. It's explained bluntly at opt-in, its strictness is user-set, and the record it produces reaches the archive only in aggregate — a year's adherence rate is a memory worth keeping, a wall of individual missed days is not.
+A manually captured Moment has no state at all — it is created and it exists. A
+Thread can also take on one or more **Commitments**, an opt-in scheduled mode
+where Memoria generates a Moment each time it comes due (**due** → **kept**, or
+**missed** if the confirmation window closes unanswered) and keeps an honest
+record of whether the user showed up. Commitment deliberately judges the user;
+that is what it's for, so you can look back and learn from what you actually
+did. It's explained bluntly at opt-in, its strictness is user-set, and the
+record it produces reaches the archive only in aggregate — a year's adherence
+rate is a memory worth keeping, a wall of individual missed days is not.
 
-Every Moment also carries the datetime it actually took place and can be given a color, letting Threads and Moments be told apart visually. On top of that, Memoria includes **Rhythms**: a GitHub-style contribution heatmap of your history, plus **Time to Tell** — how long something takes to settle into a record, i.e. the gap between it happening and you actually writing it down. It's texture about how memory works, not a punctuality score.
+Every Moment also carries the datetime it actually took place and can be given a
+color, letting Threads and Moments be told apart visually. On top of that,
+Memoria includes **Rhythms**: a GitHub-style contribution heatmap of your
+history, plus **Time to Tell** — how long something takes to settle into a
+record, i.e. the gap between it happening and you actually writing it down. It's
+texture about how memory works, not a punctuality score.
 
-See [`FEATURES.md`](./FEATURES.md) for the full feature breakdown — including the principles and non-goals every feature is checked against, the product vocabulary, and Circles (private social groups), Mentions, notifications, Albums, Echoes, and Recaps.
+See [`FEATURES.md`](./FEATURES.md) for the full feature breakdown — including
+the principles and non-goals every feature is checked against, the product
+vocabulary, and Circles (private social groups), Mentions, notifications,
+Albums, Echoes, and Recaps.
 
 This is a monorepo with four projects, each with its own toolchain:
 
-- **`api/`** — the Go backend. The most mature and actively developed part of the stack.
+- **`api/`** — the Go backend. The most mature and actively developed part of
+  the stack.
 - **`web/`** — the React web app.
-- **`mobile/`** — the Flutter mobile app. Early scaffold, not yet wired to the API.
-- **`ai/`** — a FastAPI service meant to be called by the API backend to power future AI-driven features (e.g. activity summarizers, recaps). Still a bare scaffold; real implementation is well down the road.
+- **`mobile/`** — the Flutter mobile app. Early scaffold, not yet wired to the
+  API.
+- **`ai/`** — a FastAPI service meant to be called by the API backend to power
+  future AI-driven features (e.g. activity summarizers, recaps). Still a bare
+  scaffold; real implementation is well down the road.
 
 ## Get started
 
 ### Requirements
 
-- Linux OS (As seen in api/Makefile and the commands below, some shell scripts rely on Linux commands. Cross-platform support will be added later).
+- Linux OS (As seen in api/Makefile and the commands below, some shell scripts
+  rely on Linux commands. Cross-platform support will be added later).
 - Go 1.26
-- Make (If you don't have make installed, you can copy the commands directly from api/Makefile and run them manually in your terminal).
-- Docker (Required for the containerized database and running integration tests).
+- Make (If you don't have make installed, you can copy the commands directly
+  from api/Makefile and run them manually in your terminal).
+- Docker (Required for the containerized database and running integration
+  tests).
 - Bun (Recommended. Alternatively, you can use Node.js with npm, pnpm, or yarn).
 - Flutter (stable channel) — only needed if you're working on `mobile/`.
-- Python 3.14+ and [uv](https://docs.astral.sh/uv/) — only needed if you're working on `ai/`.
+- Python 3.14+ and [uv](https://docs.astral.sh/uv/) — only needed if you're
+  working on `ai/`.
 
 ### Download repository
 
@@ -53,7 +86,9 @@ gh repo clone ngodingvareng/memoria
 
 ### Install packages/dependencies
 
-Install dependencies for whichever projects you plan to work on. `api/` and `web/` are the actively developed ones; `mobile/` and `ai/` are early scaffolds, so only set those up if you're touching them.
+Install dependencies for whichever projects you plan to work on. `api/` and
+`web/` are the actively developed ones; `mobile/` and `ai/` are early scaffolds,
+so only set those up if you're touching them.
 
 ```sh
 # api
@@ -76,10 +111,15 @@ Install dependencies for whichever projects you plan to work on. `api/` and `web
 
 ### Run the application
 
-Run the API and the web app. Starting the API will automatically spin up the database container via Docker (you can check the Makefile to see how it works).
+Run the API and the web app. Starting the API will automatically spin up the
+database container via Docker (you can check the Makefile to see how it works).
 
-> **💡 Tip: Install `jq` for Better Log Readability**
-> We highly recommend installing [`jq`](https://jqlang.github.io/jq/download/) before running the API. The `make dev` script will automatically detect `jq` and use it to pretty-print the JSON logs from the Go server, making them much easier to read during development. If `jq` is not installed, the application will still run normally, but the logs will be printed as raw, compact JSON strings.
+> **💡 Tip: Install `jq` for Better Log Readability** We highly recommend
+> installing [`jq`](https://jqlang.github.io/jq/download/) before running the
+> API. The `make dev` script will automatically detect `jq` and use it to
+> pretty-print the JSON logs from the Go server, making them much easier to read
+> during development. If `jq` is not installed, the application will still run
+> normally, but the logs will be printed as raw, compact JSON strings.
 >
 > **Installation commands:**
 >
@@ -104,13 +144,16 @@ To run `mobile/` or `ai/` as well:
 
 ### Backend
 
-We use clean architecture for this app stack. We also use unit of work for repository pattern (see https://rednafi.com/go/repo-txn-uow)
+We use clean architecture for this app stack. We also use unit of work for
+repository pattern (see https://rednafi.com/go/repo-txn-uow)
 
-- Techstack: Golang, Fiber, SQLC, Postgres, Mockery, Golang migrate, Swaggo, RustFS
+- Techstack: Golang, Fiber, SQLC, Postgres, Mockery, Golang migrate, Swaggo,
+  RustFS
 
 ### Frontend
 
-- Techstack: React, Tanstack Router, Tanstack Form, Bun, Vite, Tailwindcss, ShadCN
+- Techstack: React, Tanstack Router, Tanstack Form, Bun, Vite, Tailwindcss,
+  ShadCN
 
 ### Mobile
 

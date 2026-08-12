@@ -1,0 +1,7 @@
+dist/
+build/
+coverage/
+node_modules/
+.venv/
+.dart_tool/extension_discovery/
+ios/Runner/Assets/xcassets/LaunchImage.imageset/

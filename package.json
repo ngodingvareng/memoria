@@ -1,0 +1,11 @@
+{
+  "name": "memoria",
+  "private": true,
+  "scripts": {
+    "format-md": "prettier --write \"**/*.md\" --print-width 80 --prose-wrap always"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6",
+    "prettier-plugin-tailwindcss": "^0.8.1"
+  }
+}
