@@ -1,0 +1,214 @@
+# ==============================================================================
+# VARIABLES & CONFIGURATION
+# ==============================================================================
+migrations_dir := "db/migrations"
+
+# ANSI Color Codes for terminal output
+color_reset := '\e[0m'
+color_info := '\e[36m'
+color_success := '\e[32m'
+color_warn := '\e[33m'
+
+# Default target: Display available commands
+default:
+    @just --list
+
+# ==============================================================================
+# DEVELOPMENT
+# ==============================================================================
+
+# Start Docker Compose & Go app (Auto docker-down on Ctrl+C)
+@dev:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    printf "{{ color_info }}[1/3] Initializing Swagger...{{ color_reset }}\n"
+    swag init -d ./cmd/api,./internal -g main.go --parseInternal --parseDependency
+    printf "{{ color_success }}✓ Swagger initialized successfully.{{ color_reset }}\n"
+    printf "{{ color_info }}[2/3] Starting Docker Compose...{{ color_reset }}\n"
+    docker-compose -f docker-compose.dev.yaml up -d
+    printf "{{ color_success }}✓ Docker Compose started successfully.{{ color_reset }}\n"
+    printf "{{ color_info }}[3/3] Running Go application... (Press Ctrl+C to stop){{ color_reset }}\n"
+    cleanup() {
+        printf "\n{{ color_warn }}Stopping server & shutting down Docker containers...{{ color_reset }}\n"
+        docker-compose -f docker-compose.dev.yaml down
+        printf "{{ color_success }}✓ Docker Compose stopped successfully.{{ color_reset }}\n"
+    }
+    trap cleanup INT TERM
+    if command -v jq > /dev/null 2>&1; then
+        go run cmd/api/main.go | jq -R -r '. as $line | try (fromjson) catch $line'
+    else
+        go run cmd/api/main.go
+    fi
+
+# Run Go app only (without Docker)
+@dev-only:
+    printf "{{ color_info }}Running Go application...{{ color_reset }}\n"
+    go run cmd/api/main.go
+
+# Build all Go packages
+@build:
+    printf "{{ color_info }}Building application...{{ color_reset }}\n"
+    go build ./...
+    printf "{{ color_success }}✓ Build completed successfully.{{ color_reset }}\n"
+
+# ==============================================================================
+# SWAGGER
+# ==============================================================================
+
+@swagger-generate:
+    swag init -d ./cmd/api,./internal -g main.go --parseInternal --parseDependency
+
+# ==============================================================================
+# DATABASE & MIGRATE
+# ==============================================================================
+
+# Create a new SQL migration file
+@migrate-create:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    read -p "Enter migration name: " name
+    if [ -z "$name" ]; then
+        printf "{{ color_warn }}Migration name cannot be empty!{{ color_reset }}\n"
+        exit 1
+    fi
+    printf "{{ color_info }}Creating migration file in {{ migrations_dir }}...{{ color_reset }}\n"
+    migrate create -ext sql -dir {{ migrations_dir }} -seq "$name"
+
+# Apply all up migrations (credentials from .env)
+@migrate-up:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -a; [ -f .env ] && source .env; set +a
+    missing=""
+    for var in DATABASE_USERNAME DATABASE_PASSWORD DATABASE_DBNAME DATABASE_PORT; do
+        if [ -z "${!var:-}" ]; then
+            missing="$missing $var"
+        fi
+    done
+    if [ -n "$missing" ]; then
+        printf "{{ color_warn }}Missing required env variable(s) in .env:$missing{{ color_reset }}\n"
+        exit 1
+    fi
+    printf "{{ color_info }}Applying all up migrations...{{ color_reset }}\n"
+    migrate -database "postgres://$DATABASE_USERNAME:$DATABASE_PASSWORD@localhost:$DATABASE_PORT/$DATABASE_DBNAME?sslmode=disable" -path {{ migrations_dir }} up
+    printf "{{ color_success }}✓ Up migrations applied successfully.{{ color_reset }}\n"
+
+# Roll back all migrations (credentials from .env)
+@migrate-down:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -a; [ -f .env ] && source .env; set +a
+    missing=""
+    for var in DATABASE_USERNAME DATABASE_PASSWORD DATABASE_DBNAME DATABASE_PORT; do
+        if [ -z "${!var:-}" ]; then
+            missing="$missing $var"
+        fi
+    done
+    if [ -n "$missing" ]; then
+        printf "{{ color_warn }}Missing required env variable(s) in .env:$missing{{ color_reset }}\n"
+        exit 1
+    fi
+    printf "{{ color_warn }}Rolling back ALL migrations...{{ color_reset }}\n"
+    migrate -database "postgres://$DATABASE_USERNAME:$DATABASE_PASSWORD@localhost:$DATABASE_PORT/$DATABASE_DBNAME?sslmode=disable" -path {{ migrations_dir }} down -all
+    printf "{{ color_success }}✓ Down migrations applied successfully.{{ color_reset }}\n"
+
+# Clean & regenerate DB code via sqlc
+@db-generate:
+    printf "{{ color_warn }}Cleaning up old DB files in internal/db/...{{ color_reset }}\n"
+    rm -f internal/db/*.go
+    printf "{{ color_info }}Generating DB code using sqlc...{{ color_reset }}\n"
+    sqlc generate
+    printf "{{ color_success }}✓ DB code generated successfully.{{ color_reset }}\n"
+
+# PREPARE every generated query against Postgres (catches operator-level errors sqlc generate misses, e.g. a broken ||)
+@check-sql:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -a; [ -f .env ] && source .env; set +a
+    missing=""
+    for var in DATABASE_USERNAME DATABASE_PASSWORD DATABASE_DBNAME DATABASE_PORT; do
+        if [ -z "${!var:-}" ]; then
+            missing="$missing $var"
+        fi
+    done
+    if [ -n "$missing" ]; then
+        printf "{{ color_warn }}Missing required env variable(s) in .env:$missing{{ color_reset }}\n"
+        exit 1
+    fi
+    printf "{{ color_info }}Checking generated queries against Postgres...{{ color_reset }}\n"
+    go run ./cmd/checksql -dsn "postgres://$DATABASE_USERNAME:$DATABASE_PASSWORD@localhost:$DATABASE_PORT/$DATABASE_DBNAME?sslmode=disable"
+    printf "{{ color_success }}✓ All generated queries prepared successfully.{{ color_reset }}\n"
+
+# List all tables in the database (runs psql inside the Postgres container from `just dev`)
+@db-tables:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -a; [ -f .env ] && source .env; set +a
+    missing=""
+    for var in DATABASE_USERNAME DATABASE_DBNAME; do
+        if [ -z "${!var:-}" ]; then
+            missing="$missing $var"
+        fi
+    done
+    if [ -n "$missing" ]; then
+        printf "{{ color_warn }}Missing required env variable(s) in .env:$missing{{ color_reset }}\n"
+        exit 1
+    fi
+    printf "{{ color_info }}Listing tables in \"$DATABASE_DBNAME\"...{{ color_reset }}\n"
+    docker-compose -f docker-compose.dev.yaml exec -T postgres psql -U "$DATABASE_USERNAME" -d "$DATABASE_DBNAME" --pset pager=off -c "\dt"
+
+# Describe a table (columns, indexes, constraints); prompts for the table name
+@db-describe:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    set -a; [ -f .env ] && source .env; set +a
+    missing=""
+    for var in DATABASE_USERNAME DATABASE_DBNAME; do
+        if [ -z "${!var:-}" ]; then
+            missing="$missing $var"
+        fi
+    done
+    if [ -n "$missing" ]; then
+        printf "{{ color_warn }}Missing required env variable(s) in .env:$missing{{ color_reset }}\n"
+        exit 1
+    fi
+    read -p "Enter table name: " table
+    if [ -z "$table" ]; then
+        printf "{{ color_warn }}Table name cannot be empty!{{ color_reset }}\n"
+        exit 1
+    fi
+    docker-compose -f docker-compose.dev.yaml exec -T postgres psql -U "$DATABASE_USERNAME" -d "$DATABASE_DBNAME" --pset pager=off -c "\d $table"
+
+# ==============================================================================
+# TEST & MOCK
+# ==============================================================================
+
+# Generate mock objects using Mockery
+@mock-generate:
+    printf "{{ color_info }}Generating mocks using Mockery...{{ color_reset }}\n"
+    mockery
+    printf "{{ color_success }}✓ Mocks generated successfully.{{ color_reset }}\n"
+
+# Interactive test menu (unit, integration, or exits)
+@test:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    printf "{{ color_info }}Select the test suite to run:{{ color_reset }}\n"
+    printf "  1) Unit Tests\n"
+    printf "  2) Integration Tests\n"
+    read -p "Enter choice [1-2]: " choice
+    case "$choice" in
+        1) just test-unit ;;
+        2) just test-integration ;;
+        *) printf "{{ color_warn }}Invalid choice. Aborting.{{ color_reset }}\n"; exit 1 ;;
+    esac
+
+# Run unit tests only
+@test-unit:
+    printf "{{ color_info }}Running unit tests...{{ color_reset }}\n"
+    go test -tags=unit ./... -v
+
+# Run integration tests only
+@test-integration:
+    printf "{{ color_info }}Running integration tests...{{ color_reset }}\n"
+    go test -tags=integration ./... -v

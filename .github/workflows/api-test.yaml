@@ -66,7 +66,7 @@ jobs:
       - name: Regenerate mocks and fail on drift
         # Interfaces live in internal/usecase/*.go; their mocks are
         # generated into internal/usecase/mocks/ (see .mockery.yaml). If
-        # someone changes an interface and forgets `make mock-generate`,
+        # someone changes an interface and forgets `just mock-generate`,
         # this diff catches it instead of letting a stale mock merge.
         run: |
           mockery

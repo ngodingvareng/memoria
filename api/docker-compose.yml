@@ -1,6 +1,6 @@
 # Deployment compose: the app + Postgres, built from the Dockerfile in
 # this directory. Unlike docker-compose.dev.yaml (Postgres/RustFS only,
-# used by `make dev` while the app runs on the host via `go run`), this
+# used by `just dev` while the app runs on the host via `go run`), this
 # file runs the app itself in a container too, so Postgres is reached at
 # the "postgres" service name instead of localhost — see DATABASE_HOST
 # in .env.example. Object storage (STORAGE_* in .env) is expected to

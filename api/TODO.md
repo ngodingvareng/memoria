@@ -53,7 +53,7 @@ Don't start either worker until those questions are answered.
       done: multi-stage `api/Dockerfile` plus `api/docker-compose.yml`
       (postgres + a one-shot `migrate` service + the app, healthchecked).
       `docker-compose.dev.yaml` is unchanged and still covers local
-      Postgres/RustFS for `make dev`. Added `DATABASE_HOST`
+      Postgres/RustFS for `just dev`. Added `DATABASE_HOST`
       (`internal/config/config.go`, defaults to `localhost`) since `GetDSN`
       could no longer hardcode it once the app itself runs in a container and
       must reach Postgres by service name.
@@ -63,7 +63,7 @@ Don't start either worker until those questions are answered.
 - [x] ~~CI: `PREPARE` every generated query against a real Postgres.~~ — done:
       `api/cmd/checksql` extracts every sqlc `const` from `internal/db/*.sql.go`
       via `go/parser` and `PREPARE`s each against a migrated Postgres (also
-      runnable locally as `make check-sql`); wired into a `check-sql` job in
+      runnable locally as `just check-sql`); wired into a `check-sql` job in
       `.github/workflows/api-test.yaml`. Running it surfaced one real breakage —
       `ListCommitmentsForGeneration` still referenced `threads.has_commitment`,
       dropped by migration 000004 in favor of

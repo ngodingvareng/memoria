@@ -16,7 +16,7 @@ type Config struct {
 	JWTIssuer          string        `mapstructure:"JWT_ISSUER"`
 	JWTAccessTokenTTL  time.Duration `mapstructure:"JWT_ACCESS_TOKEN_TTL"`
 	JWTRefreshTokenTTL time.Duration `mapstructure:"JWT_REFRESH_TOKEN_TTL"`
-	// DBHost defaults to "localhost" for local dev (`make dev`) and
+	// DBHost defaults to "localhost" for local dev (`just dev`) and
 	// testing, but must be set to the Postgres service/host name (e.g.
 	// "postgres") when the app runs in its own container, as it does in
 	// docker-compose.yml — the app and database are no longer reachable

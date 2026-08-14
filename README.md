@@ -60,11 +60,12 @@ This is a monorepo with four projects, each with its own toolchain:
 
 ### Requirements
 
-- Linux OS (As seen in api/Makefile and the commands below, some shell scripts
+- Linux OS (As seen in api/justfile and the commands below, some shell scripts
   rely on Linux commands. Cross-platform support will be added later).
 - Go 1.26
-- Make (If you don't have make installed, you can copy the commands directly
-  from api/Makefile and run them manually in your terminal).
+- [`just`](https://github.com/casey/just) (If you don't have `just` installed,
+  you can copy the commands directly from api/justfile and run them manually in
+  your terminal).
 - Docker (Required for the containerized database and running integration
   tests).
 - Bun (Recommended. Alternatively, you can use Node.js with npm, pnpm, or yarn).
@@ -112,11 +113,11 @@ so only set those up if you're touching them.
 ### Run the application
 
 Run the API and the web app. Starting the API will automatically spin up the
-database container via Docker (you can check the Makefile to see how it works).
+database container via Docker (you can check the justfile to see how it works).
 
 > **💡 Tip: Install `jq` for Better Log Readability** We highly recommend
 > installing [`jq`](https://jqlang.github.io/jq/download/) before running the
-> API. The `make dev` script will automatically detect `jq` and use it to
+> API. The `just dev` recipe will automatically detect `jq` and use it to
 > pretty-print the JSON logs from the Go server, making them much easier to read
 > during development. If `jq` is not installed, the application will still run
 > normally, but the logs will be printed as raw, compact JSON strings.
@@ -129,7 +130,7 @@ database container via Docker (you can check the Makefile to see how it works).
 > - **Windows:** `winget install jqlang.jq` (or via Scoop/Chocolatey)
 
 ```sh
-(cd api && make dev)
+(cd api && just dev)
 (cd web && bun dev)
 ```
 
